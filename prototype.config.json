@@ -1,0 +1,79 @@
+{
+  "schemaVersion": 5,
+  "project": {
+    "name": "comuilty",
+    "title": "本地生活"
+  },
+  "repository": {
+    "provider": "github",
+    "url": "https://github.com/dangjingtao/local-life-prototype"
+  },
+  "contributors": [
+    {
+      "name": "Tomz",
+      "email": "dangjingtao@gmail.com",
+      "type": "human",
+      "role": "owner",
+      "github": {
+        "login": "dangjingtao",
+        "profile": "https://github.com/dangjingtao",
+        "verified": true
+      }
+    },
+    {
+      "name": "Mira",
+      "email": "mira@tomz.io",
+      "type": "ai-collaborator",
+      "role": "co-author",
+      "github": null
+    }
+  ],
+  "targets": {
+    "mobile": true,
+    "pc": true
+  },
+  "design": {
+    "preset": "com-design",
+    "icons": "lucide"
+  },
+  "versioning": {
+    "strategy": "semver",
+    "currentVersion": "0.1.0",
+    "seedVersion": "0.4.0",
+    "versionFile": "VERSION",
+    "changelogFile": "CHANGELOG.md"
+  },
+  "deployment": {
+    "githubPages": {
+      "enabled": true
+    },
+    "cloudflare": {
+      "enabled": true,
+      "provider": "pages",
+      "projects": {
+        "mobile": "comuilty-mobile",
+        "pc": "comuilty-pc"
+      }
+    }
+  },
+  "workflow": {
+    "developmentBranch": "dev",
+    "productionBranch": "prod",
+    "longLivedBranches": [
+      "dev",
+      "prod"
+    ],
+    "usesMainForProductWork": false,
+    "previewEnvironment": "preview",
+    "productionEnvironment": "production"
+  },
+  "workbench": {
+    "enabled": true,
+    "taskPrefix": "T",
+    "dailyReport": {
+      "skill": "docs/ai/skills/daily-report.md",
+      "reviewSkill": "docs/ai/skills/daily-report-review.md",
+      "outputDirectory": "docs/reports/daily"
+    }
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "name": "@prototype/icons",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "exports": "./src/index.tsx",
+  "dependencies": {
+    "lucide-react": "^0.468.0"
+  },
+  "peerDependencies": {
+    "react": "^18.3.1"
+  }
+}

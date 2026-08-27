@@ -1,0 +1,80 @@
+name: Deploy Cloudflare Pages
+
+on:
+  push:
+    branches: [dev, prod]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  deployments: write
+
+concurrency:
+  group: cloudflare-${{ github.ref_name }}
+  cancel-in-progress: true
+
+env:
+  CF_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+  CF_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+
+jobs:
+  deploy:
+    strategy:
+      fail-fast: false
+      matrix:
+        app: [mobile, pc]
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    environment:
+      name: ${{ github.ref_name == 'prod' && 'production' || 'preview' }}
+    steps:
+      - uses: actions/checkout@v6
+
+      - name: Resolve deployment target
+        id: target
+        env:
+          APP: ${{ matrix.app }}
+        shell: bash
+        run: |
+          node <<'NODE' >> "$GITHUB_OUTPUT"
+          const fs = require('node:fs');
+          const config = require('./prototype.config.json');
+          const app = process.env.APP;
+          const exists = fs.existsSync(`apps/${app}/package.json`);
+          const enabled = Boolean(exists && config.targets?.[app] && config.deployment?.cloudflare?.enabled);
+          const project = config.deployment?.cloudflare?.projects?.[app] || '';
+          console.log(`enabled=${enabled}`);
+          console.log(`project=${project}`);
+          NODE
+
+      - name: Check Cloudflare credentials
+        if: steps.target.outputs.enabled == 'true'
+        shell: bash
+        run: |
+          if [ -z "$CF_API_TOKEN" ] || [ -z "$CF_ACCOUNT_ID" ]; then
+            echo "Cloudflare deployment is enabled but CLOUDFLARE_API_TOKEN / CLOUDFLARE_ACCOUNT_ID are missing."
+            echo "Run: mira setup cicd"
+            exit 1
+          fi
+
+      - uses: actions/setup-node@v6
+        if: steps.target.outputs.enabled == 'true'
+        with:
+          node-version: 24
+
+      - run: npm install
+        if: steps.target.outputs.enabled == 'true'
+
+      - name: Build ${{ matrix.app }}
+        if: steps.target.outputs.enabled == 'true'
+        run: npm run build --workspace @prototype/${{ matrix.app }}
+
+      - name: Deploy ${{ matrix.app }}
+        if: steps.target.outputs.enabled == 'true'
+        uses: cloudflare/wrangler-action@v4
+        with:
+          apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+          wranglerVersion: "4"
+          gitHubToken: ${{ secrets.GITHUB_TOKEN }}
+          command: pages deploy apps/${{ matrix.app }}/dist --project-name=${{ steps.target.outputs.project }} --branch=${{ github.ref_name }} --commit-hash=${{ github.sha }}

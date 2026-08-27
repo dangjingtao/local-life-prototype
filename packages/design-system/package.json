@@ -1,0 +1,13 @@
+{
+  "name": "@prototype/design-system",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "exports": {
+    ".": "./src/ui.tsx",
+    "./tokens.css": "./src/tokens.css"
+  },
+  "peerDependencies": {
+    "react": "^18.3.1"
+  }
+}
