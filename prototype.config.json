@@ -1,7 +1,7 @@
 {
   "schemaVersion": 5,
   "project": {
-    "name": "comuilty",
+    "name": "local-life",
     "title": "本地生活"
   },
   "repository": {
@@ -51,8 +51,8 @@
       "enabled": true,
       "provider": "pages",
       "projects": {
-        "mobile": "comuilty-mobile",
-        "pc": "comuilty-pc"
+        "mobile": "local-life-mobile",
+        "pc": "local-life-pc"
       }
     }
   },
