@@ -27,15 +27,19 @@
 | error | 加载失败 | 错误原因 + 恢复动作 | Runtime 原地切换；使用 alert 语义并提供“重新加载演示” |
 | permission | 越权 / 无权限 | 边界原因 + 返回允许范围 | PC 使用角色专属 permission；因根级角色边界页需要重新读取 URL，进入 / 离开 permission 仍采用文档导航 |
 
-### 为什么 loading / empty / error 不再刷新文档
+### 为什么 loading / empty / error 不刷新文档
 
-T012 PR #4 首轮 review 发现：原来的 `setPrototypeView()` 使用 `window.location.assign`，从 Mobile 门店详情 / 确认页或 PC 非默认模块触发 error / empty 后，恢复 ready 会把 React 局部导航状态重置到首页 / 总览。
+PR #4 首轮 review 发现：原来的 `setPrototypeView()` 使用 `window.location.assign`，从 Mobile 门店详情 / 确认页或 PC 非默认模块触发 error / empty 后，恢复 ready 会把 React 局部导航状态重置到首页 / 总览。
 
-返工后：
+第一轮返工改成 `history.replaceState` + `prototype:viewchange` 后，OpenCode #13 又发现一个更深的 P1：ready 直接返回 children，non-ready 则把 children 放进新 wrapper，React tree position 仍变化，nested state 依然会被卸载重挂。
+
+第二次返工后的合同：
 
 - `usePrototypeView()` 基于 `useSyncExternalStore` 订阅原型状态变化。
-- ready / loading / empty / error 使用 `history.replaceState` + `prototype:viewchange` 事件在当前文档内切换。
-- `PrototypeState` 在非 ready 时隐藏业务 children，但不卸载它们；恢复 ready 后门店 step、选中模块等局部 state 继续保留。
+- ready / loading / empty / error 使用 `history.replaceState` + `prototype:viewchange` 在当前文档内切换。
+- `PrototypeState` 始终返回同一个 Fragment；业务 children 始终位于第一个固定 wrapper。
+- ready 时固定 wrapper 使用 `display: contents`，不额外改变页面布局。
+- loading / empty / error 时同一 wrapper 使用 `hidden`，从布局、焦点和可访问树移除，但 React subtree 不卸载；恢复 ready 后门店 step、选中模块等局部 state 应继续保留。
 - permission 仍保留文档导航，因为 PC 三角色已有独立业务级 permission 壳，需要根组件重新读取 `?view=permission`。
 
 ## 3. 可复现路由
@@ -81,7 +85,7 @@ T012 PR #4 首轮 review 发现：原来的 `setPrototypeView()` 使用 `window.
 本轮代码级基线：
 
 - Design System `Button` / `SecondaryButton` 最小高度保持 44px，并使用组件级 `focus-visible` ring。
-- 双端 CSS 在 `@layer base` 对 `button`、`a[href]`、`summary`、`[role=button]` 提供全局可见焦点 fallback；组件级 Tailwind utility 可正常覆盖 fallback，不叠加双焦点。
+- 双端 CSS 在 `@layer base` 对 `button`、`a[href]`、`summary`、`[role=button]` 提供全局可见焦点 fallback；组件级 Tailwind utility 可覆盖 fallback，不叠加双焦点。
 - PrototypePanel 的 summary 与状态按钮提升到 44px 级交互目标，并用 `aria-pressed` 标记当前状态。
 - loading 使用 `aria-busy`；error 使用 `role=alert`；其余非 ready 状态使用 status / live region 表达。
 - loading skeleton 只在 `motion-safe` 时播放 pulse，尊重 reduced-motion。
@@ -119,11 +123,14 @@ T012 PR #4 首轮 review 发现：原来的 `setPrototypeView()` 使用 `window.
 - [ ] error / permission 不只依赖颜色表达。
 - [ ] 禁用按钮仍可理解，且不会被键盘误触发。
 
-## 6. PR #4 首轮 Review 记录
+## 6. PR #4 Review 记录
 
-- Codex P2：empty / error 从嵌套页面触发与恢复会因整页刷新丢失当前 page / step。判定成立，已用 Runtime 原地切换 + children 保持挂载返工。
-- OpenCode #12：组件 ring 与未分层全局 outline 在 Tailwind v3 cascade 下会形成双焦点。判定成立，fallback 已移入 `@layer base`。
-- 首轮 Head `21a1296` Verify Prototype #79 success；返工 Head 仍需新的 Verify 与 marked OpenCode review。
+- 初始 Head `21a1296`：Verify Prototype #79 success。
+- Codex P2：empty / error 从嵌套页面触发与恢复会因整页刷新丢失当前 page / step。判定成立，改为 Runtime 原地切换。
+- OpenCode #12：组件 ring 与未分层全局 outline 在 Tailwind v3 cascade 下会形成双焦点。判定成立，fallback 移入 `@layer base`。
+- 首轮返工 Head `8e3e64b`：Verify Prototype #80 success。
+- OpenCode #13：ready 与 non-ready 返回结构不同，React reconciliation 仍会卸载业务 children，nested Mobile step 仍会重置。判定为高置信 P1；第二次返工改为固定 Fragment + 固定第一 wrapper，只有 visibility 改变，React tree position 不变。
+- 第二次返工 Head 仍需新的 Verify 与 marked OpenCode review。
 
 ## 7. 完成条件
 

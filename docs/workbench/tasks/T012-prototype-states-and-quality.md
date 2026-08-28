@@ -51,15 +51,20 @@
   - Prototype Runtime 的 loading / empty / error / permission 增加可理解原因；empty / error / permission 增加返回 ready 的明确恢复动作；loading 增加 `aria-busy`，error 使用 alert 语义。
   - PrototypePanel 的交互目标提升到 44px 级并增加键盘焦点；Design System Button / SecondaryButton 与双端普通按钮统一补 `focus-visible` 可见焦点。
   - Mobile 演示登录把 `demoAuth=1` 保留在 URL。该参数只用于直接状态链接和 permission 文档跳转后的演示身份复现，不代表真实鉴权。
-  - 首轮 review 后 Runtime 改为 `useSyncExternalStore` 驱动：ready / loading / empty / error 使用 history + 事件在当前文档内切换；非 ready 时业务 children 继续挂载但隐藏，因此门店 step、运营模块等 React 局部状态在 error / empty 恢复后不丢失。permission 因 PC 有角色专属边界页，仍使用文档导航。
+  - ready / loading / empty / error 使用 `useSyncExternalStore` + history 事件在当前文档内切换；permission 因 PC 有角色专属边界页，仍使用文档导航。
+  - 首轮返工后，OpenCode 二审继续发现 React reconciliation P1：ready 与非 ready 返回结构不同仍会卸载业务 children。第二次返工改为 `PrototypeState` 始终返回同一 Fragment，业务 children 始终位于第一个稳定 wrapper；ready 时 wrapper 使用 `display: contents`，非 ready 时用 `hidden` 从布局、焦点和可访问树移除，因此 nested React state 不因质量状态切换而卸载。
   - loading 动画使用 `motion-safe:animate-pulse`；全局焦点 fallback 放入 `@layer base`，由组件级 Tailwind ring 正常覆盖，避免双焦点。
 
 ## Verification evidence
 
-- CI: 首轮 PR Head `21a1296d8829e97da7b6d03e807c46c2d69050d1` 的 `Verify Prototype #79`（run `33144289370`）success；版本合同、全仓 typecheck、全仓 build 均通过。返工 Head 需再次 Verify。
+- CI:
+  - 初始 Head `21a1296d8829e97da7b6d03e807c46c2d69050d1`：Verify Prototype #79（run `33144289370`）success。
+  - 首轮返工 Head `8e3e64bcc3d9f481c0efb25e9836956bb1b171a3`：Verify Prototype #80（run `33144696578`）success。
+  - 第二次返工后的当前 Head 仍需再次 Verify。
 - AI Review:
-  - Codex P2：`setPrototypeView("ready")` 整页导航导致 Mobile 深层门店 step / PC 非默认模块恢复后掉回默认页面。复核成立，改为非 permission 状态无刷新切换并保持 children 挂载。
+  - Codex P2：`setPrototypeView("ready")` 整页导航导致 Mobile 深层门店 step / PC 非默认模块恢复后掉回默认页面。复核成立，改为非 permission 状态无刷新切换。
   - OpenCode #12 verdict `CHANGES_NEEDED`：组件 ring 与未分层全局 outline 在 Tailwind v3 cascade 下可能形成双焦点。复核成立，fallback 改为 `@layer base`。
+  - OpenCode #13 verdict `CHANGES_NEEDED`：首轮返工虽然不刷新文档，但 ready / non-ready 的 React 返回树不同，业务 children 仍会卸载重挂，门店局部 step 无法真正保持。复核为高置信 P1，第二次返工改为稳定 wrapper 始终处于同一 React tree position。
 - Page / Route:
   - Mobile：登录后 URL 自动带 `demoAuth=1`；可组合 `?demoAuth=1&view=loading|empty|error|permission`。
   - PC 店主：`?role=merchant&view=loading|empty|error|permission`。
@@ -72,5 +77,5 @@
 
 - Reviewer: Tomz
 - Result: DOING
-- Conclusion: PR #4 首轮独立 review 真实发现两项 P2：关键页面恢复丢失局部导航状态、焦点机制重复；两项均判定成立并返工。由于 T005-T007 尚未施工，T012 即使本 PR 最终合入仍继续保持 `DOING`。
-- Follow-up: 等待返工 Head 最新 Verify 与 `local-ai-review:v1` 二审。通过后可合并本轮质量基线；待 T005-T007 完成后补全双端关键页面、390/1024/1440 实际浏览器与键盘/对比度验收，再决定进入 `REVIEW`。
+- Conclusion: PR #4 已经历两轮有效返工：首轮发现页面恢复与双焦点 P2；二审进一步发现 React 树结构仍会导致局部 state 重置的 P1。第二次返工已保持业务 children 的 React tree position 稳定。由于 T005-T007 尚未施工，T012 即使本 PR 最终合入仍继续保持 `DOING`。
+- Follow-up: 等待第二次返工 Head 的最新 Verify 与 `local-ai-review:v1` 复审。通过后可合并本轮质量基线；待 T005-T007 完成后补全双端关键页面、390/1024/1440 实际浏览器与键盘/对比度验收，再决定进入 `REVIEW`。

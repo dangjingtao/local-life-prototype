@@ -51,7 +51,7 @@ export function PrototypePanel() {
 
 export function PrototypeState({ children }: { view: PrototypeView; children: ReactNode }) {
   const view = usePrototypeView();
-  if (view === "ready") return <>{children}</>;
+  const ready = view === "ready";
 
   const labels: Record<Exclude<PrototypeView, "ready">, { title: string; description: string; action?: string }> = {
     loading: {
@@ -75,9 +75,12 @@ export function PrototypeState({ children }: { view: PrototypeView; children: Re
     },
   };
 
-  const state = labels[view];
+  const state = ready ? null : labels[view];
   const isLoading = view === "loading";
   const role = view === "error" ? "alert" : "status";
 
-  return <><div hidden aria-hidden="true">{children}</div><section role={role} aria-live={view === "error" ? "assertive" : "polite"} aria-busy={isLoading || undefined} className="flex min-h-[320px] items-center justify-center px-6 py-12"><div className="w-full max-w-sm text-center">{isLoading && <div aria-hidden="true" className="mx-auto mb-6 max-w-xs space-y-3"><div className="h-3 w-2/3 motion-safe:animate-pulse rounded-full bg-[var(--color-brand-subtle)]" /><div className="h-3 w-full motion-safe:animate-pulse rounded-full bg-[var(--color-surface-subtle)]" /><div className="h-3 w-4/5 motion-safe:animate-pulse rounded-full bg-[var(--color-surface-subtle)]" /></div>}<p className="text-xs font-medium uppercase tracking-wide text-[var(--color-text-tertiary)]">prototype · {view}</p><h2 className="mt-2 text-lg font-semibold">{state.title}</h2><p className="mt-2 text-sm leading-6 text-[var(--color-text-secondary)]">{state.description}</p>{state.action && <button type="button" className={`mt-5 inline-flex min-h-11 items-center justify-center rounded-[var(--radius-control)] bg-[var(--color-brand-subtle)] px-4 text-sm font-medium text-[var(--color-primary-pressed)] ${focusClass}`} onClick={() => setPrototypeView("ready")}>{state.action}</button>}</div></section></>;
+  // The first child is always the same wrapper at the same tree position. `contents`
+  // avoids a ready-layout wrapper; `hidden` removes it from layout/focus/a11y while
+  // preserving nested React state during loading / empty / error.
+  return <><div className={ready ? "contents" : undefined} hidden={!ready} aria-hidden={!ready || undefined}>{children}</div>{state && <section role={role} aria-live={view === "error" ? "assertive" : "polite"} aria-busy={isLoading || undefined} className="flex min-h-[320px] items-center justify-center px-6 py-12"><div className="w-full max-w-sm text-center">{isLoading && <div aria-hidden="true" className="mx-auto mb-6 max-w-xs space-y-3"><div className="h-3 w-2/3 motion-safe:animate-pulse rounded-full bg-[var(--color-brand-subtle)]" /><div className="h-3 w-full motion-safe:animate-pulse rounded-full bg-[var(--color-surface-subtle)]" /><div className="h-3 w-4/5 motion-safe:animate-pulse rounded-full bg-[var(--color-surface-subtle)]" /></div>}<p className="text-xs font-medium uppercase tracking-wide text-[var(--color-text-tertiary)]">prototype · {view}</p><h2 className="mt-2 text-lg font-semibold">{state.title}</h2><p className="mt-2 text-sm leading-6 text-[var(--color-text-secondary)]">{state.description}</p>{state.action && <button type="button" className={`mt-5 inline-flex min-h-11 items-center justify-center rounded-[var(--radius-control)] bg-[var(--color-brand-subtle)] px-4 text-sm font-medium text-[var(--color-primary-pressed)] ${focusClass}`} onClick={() => setPrototypeView("ready")}>{state.action}</button>}</div></section>}</>;
 }
