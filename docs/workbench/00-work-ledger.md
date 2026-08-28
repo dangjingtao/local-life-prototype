@@ -45,10 +45,10 @@
 | T008 | PC 工作台框架、角色与权限 | PC | REVIEW | 0.1.0 | T002 | `c1cb8d5`；Verify Prototype #6 success；三类角色、范围导航与 permission 边界已落地，待多视口视觉复核 |
 | T009 | PC 店主与合作商工作台 | PC | REVIEW | 0.1.0 | T002、T008 | `47dcafe`；Verify Prototype #14 success；本店概览、自提/服务核销、门店用户与越权状态已落地，待多视口视觉复核 |
 | T010 | PC 平台运营中台 | PC | REVIEW | 0.1.0 | T002、T008 | `5c07411` + `bdc9662`；Verify Prototype #37 success；六类运营模块、LL-8888 关联详情与三场景筛选已落地，待多视口视觉复核 |
-| T011 | PC 数据驾驶舱 | PC | TODO | 0.1.0 | T002、T008 | FR-701 至 FR-706；经营指标与场景对比 |
+| T011 | PC 数据驾驶舱 | PC | REVIEW | 0.1.0 | T002、T008 | PR #3；首轮 OpenCode verdict `CHANGES_NEEDED` 后已返工角色切换与台账一致性，等待当前 Head 二审 / Verify 与多视口视觉复核 |
 | T012 | 关键状态、可访问性与原型质量 | QA / Shared | TODO | 0.1.0 | T003-T011 | 五态、恢复路径与多视口质量检查 |
 | T013 | 跨端演示串联与 V0.1 验收准备 | Review / Docs | TODO | 0.1.0 | T002-T012 | AC-001 至 AC-010 证据与 T001 REVIEW 准备 |
-| T014 | 实验性 PR AI Review | CI / Review | REVIEW | 0.1.0 | GitHub Actions、`OPENCODE_API_KEY` | PR #1 / OpenCode run #5；只读 review、单评论更新与本地 Agent handoff self-check 已真实通过，待独立验收 |
+| T014 | 实验性 PR AI Review | CI / Review | REVIEW | 0.1.0 | GitHub Actions、`OPENCODE_API_KEY` | PR #1 / OpenCode run #5；只读 review、单评论更新与本地 Agent handoff self-check 已真实通过；PR #3 为首个真实业务施工 review smoke |
 
 ## 状态约定
 
@@ -88,6 +88,12 @@
 
 ### 2026-08-28
 
+- T011 施工：从最新 `dev` 拉取 `task/T011-pc-data-dashboard`，新增独立 `ManagementDashboard`，通过 PR #3 向 `dev` 送审；管理层只读查看经营总览、三场景对比、会员/积分/券/核销汇总，不提供经营写入、钻取、导出或预测。
+- T011 数据口径：累计用户、交易用户、合作商、门店、区域、订单、交易额和核销均从 `@prototype/shared` fixtures 汇总；由于 User 缺少创建时间，“新增用户”明确显示待确认；趋势只按现有订单 `createdAt` 聚合，不伪造同比 / 环比；区域只有 `region` 时不伪造地图。
+- T011 首轮验证：PR Head `d2e639f3fb45fd4ee9110c458e7a0e25a7b35a98` 的 `Verify Prototype #74`（run `33142887282`）通过版本合同、全仓 typecheck 与全仓 build；`Experimental OpenCode PR Review #8`（run `33142887276`）使用 `opencode-go/deepseek-v4-pro` 成功发布当前 Head marked comment。
+- T011 Review 返工：OpenCode 首轮 verdict `CHANGES_NEEDED`，高置信 P2 指出店主 `App` 内角色切换仍会落入旧 T011 `DashboardShell`；复核成立，返工后 `App` 只负责店主，运营 / 管理层切换统一通过 URL 进入独立 `OperatorConsole` / `ManagementDashboard`，旧管理层 placeholder 删除。Codex 同时指出任务卡 DOING 与总台账 TODO 不一致，复核成立并同步修正为 REVIEW。
+- T011 Review gap：OpenCode 提醒服务核销场景依赖当前领域语义。现有 `Service` 只包含 detection / experience / care_package，均属于当前智慧抗衰服务域，因此当前 fixtures 下归入 care 有事实基础；若未来新增非抗衰 Service，需给 Service / Redemption 增加显式 scene，记录为技术债，不在本轮扩张领域模型。
+- T011 评审状态：首轮 review 已真实触发返工；当前等待返工 Head 的第二轮 marked review 与 Verify。1440px / 1024px 浏览器视觉证据仍未完成，因此即使 PR 可合并也只进入 `REVIEW`，不自动 `PASS`。
 - T010 施工：新增独立 `OperatorConsole`，默认 / `?role=operator` 进入平台运营中台；店主与管理层继续使用既有 T009 / T011 壳，减少 PC 多任务并行时的代码竞态。
 - T010 模块：运营总览下建立用户、合作商/门店、商品/服务、订单/核销、会员、营销六类核心模块，提供列表、代表性详情和概念筛选；不实现真实写入。
 - T010 数据关联：核心用户 `LL-8888` 详情关联来源、会员、积分、订单、优惠券/体验券、常用门店与检测报告；订单/核销按线下门店、线上商城、智慧抗衰三场景筛选，继续直接消费 `@prototype/shared`。
@@ -143,10 +149,10 @@
 
 ## 下一步
 
-1. T014 已完成真实 PR smoke 并进入 `REVIEW`；继续观察真实 feature/task/fix PR 的误报、漏报和耗时，不自动转 `PASS`。
+1. T014 已完成基础 smoke 并进入 `REVIEW`；PR #3 作为首个真实业务施工 PR smoke，继续验证 marked review 能否驱动返工后二审，不自动转 `PASS`。
 2. T002 已完成；以 `@prototype/shared` 作为后续跨端语义和演示数据基线。
 3. T003、T004 已进入 REVIEW；完成 390px 移动视口视觉 / 交互检查后，由 Tomz 给出 PASS / BLOCKED 结论。
-4. T008、T009、T010 已进入 REVIEW；T011 可继续复用 PC 角色壳与权限边界，前三张 PC 卡正式 PASS 仍需补 1440px / 1024px 视觉验收。
+4. T008-T011 均已进入 REVIEW；T011 当前等待 PR #3 返工 Head 的最新 OpenCode review 与 Verify，PC 四张卡正式 PASS 仍需补 1440px / 1024px 视觉验收。
 5. Mobile T005-T007 可继续复用 T003 壳、T004 已接入的门店入口结构和 `@prototype/shared`；T006 应复用 `EXPERIENCE-8888-01` / `CARE-8888` 跨端凭证，不另造同义数据。
 6. 页面完成后执行 T012 五态、可访问性和多视口质量检查。
 7. 由 T013 串联三条主流程并核对 AC-001 至 AC-010，再将 T001 推进到 REVIEW。
