@@ -1,10 +1,10 @@
-# Experimental PR AI Review
+# Experimental OpenCode PR Review
 
 Status: `EXPERIMENTAL`
 
 ## Goal
 
-When a pull request targets `dev`, run a lightweight independent AI review and hand the result back to both GitHub and local coding agents.
+When a pull request targets `dev`, run a lightweight independent review through OpenCode and hand the result back to both GitHub and local coding agents.
 
 This is a review aid only. It does not approve the PR, merge code, move a work item to `PASS`, or replace browser/product validation.
 
@@ -21,38 +21,44 @@ The workflow runs for non-draft, same-repository pull requests targeting `dev` o
 
 Fork pull requests are intentionally skipped in the first version so repository secrets are never exposed to untrusted code.
 
-## Model configuration
+## OpenCode configuration
 
 Required repository secret:
 
-- `OPENROUTER_API_KEY`
+- `OPENCODE_API_KEY`
 
-Current experiment model:
+Create the key from the OpenCode account / Zen authentication flow and store it only under GitHub repository Settings → Secrets and variables → Actions → Repository secrets.
 
-- `openai/gpt-5-mini`
+The workflow uses the official `anomalyco/opencode/github` action and runs OpenCode in GitHub Actions. It does not call OpenRouter or another model gateway directly.
 
-The model name is configured in `.github/workflows/ai-pr-review.yml` as `AI_REVIEW_MODEL`, so changing the experiment model does not require rewriting the review protocol.
+Default experiment model:
 
-The reviewer reads:
+- `opencode/gpt-5.4-mini`
 
-- PR title/body/base/head metadata
-- changed filenames and diff
-- `AGENTS.md`
-- Product Brief
-- Work Ledger
-- the matching `T###` task card when the task id is visible in PR title/body/branch name
+The model can be changed without editing the workflow by setting the repository Actions variable:
 
-Large diffs are capped before sending to the model. A truncated review must call out the verification gap.
+- `OPENCODE_REVIEW_MODEL`
+
+The value must use OpenCode's `provider/model` format. If the variable is absent, the default above is used.
+
+The OpenCode review job is intentionally read-only:
+
+- repository token: contents read; PR/issues write only so the result can be posted back to the PR
+- OpenCode `edit`: denied
+- OpenCode `bash`: denied
+- OpenCode subagent/task: denied
+- OpenCode web fetch/search: denied
+- session sharing: disabled
+
+The reviewer is instructed to read `AGENTS.md`, relevant product/workbench contracts, and the matching `T###` task card when the task id is visible in PR metadata.
 
 ## Review output contract
 
-The workflow maintains one PR conversation comment identified by:
+The final OpenCode response must contain:
 
 `<!-- local-ai-review:v1 -->`
 
-When new commits are pushed, the same comment is updated instead of adding another review comment.
-
-The model is asked to return:
+The review uses these verdicts:
 
 - `NO_BLOCKING_FINDINGS`
 - `CHANGES_NEEDED`
@@ -61,6 +67,8 @@ The model is asked to return:
 Findings separate Observation / Inference / Judgment and use P0-P3 severity. The experiment should normally surface only actionable P0-P2 findings.
 
 These verdicts are advisory. They are deliberately not mapped to GitHub APPROVE / REQUEST_CHANGES in V1.
+
+OpenCode owns the GitHub-side reply behavior in this version. The local handoff always consumes the newest PR conversation comment containing the marker, so repeated review runs do not require a second local protocol.
 
 ## Local agent handoff
 
@@ -87,11 +95,13 @@ For this public repository, reading PR comments can work without a token when th
 
 ## Current boundaries
 
+- No direct OpenRouter integration.
 - No automatic merge.
 - No automatic GitHub approval or change request.
 - No automatic task `PASS`.
 - No code modification by the reviewer workflow.
+- No shell execution by the reviewer workflow.
 - No secret exposure to fork PRs.
 - No claim that CI success equals product acceptance.
 
-The first acceptance test is one real feature/task PR into `dev`: workflow succeeds, one review comment appears, a second push updates that same comment, and `npm run review:pull` materializes it locally.
+The first acceptance test is one real feature/task PR into `dev`: workflow succeeds, an OpenCode review comment containing the marker appears, a subsequent PR update triggers another review, and `npm run review:pull` materializes the newest marked review locally.
