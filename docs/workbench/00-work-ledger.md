@@ -40,13 +40,13 @@
 | T003 | Mobile 登录、首页与统一账号入口 | Mobile | REVIEW | 0.1.0 | T002 | `1e35cec`；Verify Prototype #5 success；登录、三场景入口与统一身份已落地，待 390px 视觉复核 |
 | T004 | Mobile 线下门店自提闭环 | Mobile | REVIEW | 0.1.0 | T002、T003 | `7946292`；Verify Prototype #11 success；门店→商品→自提凭证→核销→私域承接已落地，待 390px 视觉复核 |
 | T005 | Mobile 线上商城一件代发闭环 | Mobile | REVIEW | 0.1.0 | T002、T003 | PR #6；返工 `dfb7288`；Verify Prototype #89 success；OpenCode #20 `NO_BLOCKING_FINDINGS`；Codex 两条业务 P2 已修复，待 390px 视觉 / T012 质量审计 |
-| T006 | Mobile 智慧抗衰体验闭环 | Mobile | REVIEW | 0.1.0 | T002、T003 | PR #7；页面 `b7db5a5` / 接线 `73cfd96`；Verify Prototype #97 success；OpenCode #27 `NO_BLOCKING_FINDINGS`；Codex T012 scope P2 已返工，待最新 Head review 与 390px / T012 质量审计 |
-| T007 | Mobile 会员、积分与权益中心 | Mobile | TODO | 0.1.0 | T002、T003 | FR-401 至 FR-406；积分与券状态 |
+| T006 | Mobile 智慧抗衰体验闭环 | Mobile | REVIEW | 0.1.0 | T002、T003 | PR #7 已合入 `dev`，merge `bdb4c6c`；最终 Head `17a5096`；Verify #104 success；OpenCode #34 `NO_BLOCKING_FINDINGS`；Codex 无重大问题；待 390px / T012 质量审计 |
+| T007 | Mobile 会员、积分与权益中心 | Mobile | DOING | 0.1.0 | T002、T003 | `ff8aee1` + `ef128c6`；会员中心、积分 replay、券状态、订单 / 报告 / 核销入口已施工，待 PR Verify / review 与 390px / T012 质量审计 |
 | T008 | PC 工作台框架、角色与权限 | PC | REVIEW | 0.1.0 | T002 | `c1cb8d5`；Verify Prototype #6 success；三类角色、范围导航与 permission 边界已落地，待多视口视觉复核 |
 | T009 | PC 店主与合作商工作台 | PC | REVIEW | 0.1.0 | T002、T008 | `47dcafe`；Verify Prototype #14 success；本店概览、自提/服务核销、门店用户与越权状态已落地，待多视口视觉复核 |
 | T010 | PC 平台运营中台 | PC | REVIEW | 0.1.0 | T002、T008 | `5c07411` + `bdc9662`；Verify Prototype #37 success；六类运营模块、LL-8888 关联详情与三场景筛选已落地，待多视口视觉复核 |
 | T011 | PC 数据驾驶舱 | PC | REVIEW | 0.1.0 | T002、T008 | PR #3 已合入 `dev`，merge `8b068c5`；返工 Head Verify #77 success；最新 marked OpenCode review `NO_BLOCKING_FINDINGS`；待 1440px / 1024px 视觉复核 |
-| T012 | 关键状态、可访问性与原型质量 | QA / Shared | DOING | 0.1.0 | T003-T011 | PR #4 已合入 `dev`，merge `d6a10b5`；第二次返工 Head Verify #81 success；最新 marked OpenCode review `NO_BLOCKING_FINDINGS`；T005/T006 质量审计、T007 页面与浏览器质量证据仍待补 |
+| T012 | 关键状态、可访问性与原型质量 | QA / Shared | DOING | 0.1.0 | T003-T011 | PR #4 已合入 `dev`，merge `d6a10b5`；第二次返工 Head Verify #81 success；最新 marked OpenCode review `NO_BLOCKING_FINDINGS`；T005/T006/T007 Mobile 质量审计与浏览器质量证据仍待补 |
 | T013 | 跨端演示串联与 V0.1 验收准备 | Review / Docs | TODO | 0.1.0 | T002-T012 | AC-001 至 AC-010 证据与 T001 REVIEW 准备 |
 | T014 | 实验性 PR AI Review | CI / Review | REVIEW | 0.1.0 | GitHub Actions、`OPENCODE_API_KEY` | PR #1 / OpenCode run #5；只读 review、单评论更新与本地 Agent handoff self-check 已真实通过；PR #3 首个真实业务施工 smoke 完成“发现 P2→返工→二审→合并”闭环 |
 
@@ -88,6 +88,12 @@
 
 ### 2026-08-28
 
+- T007 开工：从 `dev@bdb4c6cd793202615c5fc153d0b45324fe60410d` 建立 `feature/T007-mobile-membership-benefits`，新增独立 `MembershipCenterScreen` 并将底部“我的”从 T003 占位卡切换到正式会员 / 积分 / 权益中心。
+- T007 数据边界：会员等级、1280 当前积分、积分流水、优惠券 / 体验券、订单、检测报告与核销记录均直接消费 `@prototype/shared` 的 `LL-8888`；不新增同义数据源，不写回 Shared。
+- T007 积分演示：获取与兑换状态只重放现有 `POINT-8888-003`（体验 +300、当时余额 1300）与 `POINT-8888-004`（兑换 -20、余额 1280）历史 fixture，交互状态为本地 replay，不伪造新的奖励额度、兑换商品或当前余额变化。
+- T007 规则边界：会员等级名称与 100 积分抵 1 元继续明确标为 Candidate；抵现、商品 / 券 / 权益兑换、积分加现金、抽奖与权益包只表达候选方向。当前账号没有 expired 券 fixture，因此“已过期”保持真实空态；主动任务虽是已确认积分来源，但任务内容 / 奖励额度 / 频率未建模，因此不伪造可领取任务。
+- T007 / T012 质量范围：T007 页面施工后立即同步 T012 任务与矩阵，将会员概览 / 积分 / 券 / 统一账号记录纳入 390px、五态恢复、键盘焦点、触控目标、候选规则文案和空态审计；未执行项均保持 outstanding，T012 继续 `DOING`。
+- T006 台账对账：PR #7 实际已于最终 Head `17a5096` 经 Verify #104、OpenCode #34 `NO_BLOCKING_FINDINGS`、Codex 无重大问题后合入 `dev`，merge `bdb4c6c`；修正此前总台账仍写“等待 latest-head 复审”的陈旧描述，不改变 T006 `REVIEW` 状态。
 - T006 开工：从最新 `dev@32725fe1e44519ea104b0757febc328ab6709cf1` 建立 `feature/T006-mobile-smart-care-flow`，新增独立 `CareFlowScreen` 并通过 PR #7 向 `dev` 送审。
 - T006 体验闭环：主链覆盖专区 → 基础检测项目 → 体验券 → 门店 → 到店核销凭证 → 基础检测 / 体验 → 基础报告 → 护理权益承接；Mobile 壳仅把原 `care` 占位页切到独立流程，不改 T003/T004/T005 既有业务结构。
 - T006 数据链：直接复用 `@prototype/shared` 的 `LL-8888 → EXPERIENCE-8888-01 → REDEEM-EXPERIENCE-8888-01 / CARE-8888 → STORE-YUNLING → REPORT-CARE-0001`；体验券、核销与报告保持同一用户，核销与报告保持同一核心门店，不另造第二套抗衰数据。
@@ -179,9 +185,9 @@
 
 1. T014 已完成基础 smoke 并进入 `REVIEW`；PR #3 已验证首个真实业务施工“发现问题→返工→二审→合并”闭环，后续继续观察误报、漏报与耗时，不自动转 `PASS`。
 2. T002 已完成；以 `@prototype/shared` 作为后续跨端语义和演示数据基线。
-3. T003-T006 已进入 REVIEW；完成 390px 移动视口视觉 / 交互检查后，由 Tomz 给出 PASS / BLOCKED 结论。T005/T006 业务代码 review 均已无已知高置信 P0-P2；T006 仍需完成本轮文档返工后的 current-head 复审。
+3. T003-T006 已进入 REVIEW；T007 正在施工 / review。Mobile 各卡正式 PASS 仍需 390px 视觉 / 交互与 T012 质量证据。
 4. T008-T011 均已进入 REVIEW；PC 四张卡正式 PASS 仍需补 1440px / 1024px 视觉验收。
-5. T012 共享五态、恢复动作与可访问性基线已通过 PR #4 合入 `dev`；T005/T006 页面已存在但 390px 状态 / 可访问性质量审计仍 outstanding，T007 页面仍待施工；三者与浏览器证据齐备后才能补全最终质量矩阵并进入 REVIEW。
-6. T007 后续继续复用 T003 壳、T004/T005/T006 已接入的入口结构和 `@prototype/shared`；不要重复建立同义会员、积分、券或报告数据源。
+5. T012 共享五态、恢复动作与可访问性基线已通过 PR #4 合入 `dev`；T005/T006/T007 页面现均存在，但三者的 390px 状态 / 可访问性质量审计仍 outstanding；浏览器证据齐备后才能补全最终质量矩阵并进入 REVIEW。
+6. T007 继续复用 T003 壳与 `@prototype/shared`，完成 PR Verify / review 后推进到 `REVIEW`；不得把历史积分 replay 或 Candidate 兑换方向误写成正式规则。
 7. 由 T013 串联三条主流程并核对 AC-001 至 AC-010，再将 T001 推进到 REVIEW。
 8. 未确认的产品规则在施工中暂停并向用户确认。
