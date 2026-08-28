@@ -6,14 +6,13 @@
 
 ### 已有页面，可进入质量审计
 
-- Mobile：T003 登录 / 首页 / 统一身份；T004 门店自提闭环；T005 线上商城一件代发闭环。
+- Mobile：T003 登录 / 首页 / 统一身份；T004 门店自提闭环；T005 线上商城一件代发闭环；T006 智慧抗衰体验闭环。
 - PC：T008 角色 / 权限壳；T009 店主工作台；T010 平台运营中台；T011 管理层数据驾驶舱。
 
-其中 T005 页面已经存在并完成业务代码 review，但尚未完成本矩阵要求的 390px 状态恢复、键盘焦点、触控目标、溢出 / 遮挡与浏览器交互审计，因此仍是 T012 的明确 outstanding 项，不能因 T005 的 build / code review 通过而视为质量验收完成。
+其中 T005、T006 页面已经存在并完成业务代码 review，但尚未完成本矩阵要求的 390px 状态恢复、键盘焦点、触控目标、溢出 / 遮挡与浏览器交互审计，因此仍是 T012 的明确 outstanding 项，不能因各自 build / code review 通过而视为质量验收完成。
 
 ### 尚未存在，不能伪造验收
 
-- T006 智慧抗衰体验闭环。
 - T007 会员、积分与权益中心。
 
 因此共享质量基线可以继续复用，但 T012 任务本身继续保持 `DOING`。
@@ -40,7 +39,7 @@ PR #4 首轮 review 发现：原来的 `setPrototypeView()` 使用 `window.locat
 - ready / loading / empty / error 使用 `history.replaceState` + `prototype:viewchange` 在当前文档内切换。
 - `PrototypeState` 始终返回同一个 Fragment；业务 children 始终位于第一个固定 wrapper。
 - ready 时固定 wrapper 使用 `display: contents`，不额外改变页面布局。
-- loading / empty / error 时同一 wrapper 使用 `hidden`，从布局、焦点和可访问树移除，但 React subtree 不卸载；恢复 ready 后门店 step、商城 step、选中模块等局部 state 应继续保留。
+- loading / empty / error 时同一 wrapper 使用 `hidden`，从布局、焦点和可访问树移除，但 React subtree 不卸载；恢复 ready 后门店 step、商城 step、抗衰 step、选中模块等局部 state 应继续保留。
 - permission 仍保留文档导航，因为 PC 三角色已有独立业务级 permission 壳，需要根组件重新读取 `?view=permission`。
 
 ## 3. 可复现路由
@@ -58,6 +57,8 @@ PR #4 首轮 review 发现：原来的 `setPrototypeView()` 使用 `window.locat
 从已登录页面通过 PrototypePanel 切 ready / loading / empty / error 不刷新文档；permission 会重新读取页面边界，`demoAuth=1` 保证不会退回登录页。
 
 T005 商城复用同一 Mobile 根级 PrototypeState。实际审计时应先进入底部“商城”，再在商品详情 / 购物车 / 结算 / 订单详情等深层 step 切换状态并恢复，验证 MallFlowScreen 的局部 state 不被卸载。
+
+T006 智慧抗衰同样复用根级 PrototypeState。实际审计时应先进入底部“抗衰”，再在体验券 / 门店 / 核销凭证 / 基础体验 / 报告等深层 step 切换 loading / empty / error 并恢复，验证 CareFlowScreen 的 `step` 与本地模拟核销状态不被卸载；permission 仍按根级文档导航规则验证。
 
 ### PC 店主
 
@@ -94,6 +95,7 @@ T005 商城复用同一 Mobile 根级 PrototypeState。实际审计时应先进�
 - loading skeleton 只在 `motion-safe` 时播放 pulse，尊重 reduced-motion。
 - Mobile 顶部消息按钮维持 44×44px；底部 Tab 维持 52px 高度。
 - T005 商品分类与履约方式使用 `aria-pressed` 表达选中状态；主要流程按钮继续消费 Design System Button / SecondaryButton。
+- T006 主要推进动作继续消费 Design System Button / SecondaryButton；返回按钮保持 44px 最小高度。真实浏览器焦点顺序与触控体验仍必须人工验证。
 
 这些只能证明实现基线，不能代替真实浏览器 Tab 顺序、读屏、颜色对比或触控体验验证。
 
@@ -108,9 +110,12 @@ T005 商城复用同一 Mobile 根级 PrototypeState。实际审计时应先进�
 - [ ] T005 商城首页 / 商品详情 / 购物车 / 结算 / 订单详情无横向溢出、文本挤压或底部导航遮挡。
 - [ ] T005 在商品详情 / 购物车 / 结算 / 订单详情切 loading / empty / error 后恢复 ready，仍停留原商城 step，已选商品、履约方式和订单状态不被意外重置。
 - [ ] T005 到家 / 送店在结算页及订单详情持续显示不同目的地；送店状态仍按 `pending_fulfillment → shipping → pending_pickup → completed` 演示。
-- [ ] PrototypePanel 展开后不遮住门店 / 商城关键恢复按钮。
-- [ ] 键盘或等价焦点检查：场景入口、消息入口、门店、商品、商城分类、加入购物车、结算、履约方式、订单状态推进、核销、底部 Tab 均有单一且清晰的可见焦点。
-- [ ] T005 分类、履约选项及主要流程按钮触控目标在 390px 下可操作，无相邻误触风险。
+- [ ] T006 专区 / 项目 / 体验券 / 门店 / 核销凭证 / 基础体验 / 报告 / 护理权益页面无横向溢出、长 ID / 核销码挤压或底部导航遮挡。
+- [ ] T006 在体验券 / 门店 / 核销凭证 / 基础体验 / 报告等深层 step 切 loading / empty / error 后恢复 ready，仍停留原 step；模拟核销后切状态再恢复时 `voucherRedeemed` 不被重置。
+- [ ] T006 体验券 `EXPERIENCE-8888-01`、核销 `CARE-8888`、报告 `REPORT-CARE-0001` 在 390px 下持续显示同一用户 `LL-8888` 与核心门店 `STORE-YUNLING`，非医疗 / 未接入说明不被截断或弱化。
+- [ ] PrototypePanel 展开后不遮住门店 / 商城 / 抗衰关键恢复按钮。
+- [ ] 键盘或等价焦点检查：场景入口、消息入口、门店、商品、商城分类、加入购物车、结算、履约方式、订单状态推进、体验项目、体验券、抗衰门店、核销、报告、底部 Tab 均有单一且清晰的可见焦点。
+- [ ] T005 分类、履约选项及主要流程按钮，T006 体验券 / 门店 / 核销 / 报告主要流程按钮的触控目标在 390px 下可操作，无相邻误触风险。
 
 ### 1024px PC
 
@@ -130,6 +135,7 @@ T005 商城复用同一 Mobile 根级 PrototypeState。实际审计时应先进�
 - [ ] 关键正文 / 状态 / 按钮文本做一次真实浏览器对比度抽查。
 - [ ] error / permission 不只依赖颜色表达。
 - [ ] 禁用按钮仍可理解，且不会被键盘误触发。
+- [ ] T006 非医疗 / 未接入 / 候选能力说明不能只依赖 warning 颜色，应在实际浏览器确认文字语义独立成立。
 
 ## 6. Review 记录
 
@@ -148,11 +154,17 @@ T005 商城复用同一 Mobile 根级 PrototypeState。实际审计时应先进�
 - PR #6 current-head Codex 复审指出总台账把 T012 剩余范围错误缩成 T006-T007，而本矩阵仍把 T005 列为“尚未存在”，可能导致后续 T012 漏审 T005。该 P2 复核成立。
 - 当前修正：T005 从“尚未存在”移入“已有页面、质量审计 outstanding”，并补入 390px 深层 step 状态恢复、溢出 / 遮挡、键盘焦点、触控目标及到家 / 送店语义检查项；未把任何未执行浏览器检查标成完成。
 
+### T006 纳入质量范围
+
+- T006 PR #7 已建立 `CareFlowScreen`，Verify #97 success，首轮 OpenCode #27 `NO_BLOCKING_FINDINGS`；业务代码证据不能替代 T012 质量审计。
+- PR #7 Codex 对 Head `73cfd96` 指出：T006 已接入 Mobile 壳，但本矩阵 / T012 任务 / ledger 仍将其视为 TODO / 尚未存在，会导致后续质量审计漏项。该 P2 复核成立。
+- 当前修正：T006 移入“已有页面、质量审计 outstanding”，补入深层 step 状态恢复、模拟核销状态保持、390px 溢出 / 遮挡、统一用户 / 门店链、非医疗文案、键盘焦点与触控目标检查；没有把未执行浏览器验证标记完成。
+
 ## 7. 完成条件
 
 T012 只有在以下条件同时满足后才能进入 `REVIEW`：
 
-1. T005 已完成本矩阵的状态 / 可访问性抽查；T006、T007 页面已存在并纳入同一质量抽查。
+1. T005、T006 已完成本矩阵的状态 / 可访问性抽查；T007 页面已存在并纳入同一质量抽查。
 2. `npm run verify` / 对应 PR Verify 通过。
 3. 390px、1024px、1440px 实际浏览器检查有证据。
 4. 关键按钮完成键盘焦点抽查；颜色对比至少完成一次浏览器级检查。
