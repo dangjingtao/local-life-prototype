@@ -1,4 +1,4 @@
-name: Experimental AI PR Review
+name: Experimental OpenCode PR Review
 
 on:
   pull_request:
@@ -13,17 +13,17 @@ on:
 permissions:
   contents: read
   issues: write
-  pull-requests: read
+  pull-requests: write
 
 concurrency:
-  group: experimental-ai-pr-review-${{ github.event.pull_request.number }}
+  group: experimental-opencode-pr-review-${{ github.event.pull_request.number }}
   cancel-in-progress: true
 
 jobs:
   review:
     if: ${{ github.event.pull_request.draft == false && github.event.pull_request.head.repo.full_name == github.repository }}
     runs-on: ubuntu-latest
-    timeout-minutes: 12
+    timeout-minutes: 15
 
     steps:
       - name: Checkout PR head
@@ -31,25 +31,61 @@ jobs:
         with:
           ref: ${{ github.event.pull_request.head.sha }}
           fetch-depth: 0
+          persist-credentials: false
 
-      - name: Setup Node
-        uses: actions/setup-node@v6
-        with:
-          node-version: 24
-
-      - name: Check review key
+      - name: Check OpenCode key
         env:
-          OPENROUTER_API_KEY: ${{ secrets.OPENROUTER_API_KEY }}
+          OPENCODE_API_KEY: ${{ secrets.OPENCODE_API_KEY }}
         shell: bash
         run: |
-          if [ -z "$OPENROUTER_API_KEY" ]; then
-            echo "::error title=Missing OPENROUTER_API_KEY::Add repository secret OPENROUTER_API_KEY under Settings > Secrets and variables > Actions."
+          if [ -z "$OPENCODE_API_KEY" ]; then
+            echo "::error title=Missing OPENCODE_API_KEY::Add repository secret OPENCODE_API_KEY under Settings > Secrets and variables > Actions."
             exit 1
           fi
 
-      - name: Review pull request
+      - name: Run OpenCode review
+        uses: anomalyco/opencode/github@latest
         env:
+          OPENCODE_API_KEY: ${{ secrets.OPENCODE_API_KEY }}
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          OPENROUTER_API_KEY: ${{ secrets.OPENROUTER_API_KEY }}
-          AI_REVIEW_MODEL: openai/gpt-5-mini
-        run: node scripts/ai-pr-review.mjs
+          OPENCODE_PERMISSION: '{"edit":"deny","bash":"deny","task":"deny","webfetch":"deny","websearch":"deny"}'
+        with:
+          model: ${{ vars.OPENCODE_REVIEW_MODEL || 'opencode/gpt-5.4-mini' }}
+          use_github_token: true
+          share: false
+          prompt: |
+            You are an independent, read-only reviewer for this pull request.
+
+            First read AGENTS.md and the relevant project contracts before judging the change. Review the PR against the repository's actual product/task rules, not generic preferences. If a T### task id is visible in the PR title, body, or branch name, read its task card under docs/workbench/tasks/.
+
+            Focus on high-confidence, actionable defects:
+            - correctness and regressions
+            - violated product or repository contracts
+            - broken user flows, state/data inconsistencies, and permission boundaries
+            - unsafe CI/workflow changes
+            - missing validation that could hide a real defect
+
+            Do not edit files, create commits/branches/PRs, approve the PR, request changes through GitHub review state, merge code, or move any task to PASS. This review is advisory while the experiment is running.
+
+            Separate Observation, Inference, and Judgment for every finding. Use P0/P1/P2/P3 severity and normally report only actionable P0-P2 findings. If evidence is incomplete, put it under Review gaps instead of inventing a bug.
+
+            Your final answer MUST contain this marker exactly once:
+            <!-- local-ai-review:v1 -->
+
+            Then use exactly these top-level headings:
+            # Experimental OpenCode PR Review
+            ## Verdict
+            Choose one: NO_BLOCKING_FINDINGS, CHANGES_NEEDED, or HUMAN_CHECK_NEEDED, followed by one short sentence.
+            ## Findings
+            For each finding use:
+            ### [P1] Short title
+            - Observation:
+            - Inference:
+            - Judgment:
+            - Location:
+            - Suggested fix:
+            If there are no actionable findings, write: No high-confidence P0-P2 findings.
+            ## Review gaps
+            List important things that could not be verified, or write: None identified.
+            ## Local handoff
+            Write: Run `npm run review:pull` on the PR branch, then read `.ai/reviews/latest.md`.
