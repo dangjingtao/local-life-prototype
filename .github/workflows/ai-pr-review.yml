@@ -56,7 +56,7 @@ jobs:
       - name: Run read-only OpenCode review
         env:
           OPENCODE_API_KEY: ${{ secrets.OPENCODE_API_KEY }}
-          OPENCODE_REVIEW_MODEL: ${{ vars.OPENCODE_REVIEW_MODEL || 'opencode/deepseek-v4-pro' }}
+          OPENCODE_REVIEW_MODEL: ${{ vars.OPENCODE_REVIEW_MODEL || 'opencode-go/deepseek-v4-pro' }}
           OPENCODE_PERMISSION: '{"edit":"deny","bash":"deny","task":"deny","webfetch":"deny","websearch":"deny"}'
         run: node "$RUNNER_TEMP/opencode-pr-review.mjs"
 
