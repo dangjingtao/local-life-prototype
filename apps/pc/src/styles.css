@@ -4,7 +4,9 @@
 
 body { background: var(--color-background); }
 
-:where(button, a[href], summary, [role="button"]):focus-visible {
-  outline: 2px solid var(--color-primary);
-  outline-offset: 2px;
+@layer base {
+  :where(button, a[href], summary, [role="button"]):focus-visible {
+    outline: 2px solid var(--color-primary);
+    outline-offset: 2px;
+  }
 }

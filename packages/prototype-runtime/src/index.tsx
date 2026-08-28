@@ -1,8 +1,9 @@
-import type { ReactNode } from "react";
+import { useSyncExternalStore, type ReactNode } from "react";
 
 export type PrototypeView = "ready" | "loading" | "empty" | "error" | "permission";
 
 const views: PrototypeView[] = ["ready", "loading", "empty", "error", "permission"];
+const viewChangeEvent = "prototype:viewchange";
 
 export function getPrototypeView(): PrototypeView {
   if (typeof window === "undefined") return "ready";
@@ -10,20 +11,46 @@ export function getPrototypeView(): PrototypeView {
   return value && views.includes(value) ? value : "ready";
 }
 
+function subscribePrototypeView(onStoreChange: () => void) {
+  if (typeof window === "undefined") return () => undefined;
+  window.addEventListener("popstate", onStoreChange);
+  window.addEventListener(viewChangeEvent, onStoreChange);
+  return () => {
+    window.removeEventListener("popstate", onStoreChange);
+    window.removeEventListener(viewChangeEvent, onStoreChange);
+  };
+}
+
+export function usePrototypeView(): PrototypeView {
+  return useSyncExternalStore(subscribePrototypeView, getPrototypeView, () => "ready");
+}
+
 export function setPrototypeView(view: PrototypeView) {
+  const current = getPrototypeView();
   const url = new URL(window.location.href);
   view === "ready" ? url.searchParams.delete("view") : url.searchParams.set("view", view);
-  window.location.assign(url.toString());
+
+  // PC permission uses role-specific shells selected by the page root, so keep a document
+  // navigation only when entering/leaving permission. Other quality states update in place
+  // so nested Mobile steps and PC modules stay mounted and can recover where they were.
+  if (view === "permission" || current === "permission") {
+    window.location.assign(url.toString());
+    return;
+  }
+
+  window.history.replaceState(null, "", url.toString());
+  window.dispatchEvent(new Event(viewChangeEvent));
 }
 
 const focusClass = "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--color-primary)] focus-visible:ring-offset-2";
 
 export function PrototypePanel() {
-  const current = getPrototypeView();
+  const current = usePrototypeView();
   return <details className="fixed bottom-4 right-4 z-50 w-48 rounded-[var(--radius-container)] border border-[var(--color-border)] bg-[var(--color-surface)] p-2 text-xs shadow-[var(--shadow-floating)]"><summary className={`flex min-h-11 cursor-pointer select-none items-center rounded-[var(--radius-control)] px-2 font-medium text-[var(--color-text-secondary)] ${focusClass}`}>Prototype · {current}</summary><div className="mt-2 grid grid-cols-2 gap-1">{views.map((view) => <button key={view} type="button" aria-pressed={view === current} className={`min-h-11 rounded-[var(--radius-control)] px-2 ${focusClass} ${view === current ? "bg-[var(--color-brand-subtle)] text-[var(--color-primary-pressed)]" : "text-[var(--color-text-secondary)] hover:bg-[var(--color-surface-subtle)]"}`} onClick={() => setPrototypeView(view)}>{view}</button>)}</div></details>;
 }
 
-export function PrototypeState({ view, children }: { view: PrototypeView; children: ReactNode }) {
+export function PrototypeState({ children }: { view: PrototypeView; children: ReactNode }) {
+  const view = usePrototypeView();
   if (view === "ready") return <>{children}</>;
 
   const labels: Record<Exclude<PrototypeView, "ready">, { title: string; description: string; action?: string }> = {
@@ -52,5 +79,5 @@ export function PrototypeState({ view, children }: { view: PrototypeView; childr
   const isLoading = view === "loading";
   const role = view === "error" ? "alert" : "status";
 
-  return <section role={role} aria-live={view === "error" ? "assertive" : "polite"} aria-busy={isLoading || undefined} className="flex min-h-[320px] items-center justify-center px-6 py-12"><div className="w-full max-w-sm text-center">{isLoading && <div aria-hidden="true" className="mx-auto mb-6 max-w-xs space-y-3"><div className="h-3 w-2/3 animate-pulse rounded-full bg-[var(--color-brand-subtle)]" /><div className="h-3 w-full animate-pulse rounded-full bg-[var(--color-surface-subtle)]" /><div className="h-3 w-4/5 animate-pulse rounded-full bg-[var(--color-surface-subtle)]" /></div>}<p className="text-xs font-medium uppercase tracking-wide text-[var(--color-text-tertiary)]">prototype · {view}</p><h2 className="mt-2 text-lg font-semibold">{state.title}</h2><p className="mt-2 text-sm leading-6 text-[var(--color-text-secondary)]">{state.description}</p>{state.action && <button type="button" className={`mt-5 inline-flex min-h-11 items-center justify-center rounded-[var(--radius-control)] bg-[var(--color-brand-subtle)] px-4 text-sm font-medium text-[var(--color-primary-pressed)] ${focusClass}`} onClick={() => setPrototypeView("ready")}>{state.action}</button>}</div></section>;
+  return <><div hidden aria-hidden="true">{children}</div><section role={role} aria-live={view === "error" ? "assertive" : "polite"} aria-busy={isLoading || undefined} className="flex min-h-[320px] items-center justify-center px-6 py-12"><div className="w-full max-w-sm text-center">{isLoading && <div aria-hidden="true" className="mx-auto mb-6 max-w-xs space-y-3"><div className="h-3 w-2/3 motion-safe:animate-pulse rounded-full bg-[var(--color-brand-subtle)]" /><div className="h-3 w-full motion-safe:animate-pulse rounded-full bg-[var(--color-surface-subtle)]" /><div className="h-3 w-4/5 motion-safe:animate-pulse rounded-full bg-[var(--color-surface-subtle)]" /></div>}<p className="text-xs font-medium uppercase tracking-wide text-[var(--color-text-tertiary)]">prototype · {view}</p><h2 className="mt-2 text-lg font-semibold">{state.title}</h2><p className="mt-2 text-sm leading-6 text-[var(--color-text-secondary)]">{state.description}</p>{state.action && <button type="button" className={`mt-5 inline-flex min-h-11 items-center justify-center rounded-[var(--radius-control)] bg-[var(--color-brand-subtle)] px-4 text-sm font-medium text-[var(--color-primary-pressed)] ${focusClass}`} onClick={() => setPrototypeView("ready")}>{state.action}</button>}</div></section></>;
 }
