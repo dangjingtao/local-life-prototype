@@ -63,7 +63,7 @@
 - Page / Route: Mobile dev root `/`；登录 → 首页 → 门店 → 门店列表 → 云岭社区店 → 商品选择 → 自提确认 → 提货凭证 → 模拟核销 → 核销结果 → 私域承接。
 - Screenshot / Browser result: 未执行独立 390px 浏览器截图 / 点击录制；现有 Mobile Shell 继续使用 `max-w-[390px]`，实际 390px 视觉与交互检查留给 Review。
 - Other evidence:
-  - Cloudflare Pages dev preview 部署 run `33134899891` success；Mobile job `98732566735` success，实际执行 `npm run build --workspace @prototype/mobile`（`tsc + vite build`）并部署至 `https://dev.comuilty-mobile.pages.dev`。
+  - Cloudflare Pages dev preview 部署 run `33134899891` success；Mobile job `98732566735` success，实际执行 `npm run build --workspace @prototype/mobile`（`tsc + vite build`）。Cloudflare Pages 项目命名已于 2026-08-28 统一迁移，当前 canonical dev preview 为 `https://dev.local-life-mobile.pages.dev`。
   - 提货凭证显示订单 `LL-1024` 与核销 code `LL-1024`；两者均关联用户 `LL-8888` 与门店 `STORE-YUNLING`。
   - 本地隔离容器尝试 clone 仓库用于额外视觉验证时因环境无法解析 `github.com` DNS 失败，因此未将其计为验证证据。
 
