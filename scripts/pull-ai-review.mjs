@@ -32,6 +32,15 @@ function tryGh(args) {
   }
 }
 
+async function githubJson(url, headers) {
+  const response = await fetch(url, { headers });
+  if (!response.ok) {
+    const body = await response.text();
+    fail(`GitHub API ${response.status}: ${body.slice(0, 1200)}`);
+  }
+  return response.json();
+}
+
 async function main() {
   const repo = process.env.GITHUB_REPOSITORY || repoFromConfig();
   if (!repo) {
@@ -57,18 +66,14 @@ async function main() {
   };
   if (token) headers.Authorization = `Bearer ${token}`;
 
+  const pr = await githubJson(`https://api.github.com/repos/${repo}/pulls/${prNumber}`, headers);
+
   const comments = [];
   for (let page = 1; page <= 10; page += 1) {
-    const response = await fetch(
+    const batch = await githubJson(
       `https://api.github.com/repos/${repo}/issues/${prNumber}/comments?per_page=100&page=${page}`,
-      { headers },
+      headers,
     );
-    if (!response.ok) {
-      const body = await response.text();
-      fail(`GitHub API ${response.status}: ${body.slice(0, 1200)}`);
-    }
-
-    const batch = await response.json();
     if (!Array.isArray(batch)) fail('GitHub returned an unexpected comments payload.');
     comments.push(...batch);
     if (batch.length < 100) break;
@@ -96,7 +101,13 @@ async function main() {
     '<!-- local-ai-review-local-copy:v1 -->',
     `# Synced PR Review #${prNumber}`,
     '',
-    `- Source: ${sourceUrl}`,
+    `- Repository: ${repo}`,
+    `- PR: ${pr.html_url || `https://github.com/${repo}/pull/${prNumber}`}`,
+    `- Base: ${pr.base?.ref || 'unknown'}`,
+    `- Head: ${pr.head?.ref || 'unknown'}`,
+    `- Head SHA: ${pr.head?.sha || 'unknown'}`,
+    `- Review source: ${sourceUrl}`,
+    `- Review comment updated: ${botCandidate.updated_at || botCandidate.created_at || 'unknown'}`,
     `- Synced: ${new Date().toISOString()}`,
     '',
     botCandidate.body,
@@ -109,6 +120,7 @@ async function main() {
   fs.writeFileSync(latestPath, content, 'utf8');
 
   console.log(`[review:pull] Synced PR #${prNumber}`);
+  console.log(`[review:pull] head ${pr.head?.sha || 'unknown'}`);
   console.log(`[review:pull] ${prPath}`);
   console.log(`[review:pull] ${latestPath}`);
 }
