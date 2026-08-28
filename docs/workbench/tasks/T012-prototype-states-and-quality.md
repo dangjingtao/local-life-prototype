@@ -1,6 +1,6 @@
 # T012 · 关键状态、可访问性与原型质量
 
-- Status: TODO
+- Status: DOING
 - Target version: 0.1.0
 - Impact: Mobile / PC / Shared
 - Owner: Mira
@@ -32,7 +32,7 @@
 ## Acceptance
 
 - [ ] 双端关键页面五态均可稳定触发。
-- [ ] error 有恢复动作，empty 有下一步，permission 有边界说明。
+- [x] error 有恢复动作，empty 有下一步，permission 有边界说明。
 - [ ] 关键按钮可键盘操作且移动端触控目标合格。
 - [ ] 390px、1024px、1440px 无明显溢出或遮挡。
 - [ ] `npm run verify` 通过。
@@ -41,23 +41,31 @@
 
 - 前置：T003-T011 的对应页面完成。
 - 风险：全局状态不能替代业务级状态，需按关键流程抽查。
+- 当前依赖缺口：T005、T006、T007 仍为 `TODO`，因此本轮只能先完成 Runtime 与现有 T003/T004、T008-T011 页面质量基线；T012 在这些 Mobile 页面施工并复核前不得进入 `REVIEW` / `PASS`。
 
 ## Implementation record
 
-- Commit / PR:
-- Changed paths:
+- Commit / PR: work branch `task/T012-prototype-states-quality`; PR pending
+- Changed paths: `packages/prototype-runtime/src/index.tsx`; `packages/design-system/src/ui.tsx`; `apps/mobile/src/App.tsx`; `apps/mobile/src/styles.css`; `apps/pc/src/styles.css`; `docs/workbench/T012-state-quality-matrix.md`; 本任务卡与总台账。
 - Notes:
+  - Prototype Runtime 的 loading / empty / error / permission 增加可理解原因；empty / error / permission 增加返回 ready 的明确恢复动作；loading 增加 `aria-busy`，error 使用 alert 语义。
+  - PrototypePanel 的交互目标提升到 44px 级并增加键盘焦点；Design System Button / SecondaryButton 与双端普通按钮统一补 `:focus-visible` 可见焦点。
+  - Mobile 演示登录把 `demoAuth=1` 保留在 URL。PrototypePanel 切换 `?view=` 后不再因为整页跳转丢失演示登录，从而可在已登录关键页面稳定复现五态。该参数只用于原型状态复现，不代表真实鉴权。
 
 ## Verification evidence
 
-- CI:
+- CI: pending PR `Verify Prototype`; 本轮目标为 `npm run verify` / PR Verify 通过。
 - Page / Route:
-- Screenshot / Browser result:
-- Other evidence:
+  - Mobile：登录后 URL 自动带 `demoAuth=1`；可组合 `?demoAuth=1&view=loading|empty|error|permission`。
+  - PC 店主：`?role=merchant&view=loading|empty|error|permission`。
+  - PC 运营：`?role=operator&view=loading|empty|error|permission`。
+  - PC 管理层：`?role=management&view=loading|empty|error|permission`。
+- Screenshot / Browser result: 390px / 1024px / 1440px 实际浏览器视觉、键盘 Tab 顺序与对比度抽查尚未形成证据。
+- Other evidence: `docs/workbench/T012-state-quality-matrix.md` 记录当前状态语义、路由和剩余人工验证项。
 
 ## Review
 
 - Reviewer: Tomz
-- Result: REVIEW / PASS / BLOCKED
-- Conclusion:
-- Follow-up:
+- Result: DOING
+- Conclusion: 本轮先施工共享状态与已存在页面的质量基线；由于 T005-T007 尚未施工，不能把 T012 提前包装成完整完成。
+- Follow-up: 代码质量 PR 经独立 review 后可合入 `dev`；T012 状态继续保持 `DOING`，待 T005-T007 完成后补全双端关键页面、390/1024/1440 实际浏览器与键盘/对比度验收，再决定进入 `REVIEW`。

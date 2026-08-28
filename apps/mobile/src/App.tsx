@@ -519,7 +519,10 @@ function ProfileScreen() {
 
 export function App() {
   const view = getPrototypeView();
-  const [authenticated, setAuthenticated] = useState(false);
+  const [authenticated, setAuthenticated] = useState(() => {
+    if (typeof window === "undefined") return false;
+    return new URLSearchParams(window.location.search).get("demoAuth") === "1";
+  });
   const [screen, setScreen] = useState<Screen>("home");
 
   const activeTab: Tab = screen === "activity" ? "home" : screen;
@@ -531,10 +534,17 @@ export function App() {
     window.scrollTo({ top: 0, behavior: "smooth" });
   };
 
+  const authenticateDemo = () => {
+    const url = new URL(window.location.href);
+    url.searchParams.set("demoAuth", "1");
+    window.history.replaceState(null, "", url.toString());
+    setAuthenticated(true);
+  };
+
   if (!authenticated) {
     return (
       <div className="min-h-[100dvh] bg-[var(--color-background)] text-[var(--color-text-primary)]">
-        <LoginScreen onLogin={() => setAuthenticated(true)} />
+        <LoginScreen onLogin={authenticateDemo} />
         <PrototypePanel />
       </div>
     );

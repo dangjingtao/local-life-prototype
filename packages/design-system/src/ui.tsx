@@ -1,11 +1,13 @@
 import type { ButtonHTMLAttributes, HTMLAttributes, ReactNode } from "react";
 
+const focusClass = "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--color-primary)] focus-visible:ring-offset-2";
+
 export function Button({ className = "", ...props }: ButtonHTMLAttributes<HTMLButtonElement>) {
-  return <button className={`inline-flex min-h-[44px] items-center justify-center rounded-[var(--radius-control)] bg-[var(--color-primary)] px-4 text-sm font-medium text-[var(--color-on-primary)] transition active:bg-[var(--color-primary-pressed)] disabled:cursor-not-allowed disabled:opacity-50 ${className}`} {...props} />;
+  return <button className={`inline-flex min-h-[44px] items-center justify-center rounded-[var(--radius-control)] bg-[var(--color-primary)] px-4 text-sm font-medium text-[var(--color-on-primary)] transition active:bg-[var(--color-primary-pressed)] disabled:cursor-not-allowed disabled:opacity-50 ${focusClass} ${className}`} {...props} />;
 }
 
 export function SecondaryButton({ className = "", ...props }: ButtonHTMLAttributes<HTMLButtonElement>) {
-  return <button className={`inline-flex min-h-[44px] items-center justify-center rounded-[var(--radius-control)] bg-[var(--color-brand-subtle)] px-4 text-sm font-medium text-[var(--color-primary-pressed)] transition active:opacity-75 disabled:cursor-not-allowed disabled:opacity-50 ${className}`} {...props} />;
+  return <button className={`inline-flex min-h-[44px] items-center justify-center rounded-[var(--radius-control)] bg-[var(--color-brand-subtle)] px-4 text-sm font-medium text-[var(--color-primary-pressed)] transition active:opacity-75 disabled:cursor-not-allowed disabled:opacity-50 ${focusClass} ${className}`} {...props} />;
 }
 
 export function Card({ className = "", ...props }: HTMLAttributes<HTMLDivElement>) {
