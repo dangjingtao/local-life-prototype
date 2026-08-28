@@ -38,7 +38,7 @@
 | T001 | 本地生活 V0.1 概念原型 | 产品 / 施工 | DOING | 0.1.0 | Product Brief、AI Skill Profile | 已确认产品名、双端范围和 AI 施工授权；任务卡已建立 |
 | T002 | 共享领域模型与演示数据 | Shared | PASS | 0.1.0 | T001 | `6cf267c`；Verify Prototype #2 success；统一实体、状态名称和跨端 fixtures |
 | T003 | Mobile 登录、首页与统一账号入口 | Mobile | REVIEW | 0.1.0 | T002 | `1e35cec`；Verify Prototype #5 success；登录、三场景入口与统一身份已落地，待 390px 视觉复核 |
-| T004 | Mobile 线下门店自提闭环 | Mobile | TODO | 0.1.0 | T002、T003 | FR-101 至 FR-106；自提到核销 |
+| T004 | Mobile 线下门店自提闭环 | Mobile | REVIEW | 0.1.0 | T002、T003 | `7946292`；Verify Prototype #11 success；门店→商品→自提凭证→核销→私域承接已落地，待 390px 视觉复核 |
 | T005 | Mobile 线上商城一件代发闭环 | Mobile | TODO | 0.1.0 | T002、T003 | FR-201 至 FR-206；商城到订单详情 |
 | T006 | Mobile 智慧抗衰体验闭环 | Mobile | TODO | 0.1.0 | T002、T003 | FR-301 至 FR-307；领券到基础报告 |
 | T007 | Mobile 会员、积分与权益中心 | Mobile | TODO | 0.1.0 | T002、T003 | FR-401 至 FR-406；积分与券状态 |
@@ -67,7 +67,7 @@
 - 范围 / 非范围
 - 验收标准
 - 影响端：PC / Mobile / Shared / CI/CD / Docs
-- 风险与依赖
+- 风险 / 依赖
 - 验证方式
 - 施工结果与证据
 - Review 结论
@@ -87,6 +87,12 @@
 
 ### 2026-08-28
 
+- T004 施工：在 T003 Mobile 壳层内完成线下门店自提闭环，覆盖门店列表、门店详情、商品选择、自提确认、提货凭证、模拟核销、核销结果和私域承接。
+- T004 数据链：核心流程固定复用 T002 `LL-8888` → `LL-1024` → `STORE-YUNLING` → `REDEEM-LL-1024`；非核心门店仅用于多载体结构演示，不另造冲突订单 / 核销数据。
+- T004 多载体：fixtures 中同时展示便利店与会所，代码保留养生馆 / 洗护店映射；页面不把“线下门店”限定为便利店。
+- T004 规则边界：到店奖励仅表达积分、赠品、优惠券等候选反馈，不固定奖励数值，不接真实定位、支付、库存、扫码器、核销或积分发放系统。
+- T004 验证：代码提交 `7946292f1b90dae65c8a31dbafcbed03a408d118`；GitHub Actions `Verify Prototype #11`（run `33134899859`）通过版本合同、全仓 typecheck 与全仓 build；Cloudflare Pages dev run `33134899891` success，Mobile preview 已发布。
+- T004 评审：施工方推进到 `REVIEW`；390px 实际移动视口视觉 / 交互检查尚未形成浏览器证据，因此未自动标记 `PASS`。
 - T003 施工：Mobile 壳层新增概念登录 / 授权、首页三场景入口、消息 / 活动私域提示、底部导航和统一身份展示。
 - T003 数据收口：统一身份、会员等级、积分和可用券数量改为直接消费 `@prototype/shared`；门店、商城、抗衰入口分别交给 T004 / T005 / T006，完整会员权益中心交给 T007，不提前重复固化后续任务数据与闭环。
 - T003 验证：代码提交 `1e35cec32dd3f47f06c74ba300c6f87bb2284c63`；GitHub Actions `Verify Prototype #5`（run `33134306194`）通过版本合同、全仓 typecheck 与全仓 build。
@@ -119,9 +125,9 @@
 ## 下一步
 
 1. T002 已完成；以 `@prototype/shared` 作为后续跨端语义和演示数据基线。
-2. T003 已进入 REVIEW；完成 390px 移动视口视觉检查后，由 Tomz 给出 PASS / BLOCKED 结论。
+2. T003、T004 已进入 REVIEW；完成 390px 移动视口视觉 / 交互检查后，由 Tomz 给出 PASS / BLOCKED 结论。
 3. T008 已进入 REVIEW；T009-T011 可继续以已落地的角色壳为施工基线，T008 的正式 PASS 仍需补 1440px / 1024px 视觉验收。
-4. Mobile T004-T007 仍需满足 T003 前置；后续施工应复用现有场景入口壳并继续消费 `@prototype/shared`。
+4. Mobile T005-T007 可继续复用 T003 壳、T004 已接入的门店入口结构和 `@prototype/shared`，但不得把各自业务闭环混写到其他任务。
 5. 页面完成后执行 T012 五态、可访问性和多视口质量检查。
 6. 由 T013 串联三条主流程并核对 AC-001 至 AC-010，再将 T001 推进到 REVIEW。
 7. 未确认的产品规则在施工中暂停并向用户确认。
