@@ -8,5 +8,6 @@ Expected behavior:
 - `Experimental OpenCode PR Review` runs.
 - The OpenCode review result includes `<!-- local-ai-review:v1 -->`.
 - The PR is not merged and no task is marked PASS from the review alone.
+- A synchronize event after the workflow fix triggers the isolated review/publish pipeline.
 
 Delete or ignore this branch after the smoke test.
