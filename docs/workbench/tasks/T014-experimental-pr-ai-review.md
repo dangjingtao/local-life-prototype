@@ -15,10 +15,10 @@
 
 - `pull_request -> dev` 自动触发 review。
 - PR 新增 commit 时自动重跑。
-- 使用 OpenRouter 调用实验模型。
-- Review 读取 PR diff、`AGENTS.md`、Product Brief、Work Ledger，并尽量关联 `T###` 任务卡。
-- Review 结果维护为单个 PR conversation comment。
-- 本地提供 `npm run review:pull`，把最新 review 同步到 `.ai/reviews/latest.md`。
+- 使用 OpenCode 官方 GitHub Action 执行 review，不直接调用 OpenRouter 或其他模型网关。
+- OpenCode 读取 PR 上下文、`AGENTS.md`、项目合同与相关任务卡进行独立评审。
+- Review 结果回写到 PR conversation，并携带 `<!-- local-ai-review:v1 -->` marker。
+- 本地提供 `npm run review:pull`，把最新带 marker 的 review 同步到 `.ai/reviews/latest.md`。
 - `AGENTS.md` 明确本地 Agent 如何消费和复核 review。
 
 ## 非范围
@@ -29,31 +29,33 @@
 - 不自动修改业务代码。
 - 不根据 AI review 自动把任务改成 `PASS`。
 - V1 不处理 fork PR 的 secret 注入。
+- V1 不要求 review Agent 执行 shell、修改文件或启动子 Agent。
 
 ## 验收标准
 
-1. Repository secret `OPENROUTER_API_KEY` 已配置。
-2. 一个同仓库 PR 目标为 `dev`，在 opened / synchronize / reopened / ready_for_review 时触发 `Experimental AI PR Review`。
-3. Workflow 成功后 PR 出现且只维护一条带 `<!-- local-ai-review:v1 -->` marker 的 review 评论。
-4. PR push 新 commit 后，原 review 评论被更新，而不是新增一串评论。
+1. Repository secret `OPENCODE_API_KEY` 已配置。
+2. 一个同仓库 PR 目标为 `dev`，在 opened / synchronize / reopened / ready_for_review 时触发 `Experimental OpenCode PR Review`。
+3. Workflow 成功后 PR 出现包含 `<!-- local-ai-review:v1 -->` marker 的 OpenCode review 评论。
+4. PR push 新 commit 后再次触发 review，并能识别最新 head 的问题。
 5. 本地 PR 分支执行 `npm run review:pull` 后生成 `.ai/reviews/pr-<n>.md` 与 `.ai/reviews/latest.md`。
 6. 本地 Agent 能依据 `AGENTS.md` 读取该文件，并对 finding 逐条回查代码，不把模型结论直接当事实。
 7. Review 不触发自动 merge / PASS / GitHub approval。
+8. Review Agent 无 edit / bash / task / web 权限，且 session share 关闭。
 
 ## 风险 / 依赖
 
-- 依赖 repository secret `OPENROUTER_API_KEY`；未配置前 workflow 会明确失败。
+- 依赖 repository secret `OPENCODE_API_KEY`；未配置前 workflow 会明确失败。
+- 默认模型为 `opencode/gpt-5.4-mini`；可通过 repository Actions variable `OPENCODE_REVIEW_MODEL` 更换。
 - Fork PR 默认跳过，避免把 secret 暴露给不可信代码。
-- 大 diff 会截断 review 输入，因此不能把 AI review 当完整代码审计。
+- OpenCode / GitHub Action 版本升级可能改变评论形态，因此本地收件箱只依赖稳定 marker，不绑定具体 bot 用户名。
 - 模型可能误报 / 漏报；输出要求分离 Observation / Inference / Judgment，并保持非阻塞。
-- GitHub API / OpenRouter 短暂故障会导致 review workflow 失败，但不应影响现有 Verify Prototype。
+- GitHub / OpenCode 短暂故障会导致 review workflow 失败，但不应影响现有 Verify Prototype。
 
 ## 当前施工结果
 
 已落地：
 
-- `.github/workflows/ai-pr-review.yml`
-- `scripts/ai-pr-review.mjs`
+- `.github/workflows/ai-pr-review.yml` → OpenCode 官方 GitHub Action
 - `scripts/pull-ai-review.mjs`
 - `docs/ai/pr-review.md`
 - `AGENTS.md` 本地 review 收件箱规则
@@ -61,21 +63,23 @@
 - `.gitignore` → `.ai/reviews/`
 - `docs/ai/skills.md` → 实验性 PR Review 权限边界
 
-关键提交：
+已移除：
 
-- `1c63f1e` workflow
-- `3559509` review runner
-- `adec3c6` local review inbox
-- `55c0a30` local command
-- `ea45095` review protocol docs
-- `ed53120` AGENTS handoff
-- `b76159b` AI skill scope
+- 直接 OpenRouter HTTP 调用
+- `scripts/ai-pr-review.mjs`
+- `OPENROUTER_API_KEY` 依赖
+
+关键调整提交：
+
+- `b4b2c3e` workflow 改为 OpenCode
+- `f833093` 删除 direct OpenRouter runner
+- `2a5329a` 更新 review 协议
 
 ## 验证方式
 
-当前已完成静态脚本语法检查和仓库文件落地核对。
+当前已完成 workflow / 协议落地核对。
 
-待 `OPENROUTER_API_KEY` 配置后，用首个真实 PR 完成 smoke test，满足全部验收标准后再从 `BLOCKED` 推进到 `REVIEW`。AI review 本身不能把 T014 自动推进为 `PASS`。
+待 `OPENCODE_API_KEY` 配置后，用首个真实 PR 完成 smoke test，满足全部验收标准后再从 `BLOCKED` 推进到 `REVIEW`。AI review 本身不能把 T014 自动推进为 `PASS`。
 
 ## Review 结论
 
