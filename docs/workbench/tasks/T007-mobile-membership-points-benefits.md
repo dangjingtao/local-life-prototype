@@ -1,6 +1,6 @@
 # T007 · Mobile 会员、积分与权益中心
 
-- Status: TODO
+- Status: DOING
 - Target version: 0.1.0
 - Impact: Mobile / Shared
 - Owner: Mira
@@ -31,9 +31,9 @@
 
 ## Acceptance
 
-- [ ] 用户可查看积分、券、订单和报告入口。
-- [ ] 至少一条积分获取与一条兑换状态变化可演示。
-- [ ] 未确认规则明确标注为候选或待确认。
+- [x] 用户可查看积分、券、订单和报告入口。
+- [x] 至少一条积分获取与一条兑换状态变化可演示。
+- [x] 未确认规则明确标注为候选或待确认。
 - [ ] 完成 390px 视觉与交互检查。
 - [ ] `npm run build:mobile` 通过。
 
@@ -44,20 +44,23 @@
 
 ## Implementation record
 
-- Commit / PR:
-- Changed paths:
+- Commit / PR: `ff8aee1` 新增会员中心；`ef128c6` 接入 Mobile “我的” Tab；分支 `feature/T007-mobile-membership-benefits`。
+- Changed paths: `apps/mobile/src/MembershipCenterScreen.tsx`；`apps/mobile/src/App.tsx`。
 - Notes:
+  - 会员、等级、积分、券、订单、报告和核销均直接消费 `@prototype/shared` 的 `LL-8888` 数据。
+  - 积分获取与兑换交互只重放 Shared 已存在的 `POINT-8888-003` / `POINT-8888-004` 历史流水，不新增固定奖励或兑换规则，也不修改 1280 当前余额。
+  - 当前账号没有 expired 券 fixture，因此“已过期”保持真实空态；主动任务只有来源能力被确认，任务内容 / 奖励额度未建模，因此只表达能力占位。
 
 ## Verification evidence
 
-- CI:
-- Page / Route:
-- Screenshot / Browser result:
-- Other evidence:
+- CI: 待 PR Verify。
+- Page / Route: 登录后底部“我的” → 会员中心 → 积分 / 券 / 统一账号记录。
+- Screenshot / Browser result: 390px 实际浏览器检查待补。
+- Other evidence: App 接线相对 `dev` 仅 +2 / -30，未重写 T004-T006 业务流程。
 
 ## Review
 
 - Reviewer: Tomz
-- Result: REVIEW / PASS / BLOCKED
-- Conclusion:
-- Follow-up:
+- Result: DOING
+- Conclusion: 代码施工已完成首轮自检，等待 PR Verify 与独立 AI review；390px / T012 质量审计仍 outstanding。
+- Follow-up: 通过 review 后推进到 `REVIEW`，不自动 `PASS`。
