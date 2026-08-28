@@ -29,17 +29,15 @@ Required repository secret:
 
 Store it only under GitHub repository Settings → Secrets and variables → Actions → Repository secrets.
 
-Default experiment model:
+Default review model:
 
-- `opencode/mimo-v2.5-free`
+- `opencode/deepseek-v4-pro`
 
 The model can be changed without editing the workflow by setting the repository Actions variable:
 
 - `OPENCODE_REVIEW_MODEL`
 
-The value uses OpenCode's `provider/model` format.
-
-`opencode/gpt-5.4-mini` was exercised during the smoke test and reached the OpenCode API successfully, but the configured Zen workspace had insufficient balance. The experiment therefore defaults to a free OpenCode model until a paid review model is deliberately selected.
+The value uses OpenCode's `provider/model` format. The current default is DeepSeek V4 Pro through OpenCode Zen; the free `opencode/mimo-v2.5-free` model was used only to complete the initial smoke test while the paid-model path was being validated.
 
 ## Security boundary
 
@@ -132,11 +130,13 @@ PR #1 (`test: T014 OpenCode PR review smoke`) exercised the real `pull_request -
 Validated behavior:
 
 - `OPENCODE_API_KEY` was present and accepted by OpenCode.
-- OpenCode generated a review with `opencode/mimo-v2.5-free`.
+- OpenCode generated the initial successful smoke review with `opencode/mimo-v2.5-free`.
 - the review and publisher jobs succeeded independently.
 - repeated synchronize events updated the existing marked PR comment rather than creating a comment stream.
 - review metadata tracked the current PR Head SHA.
 - the publisher successfully ran `scripts/pull-ai-review.mjs` and verified `.ai/reviews/latest.md` against the current Head SHA and marker.
 - normal `Verify Prototype` continued to run successfully alongside the review workflow.
+
+The production experiment default is now `opencode/deepseek-v4-pro`; the historical smoke evidence above remains intentionally unchanged.
 
 This moves T014 to `REVIEW`; the experimental reviewer still cannot mark itself `PASS`.
