@@ -1,6 +1,6 @@
 # T009 · PC 店主与合作商工作台
 
-- Status: TODO
+- Status: REVIEW
 - Target version: 0.1.0
 - Impact: PC / Shared
 - Owner: Mira
@@ -31,11 +31,11 @@
 
 ## Acceptance
 
-- [ ] 店主可从概览进入自提或服务核销。
-- [ ] LL-1024 等演示订单与用户端信息一致。
-- [ ] 越权场景可触发 permission 表达。
+- [x] 店主可从概览进入自提或服务核销。
+- [x] LL-1024 等演示订单与用户端信息一致。
+- [x] 越权场景可触发 permission 表达。
 - [ ] 1440px 与 1024px 完成视觉检查。
-- [ ] `npm run build:pc` 通过。
+- [x] `npm run build:pc` 通过。
 
 ## Risks / Dependencies
 
@@ -44,20 +44,20 @@
 
 ## Implementation record
 
-- Commit / PR:
-- Changed paths:
-- Notes:
+- Commit / PR: `47dcafeeecd7246bf2dcefa5607cd1937a5d6438`
+- Changed paths: `apps/pc/src/App.tsx`; `packages/shared/src/fixtures.ts`
+- Notes: 店主工作台已从 T008 占位容器替换为本店经营概览、自提/服务核销和门店用户概览；核销按钮仅修改本次原型演示状态，不伪装真实后端写入。
 
 ## Verification evidence
 
-- CI:
-- Page / Route:
-- Screenshot / Browser result:
-- Other evidence:
+- CI: GitHub Actions `Verify Prototype #14`（run `33135084616`）success；版本合同、全仓 typecheck、全仓 build 均通过。
+- Page / Route: PC 根页面 `?role=merchant`；工作台可进入“订单与核销”“门店用户”；`?role=merchant&view=permission` 可验证越权表达。
+- Screenshot / Browser result: 当前执行环境无法完成 1440px / 1024px 浏览器视觉检查，留待 Review 补证。
+- Other evidence: `LL-8888` / `LL-1024` / `STORE-YUNLING` / `REDEEM-LL-1024` 继续复用 T002/T004 数据链；新增 `REDEEM-EXPERIENCE-8888-01` 将同一用户的基础检测体验券与云岭社区店服务核销关联，供 T006 后续复用。
 
 ## Review
 
 - Reviewer: Tomz
-- Result: REVIEW / PASS / BLOCKED
-- Conclusion:
-- Follow-up:
+- Result: REVIEW
+- Conclusion: 施工与自动验证已完成，等待 1440px / 1024px 视觉复核与用户验收；未自动提升为 PASS。
+- Follow-up: 视觉确认后收口 T009；T006 实现时继续复用 `EXPERIENCE-8888-01` / `CARE-8888` 跨端凭证，不另造同义数据。
