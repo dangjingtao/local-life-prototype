@@ -72,7 +72,7 @@ export function MallFlowScreen() {
   };
 
   const submitDemoOrder = () => {
-    setOrderStatus(fulfillment === "home_delivery" ? "pending_fulfillment" : "pending_pickup");
+    setOrderStatus("pending_fulfillment");
     goStep("order");
   };
 
@@ -81,7 +81,11 @@ export function MallFlowScreen() {
       setOrderStatus("shipping");
       return;
     }
-    if (orderStatus === "shipping" || orderStatus === "pending_pickup") {
+    if (orderStatus === "shipping") {
+      setOrderStatus(fulfillment === "store_delivery" ? "pending_pickup" : "completed");
+      return;
+    }
+    if (orderStatus === "pending_pickup") {
       setOrderStatus("completed");
     }
   };
@@ -254,6 +258,10 @@ export function MallFlowScreen() {
   }
 
   if (step === "checkout") {
+    const destination = fulfillment === "home_delivery"
+      ? demoAddress
+      : `${coreDemoStore.name} · ${coreDemoStore.address}`;
+
     return (
       <>
         <button type="button" onClick={() => goStep("cart")} className="inline-flex min-h-[44px] items-center gap-2 text-sm font-medium text-[var(--color-text-secondary)]">
@@ -266,10 +274,14 @@ export function MallFlowScreen() {
         </div>
 
         <Card>
-          <p className="text-xs text-[var(--color-text-tertiary)]">收货人 / 统一账号</p>
+          <p className="text-xs text-[var(--color-text-tertiary)]">{fulfillment === "home_delivery" ? "收货人 / 统一账号" : "提货人 / 统一账号"}</p>
           <p className="mt-2 font-semibold">{coreDemoUser.displayName} · {coreDemoUser.id}</p>
-          <p className="mt-2 text-sm leading-6 text-[var(--color-text-secondary)]">{demoAddress}</p>
-          <p className="mt-2 text-xs leading-5 text-[var(--color-text-tertiary)]">演示地址不写入 Shared，也不代表真实用户地址。</p>
+          <p className="mt-2 text-sm leading-6 text-[var(--color-text-secondary)]">{destination}</p>
+          <p className="mt-2 text-xs leading-5 text-[var(--color-text-tertiary)]">
+            {fulfillment === "home_delivery"
+              ? "演示地址不写入 Shared，也不代表真实用户地址。"
+              : "送店目的地来自 Shared 核心合作门店；真实到货通知与门店库存未接入。"}
+          </p>
         </Card>
 
         <Section title="履约方式">
@@ -328,9 +340,11 @@ export function MallFlowScreen() {
   const canAdvance = orderStatus === "pending_fulfillment" || orderStatus === "shipping" || orderStatus === "pending_pickup";
   const nextStatusLabel = orderStatus === "pending_fulfillment"
     ? "模拟进入配送中"
-    : orderStatus === "shipping" || orderStatus === "pending_pickup"
-      ? "模拟完成订单"
-      : "订单已完成";
+    : orderStatus === "shipping"
+      ? fulfillment === "store_delivery" ? "模拟到店待自提" : "模拟完成订单"
+      : orderStatus === "pending_pickup"
+        ? "模拟完成自提"
+        : "订单已完成";
 
   return (
     <>
