@@ -1,6 +1,6 @@
 # T005 · Mobile 线上商城一件代发闭环
 
-- Status: TODO
+- Status: DOING
 - Target version: 0.1.0
 - Impact: Mobile / Shared
 - Owner: Mira
@@ -54,6 +54,11 @@
 - Page / Route:
 - Screenshot / Browser result:
 - Other evidence:
+
+## Status history
+
+- 2026-08-28 `TODO → DOING`：用户明确要求从最新 `dev` 新建功能分支施工 T005，并向 `dev` 发起 PR，接收 Experimental OpenCode review 后复核 finding、必要时返工，直到最新 review 无阻塞项。
+- Work branch: `feature/T005-mobile-mall-flow`（base: `dev@e21ff937ec421769d65c2af76302b2d9585a0e96`）。
 
 ## Review
 
