@@ -3,7 +3,7 @@ import path from 'node:path';
 import { execFileSync, spawnSync } from 'node:child_process';
 
 const REVIEW_MARKER = '<!-- local-ai-review:v1 -->';
-const DEFAULT_MODEL = 'opencode/gpt-5.4-mini';
+const DEFAULT_MODEL = 'opencode/mimo-v2.5-free';
 const MAX_DIFF_CHARS = 140_000;
 
 function fail(message) {
