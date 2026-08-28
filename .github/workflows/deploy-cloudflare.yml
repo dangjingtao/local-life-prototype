@@ -43,10 +43,8 @@ jobs:
           const exists = fs.existsSync(`apps/${app}/package.json`);
           const enabled = Boolean(exists && config.targets?.[app] && config.deployment?.cloudflare?.enabled);
           const project = config.deployment?.cloudflare?.projects?.[app] || '';
-          const legacy = project === `local-life-${app}` ? `comuilty-${app}` : '';
           console.log(`enabled=${enabled}`);
           console.log(`project=${project}`);
-          console.log(`legacy=${legacy}`);
           NODE
 
       - name: Check Cloudflare credentials
@@ -57,112 +55,6 @@ jobs:
             echo "Cloudflare deployment is enabled but CLOUDFLARE_API_TOKEN / CLOUDFLARE_ACCOUNT_ID are missing."
             echo "Run: mira setup cicd"
             exit 1
-          fi
-
-      - name: Ensure canonical Pages project
-        id: canonical
-        if: steps.target.outputs.enabled == 'true' && steps.target.outputs.legacy != ''
-        env:
-          PROJECT: ${{ steps.target.outputs.project }}
-          LEGACY_PROJECT: ${{ steps.target.outputs.legacy }}
-        shell: bash
-        run: |
-          set -euo pipefail
-          API="https://api.cloudflare.com/client/v4/accounts/$CF_ACCOUNT_ID/pages/projects"
-          AUTH=(--header "Authorization: Bearer $CF_API_TOKEN" --header "Content-Type: application/json")
-
-          get_project() {
-            local name="$1"
-            local output="$2"
-            curl --silent --show-error --output "$output" --write-out '%{http_code}' "${AUTH[@]}" "$API/$name"
-          }
-
-          count_nonlegacy_domains() {
-            local input="$1"
-            jq -r --arg legacy "$LEGACY_PROJECT.pages.dev" '[.result.domains[]? | select(. != $legacy)] | length' "$input"
-          }
-
-          print_nonlegacy_domains() {
-            local input="$1"
-            jq -r --arg legacy "$LEGACY_PROJECT.pages.dev" '.result.domains[]? | select(. != $legacy)' "$input"
-          }
-
-          create_project() {
-            local payload
-            payload="$(jq -nc --arg name "$PROJECT" '{name:$name,production_branch:"prod"}')"
-            curl --fail-with-body --silent --show-error --request POST "${AUTH[@]}" --data "$payload" "$API" > "$RUNNER_TEMP/cf-created.json"
-            jq -e --arg name "$PROJECT" '.success == true and .result.name == $name' "$RUNNER_TEMP/cf-created.json" >/dev/null
-            echo "Created fresh Cloudflare Pages project $PROJECT."
-          }
-
-          project_status="$(get_project "$PROJECT" "$RUNNER_TEMP/cf-project.json")"
-
-          if [ "$project_status" = "404" ]; then
-            legacy_status="$(get_project "$LEGACY_PROJECT" "$RUNNER_TEMP/cf-legacy.json")"
-            if [ "$legacy_status" = "200" ]; then
-              unsafe_count="$(count_nonlegacy_domains "$RUNNER_TEMP/cf-legacy.json")"
-              if [ "$unsafe_count" != "0" ]; then
-                echo "Legacy Pages project $LEGACY_PROJECT has additional domains; refusing automatic replacement."
-                print_nonlegacy_domains "$RUNNER_TEMP/cf-legacy.json"
-                exit 1
-              fi
-              create_project
-              echo "legacy_cleanup=true" >> "$GITHUB_OUTPUT"
-              exit 0
-            fi
-            if [ "$legacy_status" != "404" ]; then
-              cat "$RUNNER_TEMP/cf-legacy.json"
-              echo "Unexpected Cloudflare status while checking $LEGACY_PROJECT: $legacy_status"
-              exit 1
-            fi
-            create_project
-            echo "legacy_cleanup=false" >> "$GITHUB_OUTPUT"
-            exit 0
-          fi
-
-          if [ "$project_status" != "200" ]; then
-            cat "$RUNNER_TEMP/cf-project.json"
-            echo "Unexpected Cloudflare status while checking $PROJECT: $project_status"
-            exit 1
-          fi
-
-          unsafe_count="$(count_nonlegacy_domains "$RUNNER_TEMP/cf-project.json")"
-          deployment_urls="$(jq -r '[.result.latest_deployment.url, (.result.latest_deployment.aliases[]?)] | map(select(. != null)) | join("\n")' "$RUNNER_TEMP/cf-project.json")"
-
-          if printf '%s\n' "$deployment_urls" | grep -Fq ".$LEGACY_PROJECT.pages.dev"; then
-            if [ "$unsafe_count" != "0" ]; then
-              echo "Pages project $PROJECT still uses the legacy pages.dev hostname and has additional domains; refusing automatic recreation."
-              print_nonlegacy_domains "$RUNNER_TEMP/cf-project.json"
-              exit 1
-            fi
-
-            legacy_status="$(get_project "$LEGACY_PROJECT" "$RUNNER_TEMP/cf-legacy.json")"
-            if [ "$legacy_status" = "200" ]; then
-              echo "Both $PROJECT and $LEGACY_PROJECT exist; refusing to overwrite either project."
-              exit 1
-            fi
-            if [ "$legacy_status" != "404" ]; then
-              cat "$RUNNER_TEMP/cf-legacy.json"
-              echo "Unexpected Cloudflare status while checking $LEGACY_PROJECT: $legacy_status"
-              exit 1
-            fi
-
-            payload="$(jq -nc --arg name "$LEGACY_PROJECT" '{name:$name,production_branch:"prod"}')"
-            curl --fail-with-body --silent --show-error --request PATCH "${AUTH[@]}" --data "$payload" "$API/$PROJECT" > "$RUNNER_TEMP/cf-restored-legacy.json"
-            jq -e --arg name "$LEGACY_PROJECT" '.success == true and .result.name == $name' "$RUNNER_TEMP/cf-restored-legacy.json" >/dev/null
-            echo "Restored old project resource to $LEGACY_PROJECT so its immutable legacy pages.dev hostname stays isolated."
-
-            create_project
-            echo "legacy_cleanup=true" >> "$GITHUB_OUTPUT"
-            exit 0
-          fi
-
-          echo "Pages project $PROJECT already has a non-legacy deployment hostname."
-          legacy_status="$(get_project "$LEGACY_PROJECT" "$RUNNER_TEMP/cf-legacy.json")"
-          if [ "$legacy_status" = "200" ]; then
-            echo "legacy_cleanup=true" >> "$GITHUB_OUTPUT"
-          else
-            echo "legacy_cleanup=false" >> "$GITHUB_OUTPUT"
           fi
 
       - uses: actions/setup-node@v6
@@ -186,45 +78,3 @@ jobs:
           wranglerVersion: "4"
           gitHubToken: ${{ secrets.GITHUB_TOKEN }}
           command: pages deploy apps/${{ matrix.app }}/dist --project-name=${{ steps.target.outputs.project }} --branch=${{ github.ref_name }} --commit-hash=${{ github.sha }}
-
-      - name: Verify corrected Pages hostname and remove legacy project
-        if: steps.target.outputs.enabled == 'true' && steps.target.outputs.legacy != ''
-        env:
-          PROJECT: ${{ steps.target.outputs.project }}
-          LEGACY_PROJECT: ${{ steps.target.outputs.legacy }}
-          LEGACY_CLEANUP: ${{ steps.canonical.outputs.legacy_cleanup }}
-        shell: bash
-        run: |
-          set -euo pipefail
-          API="https://api.cloudflare.com/client/v4/accounts/$CF_ACCOUNT_ID/pages/projects"
-          AUTH=(--header "Authorization: Bearer $CF_API_TOKEN" --header "Content-Type: application/json")
-
-          curl --fail-with-body --silent --show-error "${AUTH[@]}" "$API/$PROJECT" > "$RUNNER_TEMP/cf-verified.json"
-          deployment_urls="$(jq -r '[.result.latest_deployment.url, (.result.latest_deployment.aliases[]?)] | map(select(. != null)) | join("\n")' "$RUNNER_TEMP/cf-verified.json")"
-          printf '%s\n' "$deployment_urls"
-
-          if ! printf '%s\n' "$deployment_urls" | grep -Fq ".$PROJECT.pages.dev"; then
-            echo "Corrected Pages project deployed, but Cloudflare did not return the expected .$PROJECT.pages.dev hostname."
-            exit 1
-          fi
-
-          echo "Verified corrected Cloudflare Pages hostname for $PROJECT."
-
-          if [ "$LEGACY_CLEANUP" = "true" ]; then
-            legacy_status="$(curl --silent --show-error --output "$RUNNER_TEMP/cf-legacy-final.json" --write-out '%{http_code}' "${AUTH[@]}" "$API/$LEGACY_PROJECT")"
-            if [ "$legacy_status" = "200" ]; then
-              unsafe_count="$(jq -r --arg legacy "$LEGACY_PROJECT.pages.dev" '[.result.domains[]? | select(. != $legacy)] | length' "$RUNNER_TEMP/cf-legacy-final.json")"
-              if [ "$unsafe_count" != "0" ]; then
-                echo "Legacy project $LEGACY_PROJECT unexpectedly has additional domains; keeping it for safety."
-                jq -r --arg legacy "$LEGACY_PROJECT.pages.dev" '.result.domains[]? | select(. != $legacy)' "$RUNNER_TEMP/cf-legacy-final.json"
-                exit 1
-              fi
-              curl --fail-with-body --silent --show-error --request DELETE "${AUTH[@]}" "$API/$LEGACY_PROJECT" > "$RUNNER_TEMP/cf-deleted-legacy.json"
-              jq -e '.success == true' "$RUNNER_TEMP/cf-deleted-legacy.json" >/dev/null
-              echo "Deleted legacy Cloudflare Pages project $LEGACY_PROJECT."
-            elif [ "$legacy_status" != "404" ]; then
-              cat "$RUNNER_TEMP/cf-legacy-final.json"
-              echo "Unexpected Cloudflare status while cleaning $LEGACY_PROJECT: $legacy_status"
-              exit 1
-            fi
-          fi
