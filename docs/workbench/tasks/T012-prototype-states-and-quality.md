@@ -41,7 +41,7 @@
 
 - 前置：T003-T011 的对应页面完成。
 - 风险：全局状态不能替代业务级状态，需按关键流程抽查。
-- 当前依赖缺口：T005 已完成商城代码施工并进入 `REVIEW`，但尚未纳入 T012 的 390px 状态 / 可访问性 / 恢复路径审计；T006、T007 仍为 `TODO`。因此 T012 继续保持 `DOING`，不得因为 T005 build / code review 已通过就把它从质量待办中移除，也不得在 T006-T007 完成前进入 `REVIEW` / `PASS`。
+- 当前依赖缺口：T005、T006 已完成业务代码施工并进入 `REVIEW`，但两者的 390px 状态 / 可访问性 / 恢复路径审计仍 outstanding；T007 仍为 `TODO`。因此 T012 继续保持 `DOING`。
 - 轻微技术债：OpenCode 最终复审指出 `PrototypeState` 仍保留已不参与渲染控制的 `view` prop；当前无运行时影响，后续可在不破坏调用合同的前提下清理。
 
 ## Implementation record
@@ -55,7 +55,7 @@
   - ready / loading / empty / error 使用 `useSyncExternalStore` + history 事件在当前文档内切换；permission 因 PC 有角色专属边界页，仍使用文档导航。
   - 首轮返工后，OpenCode 二审继续发现 React reconciliation P1：ready 与非 ready 返回结构不同仍会卸载业务 children。第二次返工改为 `PrototypeState` 始终返回同一 Fragment，业务 children 始终位于第一个稳定 wrapper；ready 时 wrapper 使用 `display: contents`，非 ready 时用 `hidden` 从布局、焦点和可访问树移除，因此 nested React state 不因质量状态切换而卸载。
   - loading 动画使用 `motion-safe:animate-pulse`；全局焦点 fallback 放入 `@layer base`，由组件级 Tailwind ring 正常覆盖，避免双焦点。
-  - T005 已在 PR #6 新增 `MallFlowScreen`，但本任务只把它重新登记为“待质量审计”范围；商城自身 code review / build 证据不能替代 T012 的状态、键盘、触控与 390px 浏览器检查。
+  - T005 `MallFlowScreen` 与 T006 `CareFlowScreen` 已存在，但业务 code review / build 不能替代 T012 的状态、键盘、触控与 390px 浏览器检查。
 
 ## Verification evidence
 
@@ -68,18 +68,18 @@
   - OpenCode #12 verdict `CHANGES_NEEDED`：组件 ring 与未分层全局 outline 在 Tailwind v3 cascade 下可能形成双焦点。复核成立，fallback 改为 `@layer base`。
   - OpenCode #13 verdict `CHANGES_NEEDED`：首轮返工虽然不刷新文档，但 ready / non-ready 的 React 返回树不同，业务 children 仍会卸载重挂，门店局部 step 无法真正保持。复核为高置信 P1，第二次返工改为稳定 wrapper 始终处于同一 React tree position。
   - OpenCode #14（run `33145171238`）review success，metadata Head 与 `6f3f297` 一致，最终 verdict `NO_BLOCKING_FINDINGS`；未发现新的高置信 P0-P2。
-  - T005 PR #6 当前复审指出：商城页面虽已存在，但尚无 T012 质量审计证据；该 finding 复核成立，本任务与矩阵已恢复 T005 为明确 outstanding 项。
+  - T005 PR #6 与 T006 PR #7 的 Codex 复审均指出新页面必须继续留在 T012 outstanding 范围；两项 finding 均已复核并同步任务 / 矩阵 / ledger。
 - Page / Route:
   - Mobile：登录后 URL 自动带 `demoAuth=1`；可组合 `?demoAuth=1&view=loading|empty|error|permission`。
   - PC 店主：`?role=merchant&view=loading|empty|error|permission`。
   - PC 运营：`?role=operator&view=loading|empty|error|permission`。
   - PC 管理层：`?role=management&view=loading|empty|error|permission`。
-- Screenshot / Browser result: 390px / 1024px / 1440px 实际浏览器视觉、键盘 Tab 顺序与对比度抽查尚未形成证据；T005 商城也尚未完成 390px 质量审计。
-- Other evidence: `docs/workbench/T012-state-quality-matrix.md` 记录当前状态语义、路由和剩余人工验证项，并明确 T005 已存在但仍待审计。
+- Screenshot / Browser result: 390px / 1024px / 1440px 实际浏览器视觉、键盘 Tab 顺序与对比度抽查尚未形成证据；T005/T006 均尚未完成 390px 质量审计。
+- Other evidence: `docs/workbench/T012-state-quality-matrix.md` 记录当前状态语义、路由和剩余人工验证项。
 
 ## Review
 
 - Reviewer: Tomz
 - Result: DOING
-- Conclusion: PR #4 经两轮有效返工后，共享质量基线已合入 `dev`；T005 现已存在，但其状态 / 可访问性 / 390px 质量证据仍未补齐，T006-T007 仍未施工，因此 T012 继续保持 `DOING`，不提前进入 `REVIEW`。
-- Follow-up: 将 T005 商城纳入 Mobile 五态恢复、键盘焦点、触控目标与 390px 溢出 / 遮挡抽查；待 T006-T007 完成后同样补入，再完成 390/1024/1440 实际浏览器、颜色对比验收并决定进入 `REVIEW`。
+- Conclusion: 共享质量基线已合入 `dev`；T005/T006 已存在但质量证据仍未补齐，T007 仍未施工，因此 T012 继续保持 `DOING`。
+- Follow-up: 完成 T005/T006 的 Mobile 五态恢复、键盘焦点、触控与 390px 抽查；T007 完成后同样纳入，再完成 390/1024/1440 浏览器与颜色对比验收。
