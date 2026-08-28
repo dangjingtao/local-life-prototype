@@ -41,12 +41,12 @@
 | T004 | Mobile 线下门店自提闭环 | Mobile | REVIEW | 0.1.0 | T002、T003 | `7946292`；Verify Prototype #11 success；门店→商品→自提凭证→核销→私域承接已落地，待 390px 视觉复核 |
 | T005 | Mobile 线上商城一件代发闭环 | Mobile | REVIEW | 0.1.0 | T002、T003 | PR #6；返工 `dfb7288`；Verify Prototype #89 success；OpenCode #20 `NO_BLOCKING_FINDINGS`；Codex 两条业务 P2 已修复，待 390px 视觉 / T012 质量审计 |
 | T006 | Mobile 智慧抗衰体验闭环 | Mobile | REVIEW | 0.1.0 | T002、T003 | PR #7 已合入 `dev`，merge `bdb4c6c`；最终 Head `17a5096`；Verify #104 success；OpenCode #34 `NO_BLOCKING_FINDINGS`；Codex 无重大问题；待 390px / T012 质量审计 |
-| T007 | Mobile 会员、积分与权益中心 | Mobile | DOING | 0.1.0 | T002、T003 | `ff8aee1` + `ef128c6`；会员中心、积分 replay、券状态、订单 / 报告 / 核销入口已施工，待 PR Verify / review 与 390px / T012 质量审计 |
+| T007 | Mobile 会员、积分与权益中心 | Mobile | REVIEW | 0.1.0 | T002、T003 | PR #8 已合入 `dev`，merge `3dca4ef`；最终 Head `161c513`；Verify #109 success；OpenCode #38 `NO_BLOCKING_FINDINGS`；390px / T012 质量证据见 T012 current-head CI |
 | T008 | PC 工作台框架、角色与权限 | PC | REVIEW | 0.1.0 | T002 | `c1cb8d5`；Verify Prototype #6 success；三类角色、范围导航与 permission 边界已落地，待多视口视觉复核 |
 | T009 | PC 店主与合作商工作台 | PC | REVIEW | 0.1.0 | T002、T008 | `47dcafe`；Verify Prototype #14 success；本店概览、自提/服务核销、门店用户与越权状态已落地，待多视口视觉复核 |
 | T010 | PC 平台运营中台 | PC | REVIEW | 0.1.0 | T002、T008 | `5c07411` + `bdc9662`；Verify Prototype #37 success；六类运营模块、LL-8888 关联详情与三场景筛选已落地，待多视口视觉复核 |
 | T011 | PC 数据驾驶舱 | PC | REVIEW | 0.1.0 | T002、T008 | PR #3 已合入 `dev`，merge `8b068c5`；返工 Head Verify #77 success；最新 marked OpenCode review `NO_BLOCKING_FINDINGS`；待 1440px / 1024px 视觉复核 |
-| T012 | 关键状态、可访问性与原型质量 | QA / Shared | DOING | 0.1.0 | T003-T011 | PR #4 已合入 `dev`，merge `d6a10b5`；第二次返工 Head Verify #81 success；最新 marked OpenCode review `NO_BLOCKING_FINDINGS`；T005/T006/T007 Mobile 质量审计与浏览器质量证据仍待补 |
+| T012 | 关键状态、可访问性与原型质量 | QA / Shared | REVIEW | 0.1.0 | T003-T011 | PR #9；390px / 1024px / 1440px Chromium、五态、深层状态恢复、焦点、触控目标、对比度已形成真实证据；合并以 latest-head CI / marked review 为准，不自动 PASS |
 | T013 | 跨端演示串联与 V0.1 验收准备 | Review / Docs | TODO | 0.1.0 | T002-T012 | AC-001 至 AC-010 证据与 T001 REVIEW 准备 |
 | T014 | 实验性 PR AI Review | CI / Review | REVIEW | 0.1.0 | GitHub Actions、`OPENCODE_API_KEY` | PR #1 / OpenCode run #5；只读 review、单评论更新与本地 Agent handoff self-check 已真实通过；PR #3 首个真实业务施工 smoke 完成“发现 P2→返工→二审→合并”闭环 |
 
@@ -88,6 +88,9 @@
 
 ### 2026-08-28
 
+- T012 浏览器质量收口：PR #9 新增真实 Chromium 质量审计，390px Mobile 与 1024px / 1440px PC 覆盖五态、深层状态恢复、横向溢出、可见焦点、44px 触控目标与核心颜色对比；审计真实抓到 Mobile PrototypePanel 遮挡 TabBar / CTA 与 42px 实际点击宽度，均按产品缺陷修复，不通过 `force` 或放宽断言绕过。
+- T012 Review 对账：Head `349fef9` 的 Browser Quality #6 13/13 success、Verify #116 success；OpenCode #44 唯一 P2 指出 T007 总台账仍为 DOING，复核成立并在本轮同步修正；其 Chromium 未执行、折叠面板定位两项 gap 已由 #6 实测关闭，shared/icons 触发范围 gap 同步补齐。T012 推进到 `REVIEW`，最终合并仍要求 latest-head CI / marked review。
+- T007 台账对账：PR #8 已合入 `dev`，merge `3dca4ef`；最终 Head `161c513` 的 Verify #109 success、OpenCode #38 `NO_BLOCKING_FINDINGS`，因此总台账从陈旧 `DOING` 修正为 `REVIEW`；不改变“用户最终视觉验收前不得 PASS”的规则。
 - T007 开工：从 `dev@bdb4c6cd793202615c5fc153d0b45324fe60410d` 建立 `feature/T007-mobile-membership-benefits`，新增独立 `MembershipCenterScreen` 并将底部“我的”从 T003 占位卡切换到正式会员 / 积分 / 权益中心。
 - T007 数据边界：会员等级、1280 当前积分、积分流水、优惠券 / 体验券、订单、检测报告与核销记录均直接消费 `@prototype/shared` 的 `LL-8888`；不新增同义数据源，不写回 Shared。
 - T007 积分演示：获取与兑换状态只重放现有 `POINT-8888-003`（体验 +300、当时余额 1300）与 `POINT-8888-004`（兑换 -20、余额 1280）历史 fixture，交互状态为本地 replay，不伪造新的奖励额度、兑换商品或当前余额变化。
@@ -185,9 +188,9 @@
 
 1. T014 已完成基础 smoke 并进入 `REVIEW`；PR #3 已验证首个真实业务施工“发现问题→返工→二审→合并”闭环，后续继续观察误报、漏报与耗时，不自动转 `PASS`。
 2. T002 已完成；以 `@prototype/shared` 作为后续跨端语义和演示数据基线。
-3. T003-T006 已进入 REVIEW；T007 正在施工 / review。Mobile 各卡正式 PASS 仍需 390px 视觉 / 交互与 T012 质量证据。
-4. T008-T011 均已进入 REVIEW；PC 四张卡正式 PASS 仍需补 1440px / 1024px 视觉验收。
-5. T012 共享五态、恢复动作与可访问性基线已通过 PR #4 合入 `dev`；T005/T006/T007 页面现均存在，但三者的 390px 状态 / 可访问性质量审计仍 outstanding；浏览器证据齐备后才能补全最终质量矩阵并进入 REVIEW。
-6. T007 继续复用 T003 壳与 `@prototype/shared`，完成 PR Verify / review 后推进到 `REVIEW`；不得把历史积分 replay 或 Candidate 兑换方向误写成正式规则。
+3. T003-T007 已进入 REVIEW；Mobile 各卡正式 PASS 仍需用户最终 390px 视觉 / 交互确认，T012 自动化质量证据已覆盖关键路径。
+4. T008-T011 均已进入 REVIEW；PC 四张卡正式 PASS 仍需补 1440px / 1024px 用户视觉验收。
+5. T012 共享五态 / 恢复动作基线与 PR #9 浏览器质量审计已完成施工，当前为 `REVIEW`；合并前以 latest-head Browser Quality + Verify + marked OpenCode review 为准，正式 PASS 仍由用户确认。
+6. T007 已完成业务施工与 PR review，保持 `REVIEW`；后续不得把历史积分 replay 或 Candidate 兑换方向误写成正式规则。
 7. 由 T013 串联三条主流程并核对 AC-001 至 AC-010，再将 T001 推进到 REVIEW。
 8. 未确认的产品规则在施工中暂停并向用户确认。
