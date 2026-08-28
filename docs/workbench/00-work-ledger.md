@@ -39,7 +39,7 @@
 | T002 | 共享领域模型与演示数据 | Shared | PASS | 0.1.0 | T001 | `6cf267c`；Verify Prototype #2 success；统一实体、状态名称和跨端 fixtures |
 | T003 | Mobile 登录、首页与统一账号入口 | Mobile | REVIEW | 0.1.0 | T002 | `1e35cec`；Verify Prototype #5 success；登录、三场景入口与统一身份已落地，待 390px 视觉复核 |
 | T004 | Mobile 线下门店自提闭环 | Mobile | REVIEW | 0.1.0 | T002、T003 | `7946292`；Verify Prototype #11 success；门店→商品→自提凭证→核销→私域承接已落地，待 390px 视觉复核 |
-| T005 | Mobile 线上商城一件代发闭环 | Mobile | DOING | 0.1.0 | T002、T003 | `feature/T005-mobile-mall-flow`；商城→商品→购物车→结算→到家/到店→订单详情已施工，待 PR / CI / OpenCode review |
+| T005 | Mobile 线上商城一件代发闭环 | Mobile | REVIEW | 0.1.0 | T002、T003 | PR #6；Head `d9f873c` Verify Prototype #86 success；首轮 OpenCode #17 `NO_BLOCKING_FINDINGS`；待最新 Head review 与 390px 视觉复核 |
 | T006 | Mobile 智慧抗衰体验闭环 | Mobile | TODO | 0.1.0 | T002、T003 | FR-301 至 FR-307；领券到基础报告 |
 | T007 | Mobile 会员、积分与权益中心 | Mobile | TODO | 0.1.0 | T002、T003 | FR-401 至 FR-406；积分与券状态 |
 | T008 | PC 工作台框架、角色与权限 | PC | REVIEW | 0.1.0 | T002 | `c1cb8d5`；Verify Prototype #6 success；三类角色、范围导航与 permission 边界已落地，待多视口视觉复核 |
@@ -92,6 +92,10 @@
 - T005 商城闭环：新增独立 `MallFlowScreen`，覆盖分类/推荐、商品详情、演示购物车、结算、全国配送到家 / 送至合作门店、概念订单详情与状态推进；继续复用 T003 Mobile 壳和 T012 PrototypeState。
 - T005 数据边界：商品与商城券直接消费 `@prototype/shared`；当前会话的演示地址、购物车和概念订单不写入 Shared，不伪装真实支付、库存、供应商下单、物流单号或持久化。
 - T005 渠道边界：自建私域商城作为当前可点击演示路径；外部电商导流保留为 D002 Open 候选，不提供假跳转。商城券没有减免金额字段，因此只展示“可用 / 金额规则待确认”，结算金额不擅自扣减。
+- T005 施工方自审：商品详情最初存在“立即结算”可绕过购物车的路径，与任务卡要求的购物车主链不够严谨；送审前主动修正为商品详情 → 购物车 → 结算，修正提交 `d9f873c`。
+- T005 首轮验证：PR #6 Head `d9f873cbe309fac91ea95e6acbb0a89edb6eca58` 的 Verify Prototype #86（run `33153655973`）success；Experimental OpenCode PR Review #17（run `33153655971`）使用 `opencode-go/deepseek-v4-pro` 返回 `NO_BLOCKING_FINDINGS`，无高置信 P0-P2 finding。
+- T005 review 处置：OpenCode 的 build gap 已由 Verify #86 补证；390px 浏览器检查仍是真实验收缺口。送店订单未经过 `shipping` 被 reviewer 列为 gap 而非缺陷，且当前合同不要求送店在途状态，因此不为迎合 review 擅自扩张物流语义。
+- T005 状态：施工、CI 与首轮代码 review 已完成，任务推进到 `REVIEW`；证据回写会触发 PR 新 Head review，必须以最新 Head marked review 为准。390px 实际视觉 / 交互检查完成前不自动 PASS。
 - T012 开工：从 `dev@8b068c5` 拉取 `task/T012-prototype-states-quality`。本轮先施工共享 Runtime 与现有 T003/T004、T008-T011 页面质量基线；由于 T005-T007 仍为 `TODO`，T012 保持 `DOING`，不提前进入 `REVIEW`。
 - T012 五态：Prototype Runtime 为 loading / empty / error / permission 补充原因和下一步；empty / error / permission 提供明确恢复到 ready 的动作；loading 增加 `aria-busy`，error 使用 alert 语义，PrototypePanel 当前状态使用 `aria-pressed`。
 - T012 可访问性基线：Design System Button / SecondaryButton 保持 44px 最小高度并新增 `focus-visible`；双端 CSS 对普通 button、link、summary、role=button 统一提供可见焦点兜底；PrototypePanel 状态按钮提升到 44px 级目标。首轮 OpenCode 指出组件 ring 与未分层全局 outline 可能形成双焦点，复核成立后将 fallback 放入 `@layer base`。
@@ -163,9 +167,9 @@
 
 1. T014 已完成基础 smoke 并进入 `REVIEW`；PR #3 已验证首个真实业务施工“发现问题→返工→二审→合并”闭环，后续继续观察误报、漏报与耗时，不自动转 `PASS`。
 2. T002 已完成；以 `@prototype/shared` 作为后续跨端语义和演示数据基线。
-3. T003、T004 已进入 REVIEW；完成 390px 移动视口视觉 / 交互检查后，由 Tomz 给出 PASS / BLOCKED 结论。
+3. T003-T005 已进入 REVIEW；完成 390px 移动视口视觉 / 交互检查后，由 Tomz 给出 PASS / BLOCKED 结论。T005 的 PR #6 仍需以证据回写后的最新 Head marked review 为最终代码评审依据。
 4. T008-T011 均已进入 REVIEW；PC 四张卡正式 PASS 仍需补 1440px / 1024px 视觉验收。
-5. T012 共享五态、恢复动作与可访问性基线已通过 PR #4 合入 `dev`；当前覆盖 T003/T004、T008-T011，T005 正在功能分支施工，待 T005-T007 页面完成后补全最终质量矩阵并进入 REVIEW。
-6. T005 正在 `feature/T005-mobile-mall-flow` 施工并准备向 `dev` 发起 PR；T006-T007 后续继续复用 T003 壳、T004 已接入的门店入口结构和 `@prototype/shared`；T006 应复用 `EXPERIENCE-8888-01` / `CARE-8888` 跨端凭证，不另造同义数据。
+5. T012 共享五态、恢复动作与可访问性基线已通过 PR #4 合入 `dev`；当前已覆盖 T003/T004，T005 已完成代码施工并处于 REVIEW，待 T006-T007 页面完成后补全最终质量矩阵并进入 REVIEW。
+6. T006-T007 后续继续复用 T003 壳、T004 已接入的门店入口结构和 `@prototype/shared`；T006 应复用 `EXPERIENCE-8888-01` / `CARE-8888` 跨端凭证，不另造同义数据。
 7. 由 T013 串联三条主流程并核对 AC-001 至 AC-010，再将 T001 推进到 REVIEW。
 8. 未确认的产品规则在施工中暂停并向用户确认。
