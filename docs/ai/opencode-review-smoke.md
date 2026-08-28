@@ -11,5 +11,6 @@ Expected behavior:
 - A synchronize event after the workflow fix triggers the isolated review/publish pipeline.
 - The free OpenCode model completes the end-to-end smoke test without Zen balance.
 - A later synchronize event updates the existing marked review comment instead of creating another one.
+- The publisher runs the same local review puller and verifies `.ai/reviews/latest.md` matches the PR Head SHA.
 
 Delete or ignore this branch after the smoke test.
