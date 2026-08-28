@@ -43,8 +43,10 @@ jobs:
           const exists = fs.existsSync(`apps/${app}/package.json`);
           const enabled = Boolean(exists && config.targets?.[app] && config.deployment?.cloudflare?.enabled);
           const project = config.deployment?.cloudflare?.projects?.[app] || '';
+          const legacy = project === `local-life-${app}` ? `comuilty-${app}` : '';
           console.log(`enabled=${enabled}`);
           console.log(`project=${project}`);
+          console.log(`legacy=${legacy}`);
           NODE
 
       - name: Check Cloudflare credentials
@@ -56,6 +58,47 @@ jobs:
             echo "Run: mira setup cicd"
             exit 1
           fi
+
+      - name: Migrate legacy Cloudflare Pages project name
+        if: steps.target.outputs.enabled == 'true' && steps.target.outputs.legacy != ''
+        env:
+          PROJECT: ${{ steps.target.outputs.project }}
+          LEGACY_PROJECT: ${{ steps.target.outputs.legacy }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          API="https://api.cloudflare.com/client/v4/accounts/$CF_ACCOUNT_ID/pages/projects"
+          AUTH=(--header "Authorization: Bearer $CF_API_TOKEN" --header "Content-Type: application/json")
+
+          new_status="$(curl --silent --show-error --output "$RUNNER_TEMP/cf-new.json" --write-out '%{http_code}' "${AUTH[@]}" "$API/$PROJECT")"
+          if [ "$new_status" = "200" ]; then
+            echo "Cloudflare Pages project $PROJECT already exists; no rename needed."
+            exit 0
+          fi
+          if [ "$new_status" != "404" ]; then
+            cat "$RUNNER_TEMP/cf-new.json"
+            echo "Unexpected Cloudflare status while checking $PROJECT: $new_status"
+            exit 1
+          fi
+
+          legacy_status="$(curl --silent --show-error --output "$RUNNER_TEMP/cf-legacy.json" --write-out '%{http_code}' "${AUTH[@]}" "$API/$LEGACY_PROJECT")"
+          if [ "$legacy_status" = "200" ]; then
+            payload="$(jq -nc --arg name "$PROJECT" '{name:$name,production_branch:"prod"}')"
+            curl --fail-with-body --silent --show-error --request PATCH "${AUTH[@]}" --data "$payload" "$API/$LEGACY_PROJECT" > "$RUNNER_TEMP/cf-renamed.json"
+            jq -e --arg name "$PROJECT" '.success == true and .result.name == $name' "$RUNNER_TEMP/cf-renamed.json" >/dev/null
+            echo "Renamed Cloudflare Pages project $LEGACY_PROJECT -> $PROJECT."
+            exit 0
+          fi
+          if [ "$legacy_status" != "404" ]; then
+            cat "$RUNNER_TEMP/cf-legacy.json"
+            echo "Unexpected Cloudflare status while checking $LEGACY_PROJECT: $legacy_status"
+            exit 1
+          fi
+
+          payload="$(jq -nc --arg name "$PROJECT" '{name:$name,production_branch:"prod"}')"
+          curl --fail-with-body --silent --show-error --request POST "${AUTH[@]}" --data "$payload" "$API" > "$RUNNER_TEMP/cf-created.json"
+          jq -e --arg name "$PROJECT" '.success == true and .result.name == $name' "$RUNNER_TEMP/cf-created.json" >/dev/null
+          echo "Created Cloudflare Pages project $PROJECT because neither the corrected nor legacy project existed."
 
       - uses: actions/setup-node@v6
         if: steps.target.outputs.enabled == 'true'
