@@ -177,7 +177,7 @@ Seed 内置可供确认的 Skill：
 
 - Local repository, local browser visual validation, Prototype Runtime, Com Design system and Lucide icons
 - GitHub repository / Pull Request API and GitHub Actions for the experimental PR review flow
-- OpenCode official GitHub Action for the experimental PR review workflow, authenticated with repository secret `OPENCODE_API_KEY`
+- OpenCode CLI in the read-only GitHub Actions review job, authenticated with repository secret `OPENCODE_API_KEY`; GitHub-side publishing is isolated in a separate non-model job
 
 ### Allowed autonomous actions
 
@@ -210,7 +210,7 @@ Seed 内置可供确认的 Skill：
 
 ## Re-confirmation
 
-出现以下情况时，把 Status 改成 `REVIEW_REQUIRED` 并重新问答：
+出现以下情况时，把 Status 改为 `REVIEW_REQUIRED` 并重新问答：
 
 - 产品阶段明显变化
 - AI 获得新的写入 / 发布权限
