@@ -79,6 +79,13 @@ jobs:
       pull-requests: write
 
     steps:
+      - name: Checkout trusted handoff helper
+        uses: actions/checkout@v6
+        with:
+          ref: ${{ github.base_ref }}
+          fetch-depth: 1
+          persist-credentials: false
+
       - name: Download review result
         uses: actions/download-artifact@v4
         with:
@@ -102,3 +109,16 @@ jobs:
             gh api --method POST "repos/$REPO/issues/$PR_NUMBER/comments" -f body="$BODY" >/dev/null
             echo "Created OpenCode review comment on PR #$PR_NUMBER."
           fi
+
+      - name: Validate local agent handoff
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GITHUB_REPOSITORY: ${{ github.repository }}
+          PR_NUMBER: ${{ github.event.pull_request.number }}
+          HEAD_SHA: ${{ github.event.pull_request.head.sha }}
+        shell: bash
+        run: |
+          node scripts/pull-ai-review.mjs "$PR_NUMBER"
+          grep -F -- "- Head SHA: $HEAD_SHA" .ai/reviews/latest.md
+          grep -F -- "<!-- local-ai-review:v1 -->" .ai/reviews/latest.md
+          echo "Local agent handoff validated for PR #$PR_NUMBER at $HEAD_SHA."
