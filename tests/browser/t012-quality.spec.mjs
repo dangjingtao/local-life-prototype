@@ -178,7 +178,7 @@ test.describe("T012 · 390px Mobile", () => {
     await setPrototypeView(page, "empty");
     await page.getByRole("button", { name: "返回可用数据" }).click();
     await expect(page.getByRole("button", { name: "进入基础检测 / 体验" })).toBeVisible();
-    await expect(page.getByText("不是医疗诊断")).toHaveCount(0);
+    await expect(page.getByRole("heading", { name: "出示体验码" })).toBeVisible();
     await expectNoHorizontalOverflow(page);
   });
 
@@ -193,6 +193,7 @@ test.describe("T012 · 390px Mobile", () => {
     await setPrototypeView(page, "ready");
     await expect(page.getByRole("heading", { name: /积分$/ })).toBeVisible();
     await expect(page.getByText("处理中", { exact: true })).toBeVisible();
+    await expect(page.getByText("Candidate", { exact: true })).toBeVisible();
 
     await page.getByRole("button", { name: "返回会员中心" }).click();
     await page.getByRole("button", { name: /我的券/ }).click();
@@ -204,7 +205,7 @@ test.describe("T012 · 390px Mobile", () => {
     await page.getByRole("button", { name: "重新加载演示" }).click();
     await expect(expired).toHaveAttribute("aria-pressed", "true");
     await expect(page.getByText(/当前没有“已过期”样例/)).toBeVisible();
-    await expect(page.getByText("Candidate", { exact: true })).toBeVisible();
+    await expect(page.getByText(/Coupon 模型没有减免金额/)).toBeVisible();
     await expectNoHorizontalOverflow(page);
     await expectMobileTouchTargets(page);
   });
