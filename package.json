@@ -19,7 +19,8 @@
     "build:pc": "npm run build --workspace @prototype/pc",
     "build": "npm run build --workspaces --if-present",
     "typecheck": "npm run typecheck --workspaces --if-present",
-    "verify": "npm run typecheck && npm run build"
+    "verify": "npm run typecheck && npm run build",
+    "review:pull": "node scripts/pull-ai-review.mjs"
   },
   "engines": {
     "node": ">=20"
