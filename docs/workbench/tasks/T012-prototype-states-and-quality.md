@@ -35,17 +35,18 @@
 - [x] error 有恢复动作，empty 有下一步，permission 有边界说明。
 - [ ] 关键按钮可键盘操作且移动端触控目标合格。
 - [ ] 390px、1024px、1440px 无明显溢出或遮挡。
-- [ ] `npm run verify` 通过。
+- [x] `npm run verify` 通过（第二次返工 Head Verify Prototype #81 success）。
 
 ## Risks / Dependencies
 
 - 前置：T003-T011 的对应页面完成。
 - 风险：全局状态不能替代业务级状态，需按关键流程抽查。
 - 当前依赖缺口：T005、T006、T007 仍为 `TODO`，因此本轮只能先完成 Runtime 与现有 T003/T004、T008-T011 页面质量基线；T012 在这些 Mobile 页面施工并复核前不得进入 `REVIEW` / `PASS`。
+- 轻微技术债：OpenCode 最终复审指出 `PrototypeState` 仍保留已不参与渲染控制的 `view` prop；当前无运行时影响，后续可在不破坏调用合同的前提下清理。
 
 ## Implementation record
 
-- Commit / PR: PR #4 `feat: T012 prototype states and accessibility baseline`; work branch `task/T012-prototype-states-quality`
+- Commit / PR: PR #4 `feat: T012 prototype states and accessibility baseline`; work branch `task/T012-prototype-states-quality`; merge commit `d6a10b5ef248bbd2405d308a98843bc0bffefa42`
 - Changed paths: `packages/prototype-runtime/src/index.tsx`; `packages/design-system/src/ui.tsx`; `apps/mobile/src/App.tsx`; `apps/mobile/src/styles.css`; `apps/pc/src/styles.css`; `docs/workbench/T012-state-quality-matrix.md`; 本任务卡与总台账。
 - Notes:
   - Prototype Runtime 的 loading / empty / error / permission 增加可理解原因；empty / error / permission 增加返回 ready 的明确恢复动作；loading 增加 `aria-busy`，error 使用 alert 语义。
@@ -60,11 +61,12 @@
 - CI:
   - 初始 Head `21a1296d8829e97da7b6d03e807c46c2d69050d1`：Verify Prototype #79（run `33144289370`）success。
   - 首轮返工 Head `8e3e64bcc3d9f481c0efb25e9836956bb1b171a3`：Verify Prototype #80（run `33144696578`）success。
-  - 第二次返工后的当前 Head 仍需再次 Verify。
+  - 第二次返工 Head `6f3f2973b6f0046c5b835d344f6f7b381b8c449c`：Verify Prototype #81（run `33145171233`）success；版本合同、全仓 typecheck、全仓 build 均通过。
 - AI Review:
   - Codex P2：`setPrototypeView("ready")` 整页导航导致 Mobile 深层门店 step / PC 非默认模块恢复后掉回默认页面。复核成立，改为非 permission 状态无刷新切换。
   - OpenCode #12 verdict `CHANGES_NEEDED`：组件 ring 与未分层全局 outline 在 Tailwind v3 cascade 下可能形成双焦点。复核成立，fallback 改为 `@layer base`。
   - OpenCode #13 verdict `CHANGES_NEEDED`：首轮返工虽然不刷新文档，但 ready / non-ready 的 React 返回树不同，业务 children 仍会卸载重挂，门店局部 step 无法真正保持。复核为高置信 P1，第二次返工改为稳定 wrapper 始终处于同一 React tree position。
+  - OpenCode #14（run `33145171238`）review success，metadata Head 与 `6f3f297` 一致，最终 verdict `NO_BLOCKING_FINDINGS`；未发现新的高置信 P0-P2。
 - Page / Route:
   - Mobile：登录后 URL 自动带 `demoAuth=1`；可组合 `?demoAuth=1&view=loading|empty|error|permission`。
   - PC 店主：`?role=merchant&view=loading|empty|error|permission`。
@@ -77,5 +79,5 @@
 
 - Reviewer: Tomz
 - Result: DOING
-- Conclusion: PR #4 已经历两轮有效返工：首轮发现页面恢复与双焦点 P2；二审进一步发现 React 树结构仍会导致局部 state 重置的 P1。第二次返工已保持业务 children 的 React tree position 稳定。由于 T005-T007 尚未施工，T012 即使本 PR 最终合入仍继续保持 `DOING`。
-- Follow-up: 等待第二次返工 Head 的最新 Verify 与 `local-ai-review:v1` 复审。通过后可合并本轮质量基线；待 T005-T007 完成后补全双端关键页面、390/1024/1440 实际浏览器与键盘/对比度验收，再决定进入 `REVIEW`。
+- Conclusion: PR #4 经两轮有效返工后，第二次返工 Head `6f3f297` 已同时取得 Verify #81 success 与最新 marked OpenCode `NO_BLOCKING_FINDINGS`；据此将本轮共享质量基线合入 `dev`，merge `d6a10b5`。由于 T005-T007 尚未施工，T012 继续保持 `DOING`，不提前进入 `REVIEW`。
+- Follow-up: 待 T005-T007 完成后补全双端关键页面五态，并完成 390/1024/1440 实际浏览器、键盘 Tab 顺序、触控目标与颜色对比验收，再决定进入 `REVIEW`。

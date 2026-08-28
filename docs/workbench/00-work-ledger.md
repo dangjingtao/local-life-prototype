@@ -46,7 +46,7 @@
 | T009 | PC 店主与合作商工作台 | PC | REVIEW | 0.1.0 | T002、T008 | `47dcafe`；Verify Prototype #14 success；本店概览、自提/服务核销、门店用户与越权状态已落地，待多视口视觉复核 |
 | T010 | PC 平台运营中台 | PC | REVIEW | 0.1.0 | T002、T008 | `5c07411` + `bdc9662`；Verify Prototype #37 success；六类运营模块、LL-8888 关联详情与三场景筛选已落地，待多视口视觉复核 |
 | T011 | PC 数据驾驶舱 | PC | REVIEW | 0.1.0 | T002、T008 | PR #3 已合入 `dev`，merge `8b068c5`；返工 Head Verify #77 success；最新 marked OpenCode review `NO_BLOCKING_FINDINGS`；待 1440px / 1024px 视觉复核 |
-| T012 | 关键状态、可访问性与原型质量 | QA / Shared | DOING | 0.1.0 | T003-T011 | 首轮施工共享五态恢复动作、键盘焦点与 Mobile 状态复现；T005-T007 尚未施工，T012 暂不能进入 REVIEW |
+| T012 | 关键状态、可访问性与原型质量 | QA / Shared | DOING | 0.1.0 | T003-T011 | PR #4 已合入 `dev`，merge `d6a10b5`；第二次返工 Head Verify #81 success；最新 marked OpenCode review `NO_BLOCKING_FINDINGS`；T005-T007 与浏览器质量证据仍待补 |
 | T013 | 跨端演示串联与 V0.1 验收准备 | Review / Docs | TODO | 0.1.0 | T002-T012 | AC-001 至 AC-010 证据与 T001 REVIEW 准备 |
 | T014 | 实验性 PR AI Review | CI / Review | REVIEW | 0.1.0 | GitHub Actions、`OPENCODE_API_KEY` | PR #1 / OpenCode run #5；只读 review、单评论更新与本地 Agent handoff self-check 已真实通过；PR #3 首个真实业务施工 smoke 完成“发现 P2→返工→二审→合并”闭环 |
 
@@ -90,9 +90,11 @@
 
 - T012 开工：从 `dev@8b068c5` 拉取 `task/T012-prototype-states-quality`。本轮先施工共享 Runtime 与现有 T003/T004、T008-T011 页面质量基线；由于 T005-T007 仍为 `TODO`，T012 保持 `DOING`，不提前进入 `REVIEW`。
 - T012 五态：Prototype Runtime 为 loading / empty / error / permission 补充原因和下一步；empty / error / permission 提供明确恢复到 ready 的动作；loading 增加 `aria-busy`，error 使用 alert 语义，PrototypePanel 当前状态使用 `aria-pressed`。
-- T012 可访问性基线：Design System Button / SecondaryButton 保持 44px 最小高度并新增 `focus-visible`；双端 CSS 对普通 button、link、summary、role=button 统一提供可见焦点兜底；PrototypePanel 状态按钮提升到 44px 级目标。
-- T012 Mobile 状态复现：登录后 URL 写入纯原型参数 `demoAuth=1`，PrototypePanel 修改 `?view=` 触发整页刷新时仍可恢复演示登录，避免已登录关键页面五态测试被退回登录页；该参数不代表真实鉴权。
+- T012 可访问性基线：Design System Button / SecondaryButton 保持 44px 最小高度并新增 `focus-visible`；双端 CSS 对普通 button、link、summary、role=button 统一提供可见焦点兜底；PrototypePanel 状态按钮提升到 44px 级目标。首轮 OpenCode 指出组件 ring 与未分层全局 outline 可能形成双焦点，复核成立后将 fallback 放入 `@layer base`。
+- T012 Mobile 状态复现：登录后 URL 写入纯原型参数 `demoAuth=1`，用于直接状态链接和 permission 文档跳转后的演示身份复现；ready / loading / empty / error 最终改为 Runtime 内无刷新切换，该参数不代表真实鉴权。
+- T012 状态恢复返工：Codex 首轮指出整页导航会让 Mobile 深层门店 step / PC 非默认模块恢复后掉回默认页面，复核成立；随后 OpenCode 二审进一步发现 ready / non-ready React 返回树不同仍会卸载业务 children，判定 P1。第二次返工让业务 children 始终处于同一稳定 wrapper，非 ready 只隐藏而不卸载，修复局部 state 丢失。
 - T012 验证矩阵：新增 `docs/workbench/T012-state-quality-matrix.md`，记录 Mobile / PC 五态路由、当前代码级无障碍基线和必须补的 390px / 1024px / 1440px 浏览器、键盘与对比度证据。
+- T012 基线收口：第二次返工 Head `6f3f297` 的 Verify Prototype #81（run `33145171233`）success；Experimental OpenCode PR Review #14（run `33145171238`）最终 `NO_BLOCKING_FINDINGS`，随后 PR #4 合入 `dev`，merge `d6a10b5`。T012 仍为 `DOING`，等待 T005-T007 与实际浏览器质量证据。
 - T011 收口：PR #3 已完成真实业务 PR Review smoke。首轮 OpenCode `CHANGES_NEEDED` 的角色切换 P2 与 Codex 台账状态 P2 均返工；返工 Head `dc12a53` 的 Verify #77 success，最新 marked OpenCode verdict `NO_BLOCKING_FINDINGS`，随后合入 `dev`，merge commit `8b068c5`。T011 仍为 REVIEW，等待 1440px / 1024px 视觉验收。
 - T011 施工：从最新 `dev` 拉取 `task/T011-pc-data-dashboard`，新增独立 `ManagementDashboard`，通过 PR #3 向 `dev` 送审；管理层只读查看经营总览、三场景对比、会员/积分/券/核销汇总，不提供经营写入、钻取、导出或预测。
 - T011 数据口径：累计用户、交易用户、合作商、门店、区域、订单、交易额和核销均从 `@prototype/shared` fixtures 汇总；由于 User 缺少创建时间，“新增用户”明确显示待确认；趋势只按现有订单 `createdAt` 聚合，不伪造同比 / 环比；区域只有 `region` 时不伪造地图。
@@ -159,7 +161,7 @@
 2. T002 已完成；以 `@prototype/shared` 作为后续跨端语义和演示数据基线。
 3. T003、T004 已进入 REVIEW；完成 390px 移动视口视觉 / 交互检查后，由 Tomz 给出 PASS / BLOCKED 结论。
 4. T008-T011 均已进入 REVIEW；PC 四张卡正式 PASS 仍需补 1440px / 1024px 视觉验收。
-5. T012 已开始共享五态、恢复动作与可访问性基线施工；当前只能覆盖 T003/T004、T008-T011，待 T005-T007 页面完成后补全最终质量矩阵并进入 REVIEW。
+5. T012 共享五态、恢复动作与可访问性基线已通过 PR #4 合入 `dev`；当前只能覆盖 T003/T004、T008-T011，待 T005-T007 页面完成后补全最终质量矩阵并进入 REVIEW。
 6. Mobile T005-T007 继续复用 T003 壳、T004 已接入的门店入口结构和 `@prototype/shared`；T006 应复用 `EXPERIENCE-8888-01` / `CARE-8888` 跨端凭证，不另造同义数据。
 7. 由 T013 串联三条主流程并核对 AC-001 至 AC-010，再将 T001 推进到 REVIEW。
 8. 未确认的产品规则在施工中暂停并向用户确认。
