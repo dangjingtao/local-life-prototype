@@ -29,8 +29,8 @@ const couponTabs: Array<{ id: CouponStatus; label: string }> = [
   { id: "available", label: "可用" }, { id: "used", label: "已用" }, { id: "expired", label: "已过期" },
 ];
 const memberPoints = pointLedger.filter((item) => item.userId === coreDemoUser.id);
-const earnEntry = [...memberPoints].reverse().find((item) => item.direction === "earn");
-const exchangeEntry = [...memberPoints].reverse().find((item) => item.direction === "spend" && item.source === "exchange");
+const earnEntry = memberPoints.find((item) => item.id === "POINT-8888-003");
+const exchangeEntry = memberPoints.find((item) => item.id === "POINT-8888-004");
 const memberRedemptions = redemptions.filter((item) => item.userId === coreDemoUser.id);
 
 function date(value: string) {
