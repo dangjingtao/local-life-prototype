@@ -12,8 +12,6 @@ on:
 
 permissions:
   contents: read
-  issues: write
-  pull-requests: read
 
 concurrency:
   group: experimental-opencode-pr-review-${{ github.event.pull_request.number }}
@@ -24,6 +22,8 @@ jobs:
     if: ${{ github.event.pull_request.draft == false && github.event.pull_request.head.repo.full_name == github.repository }}
     runs-on: ubuntu-latest
     timeout-minutes: 15
+    permissions:
+      contents: read
 
     steps:
       - name: Checkout PR head
@@ -43,49 +43,62 @@ jobs:
             exit 1
           fi
 
-      - name: Run OpenCode review
-        uses: anomalyco/opencode/github@latest
+      - name: Install OpenCode
+        shell: bash
+        run: |
+          curl -fsSL https://opencode.ai/install | bash
+          echo "$HOME/.opencode/bin" >> "$GITHUB_PATH"
+
+      - name: Load reviewer from dev
+        shell: bash
+        run: git show "origin/${{ github.base_ref }}:scripts/opencode-pr-review.mjs" > "$RUNNER_TEMP/opencode-pr-review.mjs"
+
+      - name: Run read-only OpenCode review
         env:
           OPENCODE_API_KEY: ${{ secrets.OPENCODE_API_KEY }}
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          OPENCODE_REVIEW_MODEL: ${{ vars.OPENCODE_REVIEW_MODEL || 'opencode/gpt-5.4-mini' }}
           OPENCODE_PERMISSION: '{"edit":"deny","bash":"deny","task":"deny","webfetch":"deny","websearch":"deny"}'
+        run: node "$RUNNER_TEMP/opencode-pr-review.mjs"
+
+      - name: Upload review result
+        uses: actions/upload-artifact@v4
         with:
-          model: ${{ vars.OPENCODE_REVIEW_MODEL || 'opencode/gpt-5.4-mini' }}
-          use_github_token: true
-          share: false
-          prompt: |
-            You are an independent, read-only reviewer for this pull request.
+          name: opencode-pr-review-${{ github.event.pull_request.number }}
+          path: ai-review.md
+          if-no-files-found: error
+          retention-days: 3
 
-            First read AGENTS.md and the relevant project contracts before judging the change. Review the PR against the repository's actual product/task rules, not generic preferences. If a T### task id is visible in the PR title, body, or branch name, read its task card under docs/workbench/tasks/.
+  publish:
+    needs: review
+    if: ${{ needs.review.result == 'success' }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    permissions:
+      contents: read
+      issues: write
+      pull-requests: write
 
-            Focus on high-confidence, actionable defects:
-            - correctness and regressions
-            - violated product or repository contracts
-            - broken user flows, state/data inconsistencies, and permission boundaries
-            - unsafe CI/workflow changes
-            - missing validation that could hide a real defect
+    steps:
+      - name: Download review result
+        uses: actions/download-artifact@v4
+        with:
+          name: opencode-pr-review-${{ github.event.pull_request.number }}
+          path: review-output
 
-            Do not edit files, create commits/branches/PRs, approve the PR, request changes through GitHub review state, merge code, or move any task to PASS. This review is advisory while the experiment is running.
+      - name: Publish or update PR review comment
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          REPO: ${{ github.repository }}
+          PR_NUMBER: ${{ github.event.pull_request.number }}
+        shell: bash
+        run: |
+          BODY="$(cat review-output/ai-review.md)"
+          COMMENT_ID="$(gh api "repos/$REPO/issues/$PR_NUMBER/comments?per_page=100" --paginate --jq '.[] | select(.body | contains("<!-- local-ai-review:v1 -->")) | .id' | tail -n 1)"
 
-            Separate Observation, Inference, and Judgment for every finding. Use P0/P1/P2/P3 severity and normally report only actionable P0-P2 findings. If evidence is incomplete, put it under Review gaps instead of inventing a bug.
-
-            Your final answer MUST contain this marker exactly once:
-            <!-- local-ai-review:v1 -->
-
-            Then use exactly these top-level headings:
-            # Experimental OpenCode PR Review
-            ## Verdict
-            Choose one: NO_BLOCKING_FINDINGS, CHANGES_NEEDED, or HUMAN_CHECK_NEEDED, followed by one short sentence.
-            ## Findings
-            For each finding use:
-            ### [P1] Short title
-            - Observation:
-            - Inference:
-            - Judgment:
-            - Location:
-            - Suggested fix:
-            If there are no actionable findings, write: No high-confidence P0-P2 findings.
-            ## Review gaps
-            List important things that could not be verified, or write: None identified.
-            ## Local handoff
-            Write: Run `npm run review:pull` on the PR branch, then read `.ai/reviews/latest.md`.
+          if [ -n "$COMMENT_ID" ]; then
+            gh api --method PATCH "repos/$REPO/issues/comments/$COMMENT_ID" -f body="$BODY" >/dev/null
+            echo "Updated OpenCode review comment $COMMENT_ID on PR #$PR_NUMBER."
+          else
+            gh api --method POST "repos/$REPO/issues/$PR_NUMBER/comments" -f body="$BODY" >/dev/null
+            echo "Created OpenCode review comment on PR #$PR_NUMBER."
+          fi
