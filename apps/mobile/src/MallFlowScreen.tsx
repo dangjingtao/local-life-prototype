@@ -216,8 +216,8 @@ export function MallFlowScreen() {
           </Card>
         )}
 
-        <Button className="w-full" onClick={() => goStep("checkout")}>立即结算</Button>
-        <SecondaryButton className="w-full" onClick={() => goStep("cart")}>加入演示购物车</SecondaryButton>
+        <Button className="w-full" onClick={() => goStep("cart")}>加入购物车</Button>
+        <SecondaryButton className="w-full" onClick={() => goStep("home")}>继续浏览商品</SecondaryButton>
       </>
     );
   }
