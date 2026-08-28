@@ -1,6 +1,6 @@
 # T008 · PC 工作台框架、角色与权限
 
-- Status: DOING
+- Status: REVIEW
 - Target version: 0.1.0
 - Impact: PC / Shared
 - Owner: Mira
@@ -35,7 +35,7 @@ PC 端同时承载店主/合作商、平台运营和管理层，需要先建立�
 - [x] 店主视图不暴露其他门店明细。
 - [x] permission 状态提供明确原因与下一步。
 - [ ] 1440px 与 1024px 完成视觉检查。
-- [ ] `npm run build:pc` 通过。
+- [x] `npm run build:pc` 通过。
 
 ## Risks / Dependencies
 
@@ -50,14 +50,14 @@ PC 端同时承载店主/合作商、平台运营和管理层，需要先建立�
 
 ## Verification evidence
 
-- CI: 待 GitHub Actions 验证。
+- CI: GitHub Actions `Verify Prototype #6`（run `33134308795`）success；版本合同、全仓 typecheck、全仓 build 均通过。
 - Page / Route: PC 根页面；`?role=merchant|operator|management`；`?view=permission`。
-- Screenshot / Browser result: 当前执行环境无法启动本地浏览器，1440px / 1024px 视觉检查待补。
-- Other evidence: 已回读 `dev` 上的 PC 壳代码并核对角色导航与 permission 分支。
+- Screenshot / Browser result: 当前执行环境无法启动本地浏览器，1440px / 1024px 视觉检查留待 Review 补证。
+- Other evidence: 已回读 `dev` 上的 PC 壳代码；店主导航不包含合作商/门店全量管理与驾驶舱，管理层仅保留只读驾驶舱入口。
 
 ## Review
 
 - Reviewer: Tomz
-- Result: REVIEW / PASS / BLOCKED
-- Conclusion:
-- Follow-up:
+- Result: REVIEW
+- Conclusion: 施工与自动验证已完成，等待 1440px / 1024px 视觉复核与用户验收；未自动提升为 PASS。
+- Follow-up: 视觉确认后可收口 T008，并解锁 T009-T011 的独立验收。
