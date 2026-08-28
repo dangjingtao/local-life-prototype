@@ -15,6 +15,7 @@ import {
   redemptions,
   stores,
 } from "@prototype/shared";
+import { CareFlowScreen } from "./CareFlowScreen";
 import { MallFlowScreen } from "./MallFlowScreen";
 
 type Tab = "home" | "store" | "mall" | "care" | "me";
@@ -59,8 +60,8 @@ const sceneEntries: SceneEntry[] = [
     id: "care",
     label: "智慧抗衰",
     eyebrow: "检测体验",
-    description: "进入检测、体验券与基础报告场景；当前不代表真实设备接入。",
-    handoff: "T006 将继续完成领券、到店体验与基础报告闭环。",
+    description: "进入体验券、门店核销、基础检测、基础报告与护理权益场景。",
+    handoff: "T006 已接入体验券、到店体验与基础报告概念闭环。",
     icon: "success",
   },
 ];
@@ -570,7 +571,7 @@ export function App() {
           {screen === "home" && <HomeScreen go={go} openActivity={() => go("activity")} />}
           {screen === "store" && <StoreFlowScreen openActivity={() => go("activity")} />}
           {screen === "mall" && <MallFlowScreen />}
-          {screen === "care" && activeScene && <SceneScreen scene={activeScene} goHome={() => go("home")} />}
+          {screen === "care" && activeScene && (activeScene.id === "care" ? <CareFlowScreen /> : <SceneScreen scene={activeScene} goHome={() => go("home")} />)}
           {screen === "activity" && <ActivityScreen goHome={() => go("home")} />}
           {screen === "me" && <ProfileScreen />}
         </main>
