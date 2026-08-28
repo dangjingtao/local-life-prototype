@@ -44,7 +44,7 @@
 | T007 | Mobile 会员、积分与权益中心 | Mobile | TODO | 0.1.0 | T002、T003 | FR-401 至 FR-406；积分与券状态 |
 | T008 | PC 工作台框架、角色与权限 | PC | REVIEW | 0.1.0 | T002 | `c1cb8d5`；Verify Prototype #6 success；三类角色、范围导航与 permission 边界已落地，待多视口视觉复核 |
 | T009 | PC 店主与合作商工作台 | PC | REVIEW | 0.1.0 | T002、T008 | `47dcafe`；Verify Prototype #14 success；本店概览、自提/服务核销、门店用户与越权状态已落地，待多视口视觉复核 |
-| T010 | PC 平台运营中台 | Mobile | REVIEW | 0.1.0 | T002、T008 | `5c07411` + `bdc9662`；Verify Prototype #37 success；六类运营模块、LL-8888 关联详情与三场景筛选已落地，待多视口视觉复核 |
+| T010 | PC 平台运营中台 | PC | REVIEW | 0.1.0 | T002、T008 | `5c07411` + `bdc9662`；Verify Prototype #37 success；六类运营模块、LL-8888 关联详情与三场景筛选已落地，待多视口视觉复核 |
 | T011 | PC 数据驾驶舱 | PC | REVIEW | 0.1.0 | T002、T008 | PR #3 已合入 `dev`，merge `8b068c5`；返工 Head Verify #77 success；最新 marked OpenCode review `NO_BLOCKING_FINDINGS`；待 1440px / 1024px 视觉复核 |
 | T012 | 关键状态、可访问性与原型质量 | QA / Shared | DOING | 0.1.0 | T003-T011 | PR #4 已合入 `dev`，merge `d6a10b5`；第二次返工 Head Verify #81 success；最新 marked OpenCode review `NO_BLOCKING_FINDINGS`；T006-T007 与浏览器质量证据仍待补 |
 | T013 | 跨端演示串联与 V0.1 验收准备 | Review / Docs | TODO | 0.1.0 | T002-T012 | AC-001 至 AC-010 证据与 T001 REVIEW 准备 |
