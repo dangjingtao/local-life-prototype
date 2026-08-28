@@ -49,7 +49,8 @@
 ## 风险 / 依赖
 
 - 依赖 repository secret `OPENCODE_API_KEY`。
-- 默认评审模型为 `opencode/deepseek-v4-pro`；可通过 repository Actions variable `OPENCODE_REVIEW_MODEL` 更换。
+- 当前账号为 OpenCode Go；默认评审模型为 `opencode-go/deepseek-v4-pro`，可通过 repository Actions variable `OPENCODE_REVIEW_MODEL` 更换。
+- OpenCode Go 与 Zen 是不同 provider 前缀；Go 必须使用 `opencode-go/<model-id>`，不能写成 `opencode/<model-id>`。
 - 初始 smoke test 曾使用 `opencode/mimo-v2.5-free` 验通完整链路；该免费模型不再作为正式实验默认值。
 - Fork PR 默认跳过，避免 secret 暴露给不可信代码。
 - 大 diff 会截断模型输入，因此不能把实验 review 当完整代码审计。
@@ -79,21 +80,32 @@
 
 ## Smoke test 证据
 
+### PR #1：基础链路
+
 真实测试 PR：#1 `test: T014 OpenCode PR review smoke`，目标 `dev`。
 
-关键过程：
-
 - run #1 `33138730089`：成功验证 PR trigger 与 `OPENCODE_API_KEY` 存在；暴露 OpenCode 官方 GitHub Action 会因当前 token 回写 reaction/comment 触发 403，因此没有把扩大模型 job 写权限作为修复。
-- run #2 `33138873705`：拆分 read-only review / publisher 后成功进入真实 OpenCode 模型调用；`opencode/gpt-5.4-mini` 返回 Zen `Insufficient balance`，证明 Key/鉴权链路正常，失败原因是余额。
-- run #3 `33138945438`：默认切到 `opencode/mimo-v2.5-free`，read-only review 与 publisher 均 success；PR 出现 marked review comment。
+- run #2 `33138873705`：拆分 read-only review / publisher 后成功进入真实 OpenCode 模型调用；`opencode/gpt-5.4-mini` 返回 Zen `Insufficient balance`。
+- run #3 `33138945438`：临时使用 `opencode/mimo-v2.5-free`，read-only review 与 publisher 均 success；PR 出现 marked review comment。
 - run #4 `33139017390`：再次 synchronize 后 workflow success；原 review comment id `5448033638` 被更新而不是新增，metadata Head SHA 更新到 `19aabf62...`。
 - run #5 `33139159277`：read-only review success；publisher success；`Validate local agent handoff` success，真实运行 `scripts/pull-ai-review.mjs` 并校验 `.ai/reviews/latest.md` 的当前 Head SHA `4b9c15f2...` 与 marker。
-- 同轮普通 `Verify Prototype` 继续触发，证明 review workflow 没有替代原有验证链路。
+
+### PR #2：OpenCode Go + DeepSeek V4 Pro
+
+真实测试 PR：#2 `test: DeepSeek V4 Pro review smoke`，目标 `dev`。
+
+- 首轮错误配置为 `opencode/deepseek-v4-pro`，实际进入 Zen 按量 provider 并返回 `Insufficient balance`。这不是 Go 额度不足，而是 provider 前缀错误。
+- 按 OpenCode Go 官方合同修正为 `opencode-go/deepseek-v4-pro` 后，run `33141185141` 的 `Run read-only OpenCode review` success。
+- 日志明确记录 `OPENCODE_REVIEW_MODEL: opencode-go/deepseek-v4-pro`，并输出 `Review generated for PR #2 with opencode-go/deepseek-v4-pro.`。
+- publisher 成功回写 marked review comment；metadata 为 `model=opencode-go/deepseek-v4-pro`，Head SHA 为 `595e0b8e...`。
+- review verdict 为 `NO_BLOCKING_FINDINGS`；该 smoke PR 不合并，仅用于验证 Go 路由与 DeepSeek V4 Pro 实际调用。
+
+同轮普通 `Verify Prototype` 继续触发，证明 review workflow 没有替代原有验证链路。
 
 ## Review 结论
 
-施工与 smoke test 已满足进入独立评审的条件，状态从 `BLOCKED` 推进到 `REVIEW`。
+施工与 smoke test 已满足进入独立评审的条件，状态保持 `REVIEW`。
 
-默认模型现已按用户要求切换为 DeepSeek V4 Pro；后续真实业务 PR 应以 `opencode/deepseek-v4-pro` 作为当前评审基线。
+默认模型现已按用户要求切换并实测为 `opencode-go/deepseek-v4-pro`。后续真实业务 PR 以该模型作为当前评审基线。
 
 仍保持实验边界：OpenCode review 的 `NO_BLOCKING_FINDINGS` 不能把 T014 自动推进为 `PASS`；是否正式接受这套基础版由用户 / 独立评审决定。
