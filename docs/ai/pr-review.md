@@ -4,9 +4,9 @@ Status: `EXPERIMENTAL`
 
 ## Goal
 
-When a pull request targets `dev`, run a lightweight independent review through OpenCode and hand the result back to both GitHub and local coding agents.
+When a same-repository pull request targets `dev`, run a lightweight independent review through OpenCode and hand the result back to both GitHub and local coding agents.
 
-This is a review aid only. It does not approve the PR, merge code, move a work item to `PASS`, or replace browser/product validation.
+This is a review aid only. It does not approve the PR, request changes through GitHub review state, merge code, move a work item to `PASS`, or replace browser/product validation.
 
 ## Trigger
 
@@ -19,7 +19,7 @@ The workflow runs for non-draft, same-repository pull requests targeting `dev` o
 - reopened
 - ready_for_review
 
-Fork pull requests are intentionally skipped in the first version so repository secrets are never exposed to untrusted code.
+Fork pull requests are intentionally skipped in V1 so repository secrets are never exposed to untrusted code.
 
 ## OpenCode configuration
 
@@ -27,49 +27,68 @@ Required repository secret:
 
 - `OPENCODE_API_KEY`
 
-Create the key from the OpenCode account / Zen authentication flow and store it only under GitHub repository Settings → Secrets and variables → Actions → Repository secrets.
-
-The workflow uses the official `anomalyco/opencode/github` action and runs OpenCode in GitHub Actions. It does not call OpenRouter or another model gateway directly.
+Store it only under GitHub repository Settings → Secrets and variables → Actions → Repository secrets.
 
 Default experiment model:
 
-- `opencode/gpt-5.4-mini`
+- `opencode/mimo-v2.5-free`
 
 The model can be changed without editing the workflow by setting the repository Actions variable:
 
 - `OPENCODE_REVIEW_MODEL`
 
-The value must use OpenCode's `provider/model` format. If the variable is absent, the default above is used.
+The value uses OpenCode's `provider/model` format.
 
-The OpenCode review job is intentionally read-only:
+`opencode/gpt-5.4-mini` was exercised during the smoke test and reached the OpenCode API successfully, but the configured Zen workspace had insufficient balance. The experiment therefore defaults to a free OpenCode model until a paid review model is deliberately selected.
 
-- GitHub token: repository contents read, pull requests read, issues write only for the PR conversation comment
-- GitHub token has no `contents: write` or `pull-requests: write`, so the workflow cannot push code or submit an APPROVE / REQUEST_CHANGES review state
-- OpenCode `edit`: denied
-- OpenCode `bash`: denied
-- OpenCode subagent/task: denied
-- OpenCode web fetch/search: denied
-- session sharing: disabled
+## Security boundary
 
-The reviewer is instructed to read `AGENTS.md`, relevant product/workbench contracts, and the matching `T###` task card when the task id is visible in PR metadata.
+The workflow deliberately separates model execution from GitHub publishing.
 
-## Review output contract
+### `review` job
 
-The final OpenCode response must contain:
+- checks out the PR head with persisted Git credentials disabled
+- receives only `contents: read`
+- loads the trusted reviewer script from the PR base branch (`dev`), not from the PR branch
+- installs the OpenCode CLI and runs non-interactive `opencode run`
+- gives OpenCode no GitHub write token
+- denies OpenCode `edit`, `bash`, `task`, `webfetch`, and `websearch`
+- produces `ai-review.md` and uploads it as a short-lived artifact
+
+### `publish` job
+
+- does not run OpenCode
+- checks out the trusted base branch only for the local-handoff helper
+- receives PR/issue write permission only to create or update the review conversation comment
+- keeps one marked review comment current instead of appending a new comment on every synchronize event
+- runs the same local handoff script after publishing and verifies that `.ai/reviews/latest.md` contains the current PR Head SHA and review marker
+
+This separation keeps the model-side review read-only even though the publishing stage needs GitHub write permission.
+
+## Review input and output contract
+
+`scripts/opencode-pr-review.mjs` supplies OpenCode with:
+
+- PR title/body/base/head metadata
+- changed filenames and PR diff
+- `AGENTS.md`
+- Product Brief
+- Work Ledger
+- matching `T###` task card when the task id is visible in PR metadata
+
+Large diffs are capped and must be treated as an explicit review gap.
+
+The final review must contain exactly one:
 
 `<!-- local-ai-review:v1 -->`
 
-The review uses these verdicts:
+The review uses these advisory verdicts:
 
 - `NO_BLOCKING_FINDINGS`
 - `CHANGES_NEEDED`
 - `HUMAN_CHECK_NEEDED`
 
 Findings separate Observation / Inference / Judgment and use P0-P3 severity. The experiment should normally surface only actionable P0-P2 findings.
-
-These verdicts are advisory. They are deliberately not mapped to GitHub APPROVE / REQUEST_CHANGES in V1.
-
-OpenCode owns the GitHub-side reply behavior in this version. The local handoff always consumes the newest PR conversation comment containing the marker, so repeated review runs do not require a second local protocol.
 
 ## Local agent handoff
 
@@ -79,7 +98,7 @@ From a local checkout on the PR branch, run:
 npm run review:pull
 ```
 
-The command uses GitHub CLI to infer the current branch PR when available. A PR number can be supplied explicitly:
+If the current branch cannot be mapped automatically, pass the PR number:
 
 ```bash
 npm run review:pull -- 123
@@ -90,11 +109,11 @@ It writes:
 - `.ai/reviews/pr-123.md`
 - `.ai/reviews/latest.md`
 
-The local copy also records the current PR Head SHA, so a coding agent can reject stale review output before acting on it.
+The local copy records repository, PR, base/head branch, current Head SHA, review source and full marked review. `.ai/reviews/` is gitignored.
 
-`.ai/reviews/` is gitignored. Local agents should read `.ai/reviews/latest.md`, verify each finding against the current code and project contracts, then decide whether to fix, reject, or escalate the finding.
+Local agents should read `.ai/reviews/latest.md`, reject stale output whose Head SHA does not match the current PR, then verify every finding against current code and project contracts before fixing, rejecting, or escalating it.
 
-For this public repository, reading PR comments can work without a token when the PR number is supplied. GitHub CLI authentication or `GH_TOKEN` / `GITHUB_TOKEN` is still preferred to avoid API rate limits and is required if the repository becomes private.
+The GitHub Actions `publish` job runs this same handoff script after every successful review and validates the Head SHA + marker, so local-agent consumability is continuously smoke-tested rather than documented only on paper.
 
 ## Current boundaries
 
@@ -102,9 +121,22 @@ For this public repository, reading PR comments can work without a token when th
 - No automatic merge.
 - No automatic GitHub approval or change request.
 - No automatic task `PASS`.
-- No code modification by the reviewer workflow.
-- No shell execution by the reviewer workflow.
+- No model-side code modification or shell execution.
 - No secret exposure to fork PRs.
 - No claim that CI success equals product acceptance.
 
-The first acceptance test is one real feature/task PR into `dev`: workflow succeeds, an OpenCode review comment containing the marker appears, a subsequent PR update triggers another review, and `npm run review:pull` materializes the newest marked review locally.
+## Smoke-test evidence
+
+PR #1 (`test: T014 OpenCode PR review smoke`) exercised the real `pull_request -> dev` path.
+
+Validated behavior:
+
+- `OPENCODE_API_KEY` was present and accepted by OpenCode.
+- OpenCode generated a review with `opencode/mimo-v2.5-free`.
+- the review and publisher jobs succeeded independently.
+- repeated synchronize events updated the existing marked PR comment rather than creating a comment stream.
+- review metadata tracked the current PR Head SHA.
+- the publisher successfully ran `scripts/pull-ai-review.mjs` and verified `.ai/reviews/latest.md` against the current Head SHA and marker.
+- normal `Verify Prototype` continued to run successfully alongside the review workflow.
+
+This moves T014 to `REVIEW`; the experimental reviewer still cannot mark itself `PASS`.
