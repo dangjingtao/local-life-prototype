@@ -46,7 +46,13 @@ const focusClass = "focus-visible:outline-none focus-visible:ring-2 focus-visibl
 
 export function PrototypePanel() {
   const current = usePrototypeView();
-  return <details className="fixed bottom-20 right-4 z-50 w-48 rounded-[var(--radius-container)] border border-[var(--color-border)] bg-[var(--color-surface)] p-2 text-xs shadow-[var(--shadow-floating)] md:bottom-4"><summary className={`flex min-h-11 cursor-pointer select-none items-center rounded-[var(--radius-control)] px-2 font-medium text-[var(--color-text-secondary)] ${focusClass}`}>Prototype · {current}</summary><div className="mt-2 grid grid-cols-2 gap-1">{views.map((view) => <button key={view} type="button" aria-pressed={view === current} className={`min-h-11 rounded-[var(--radius-control)] px-2 ${focusClass} ${view === current ? "bg-[var(--color-brand-subtle)] text-[var(--color-primary-pressed)]" : "text-[var(--color-text-secondary)] hover:bg-[var(--color-surface-subtle)]"}`} onClick={() => setPrototypeView(view)}>{view}</button>)}</div></details>;
+
+  const chooseView = (view: PrototypeView, button: HTMLButtonElement) => {
+    button.closest("details")?.removeAttribute("open");
+    setPrototypeView(view);
+  };
+
+  return <details className="group fixed bottom-20 right-4 z-50 w-11 rounded-[var(--radius-container)] border border-[var(--color-border)] bg-[var(--color-surface)] p-0 text-xs shadow-[var(--shadow-floating)] open:w-48 open:p-2 md:bottom-4 md:w-48 md:p-2"><summary aria-label={`Prototype · ${current}`} className={`flex min-h-11 cursor-pointer select-none items-center justify-center rounded-[var(--radius-control)] font-medium text-[var(--color-text-secondary)] group-open:justify-start group-open:px-2 md:justify-start md:px-2 ${focusClass}`}><span aria-hidden="true" className="font-semibold group-open:hidden md:hidden">P</span><span className="hidden group-open:inline md:inline">Prototype · {current}</span></summary><div className="mt-2 hidden grid-cols-2 gap-1 group-open:grid md:group-open:grid">{views.map((view) => <button key={view} type="button" aria-pressed={view === current} className={`min-h-11 rounded-[var(--radius-control)] px-2 ${focusClass} ${view === current ? "bg-[var(--color-brand-subtle)] text-[var(--color-primary-pressed)]" : "text-[var(--color-text-secondary)] hover:bg-[var(--color-surface-subtle)]"}`} onClick={(event) => chooseView(view, event.currentTarget)}>{view}</button>)}</div></details>;
 }
 
 export function PrototypeState({ children }: { view: PrototypeView; children: ReactNode }) {
