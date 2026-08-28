@@ -121,6 +121,20 @@
 - 每次状态变化至少留下一个可追踪证据：commit / PR / 页面路径 / 截图说明 / CI run / 明确评审结论之一。
 - 需求变化不得覆盖旧结论；保留变更记录并指出替代关系。
 
+## Experimental PR AI Review
+
+规则见 `docs/ai/pr-review.md`。
+
+当当前分支存在一个目标为 `dev` 的 PR，并且用户要求继续施工、处理 review、修 review 或检查评审结果时：
+
+1. 先执行 `npm run review:pull`；如果无法从当前分支推断 PR，则执行 `npm run review:pull -- <PR_NUMBER>`。
+2. 读取 `.ai/reviews/latest.md`，确认其中的 Head SHA / 来源与当前 PR 对得上。
+3. 对每条 finding 回到当前代码与项目合同复核，不把模型意见直接当事实。
+4. 明确区分 Observation / Inference / Judgment；高置信缺陷才进入修复，证据不足的条目应说明并交给人工判断。
+5. 修复后 push 会触发新的实验 review；同一 PR 的 review 评论应被更新而不是新增一串评论。
+6. 实验 review 只作为独立评审证据，不得自动执行 GitHub APPROVE / REQUEST_CHANGES，不得据此把任务改成 `PASS`，不得自动 merge。
+7. `.ai/reviews/` 是本地 review 收件箱并被 gitignore；不要把同步副本提交到业务分支。
+
 ## Daily Report Skill
 
 规则见 `docs/ai/skills/daily-report.md`。
