@@ -31,13 +31,13 @@ Store it only under GitHub repository Settings → Secrets and variables → Act
 
 Default review model:
 
-- `opencode/deepseek-v4-pro`
+- `opencode-go/deepseek-v4-pro`
 
 The model can be changed without editing the workflow by setting the repository Actions variable:
 
 - `OPENCODE_REVIEW_MODEL`
 
-The value uses OpenCode's `provider/model` format. The current default is DeepSeek V4 Pro through OpenCode Zen; the free `opencode/mimo-v2.5-free` model was used only to complete the initial smoke test while the paid-model path was being validated.
+The value uses OpenCode's `provider/model` format. This project uses an OpenCode Go subscription, so Go models must use the `opencode-go/<model-id>` provider prefix. The current default is DeepSeek V4 Pro through OpenCode Go. The free `opencode/mimo-v2.5-free` model was used only to complete the initial smoke test before the Go subscription path was corrected.
 
 ## Security boundary
 
@@ -137,6 +137,6 @@ Validated behavior:
 - the publisher successfully ran `scripts/pull-ai-review.mjs` and verified `.ai/reviews/latest.md` against the current Head SHA and marker.
 - normal `Verify Prototype` continued to run successfully alongside the review workflow.
 
-The production experiment default is now `opencode/deepseek-v4-pro`; the historical smoke evidence above remains intentionally unchanged.
+PR #2 was added specifically to validate DeepSeek V4 Pro. Its first run intentionally exposed a provider mismatch: `opencode/deepseek-v4-pro` routed to Zen metered billing and returned `Insufficient balance`. The configuration was corrected to the Go provider prefix `opencode-go/deepseek-v4-pro`; the retry is the authoritative DeepSeek V4 Pro smoke test.
 
-This moves T014 to `REVIEW`; the experimental reviewer still cannot mark itself `PASS`.
+This keeps T014 at `REVIEW`; the experimental reviewer still cannot mark itself `PASS`.
