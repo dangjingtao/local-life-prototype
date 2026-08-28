@@ -48,7 +48,7 @@
 | T011 | PC 数据驾驶舱 | PC | TODO | 0.1.0 | T002、T008 | FR-701 至 FR-706；经营指标与场景对比 |
 | T012 | 关键状态、可访问性与原型质量 | QA / Shared | TODO | 0.1.0 | T003-T011 | 五态、恢复路径与多视口质量检查 |
 | T013 | 跨端演示串联与 V0.1 验收准备 | Review / Docs | TODO | 0.1.0 | T002-T012 | AC-001 至 AC-010 证据与 T001 REVIEW 准备 |
-| T014 | 实验性 PR AI Review | CI / Review | BLOCKED | 0.1.0 | GitHub Actions、`OPENCODE_API_KEY` | OpenCode workflow、本地 review inbox 与 Agent handoff 已落地；待 secret + 首个真实 PR smoke test |
+| T014 | 实验性 PR AI Review | CI / Review | REVIEW | 0.1.0 | GitHub Actions、`OPENCODE_API_KEY` | PR #1 / OpenCode run #5；只读 review、单评论更新与本地 Agent handoff self-check 已真实通过，待独立验收 |
 
 ## 状态约定
 
@@ -96,7 +96,9 @@
 - T010 评审：施工方推进到 `REVIEW`；1440px / 1024px 实际浏览器视觉检查尚未形成证据，因此未自动标记 `PASS`。
 - T014 施工：新增 `Experimental OpenCode PR Review`，同仓库非 draft PR 目标为 `dev` 时，在 opened / synchronize / reopened / ready_for_review 触发；新 commit 会取消旧 run 并重跑。
 - T014 Review handoff：OpenCode 的最终评审输出携带 `local-ai-review:v1` marker；本地 `npm run review:pull` 选择最新带 marker 的 PR 评论并同步到 `.ai/reviews/latest.md`，同时记录当前 PR Head SHA；`AGENTS.md` 要求施工 Agent 逐条回查 finding，不把模型结论直接当事实。
-- T014 安全边界：V1 改为 OpenCode 官方 GitHub Action，使用 repository secret `OPENCODE_API_KEY`；默认模型 `opencode/gpt-5.4-mini`，可由 `OPENCODE_REVIEW_MODEL` 覆盖；review Agent 禁止 edit / bash / task / webfetch / websearch，session share 关闭；fork PR 跳过；不自动 APPROVE / REQUEST_CHANGES / merge / PASS。当前等待 OpenCode key 与首个真实 PR smoke test，因此状态为 `BLOCKED`。
+- T014 安全边界：review 与 publish 拆成两个 job；OpenCode review job 只有 `contents: read`，不持有 GitHub 写权限，并禁止 edit / bash / task / webfetch / websearch；独立 publisher 只负责回写 marked comment 与运行 local handoff self-check；fork PR 跳过，不自动 APPROVE / REQUEST_CHANGES / merge / PASS。
+- T014 模型：`OPENCODE_API_KEY` 已真实通过鉴权；`opencode/gpt-5.4-mini` 因当前 Zen workspace 余额不足未作为实验默认值，基础版改用 `opencode/mimo-v2.5-free`，仍可由 `OPENCODE_REVIEW_MODEL` 覆盖。
+- T014 验证：真实 PR #1 经多轮 synchronize smoke；OpenCode run #3/#4/#5 success；同一 review comment id `5448033638` 持续更新到最新 Head SHA；run #5 `33139159277` 的 `Validate local agent handoff` success，真实运行 `pull-ai-review.mjs` 并校验 `.ai/reviews/latest.md` Head SHA + marker；状态由 `BLOCKED` 推进到 `REVIEW`，不自动 `PASS`。
 - T014 方案替代：撤销最初的 OpenRouter 直连 runner 与 `OPENROUTER_API_KEY` 依赖，不再由项目脚本直接调用模型网关。
 - T009 施工：将 T008 的店主占位容器替换为云岭社区店经营工作台，完成本店经营概览、自提/服务核销入口、门店订单和门店用户概览。
 - T009 数据权限：店主视图只从 `STORE-YUNLING` 关联订单和核销记录派生用户，不展示南岸生活馆等其他门店明细；越权入口继续复用 `permission` 状态表达。
@@ -141,7 +143,7 @@
 
 ## 下一步
 
-1. T014 等待配置 `OPENCODE_API_KEY`；随后用首个真实 feature/task/fix PR → `dev` 完成 OpenCode workflow、marker 评论与本地 `review:pull` smoke test。
+1. T014 已完成真实 PR smoke 并进入 `REVIEW`；继续观察真实 feature/task/fix PR 的误报、漏报和耗时，不自动转 `PASS`。
 2. T002 已完成；以 `@prototype/shared` 作为后续跨端语义和演示数据基线。
 3. T003、T004 已进入 REVIEW；完成 390px 移动视口视觉 / 交互检查后，由 Tomz 给出 PASS / BLOCKED 结论。
 4. T008、T009、T010 已进入 REVIEW；T011 可继续复用 PC 角色壳与权限边界，前三张 PC 卡正式 PASS 仍需补 1440px / 1024px 视觉验收。
