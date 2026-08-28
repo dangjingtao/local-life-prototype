@@ -5,6 +5,8 @@ on:
     paths:
       - "apps/mobile/**"
       - "apps/pc/**"
+      - "packages/shared/**"
+      - "packages/icons/**"
       - "packages/design-system/**"
       - "packages/prototype-runtime/**"
       - "tests/browser/**"
