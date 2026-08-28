@@ -100,7 +100,7 @@ function Overview({ onOpen }: { onOpen: (module: OperatorModule) => void }) {
 }
 
 function UsersModule() {
-  const [selectedId, setSelectedId] = useState(CORE_DEMO_IDS.user);
+  const [selectedId, setSelectedId] = useState<string>(CORE_DEMO_IDS.user);
   const selected = users.find((item) => item.id === selectedId) ?? users[0];
   const selectedOrders = orders.filter((item) => item.userId === selected.id);
   const selectedPoints = pointLedger.filter((item) => item.userId === selected.id);
