@@ -3,7 +3,7 @@ import path from 'node:path';
 import { execFileSync, spawnSync } from 'node:child_process';
 
 const REVIEW_MARKER = '<!-- local-ai-review:v1 -->';
-const DEFAULT_MODEL = 'opencode/deepseek-v4-pro';
+const DEFAULT_MODEL = 'opencode-go/deepseek-v4-pro';
 const MAX_DIFF_CHARS = 140_000;
 
 function fail(message) {
