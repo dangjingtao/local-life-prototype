@@ -44,7 +44,7 @@
 
 ## Implementation record
 
-- Commit / PR: PR #6；核心施工 `077d0fc`、`13f7077`，施工方自审修正 `d9f873c`。
+- Commit / PR: PR #6；核心施工 `077d0fc`、`13f7077`；施工方自审修正 `d9f873c`；Codex P2 返工 `dfb7288`。
 - Changed paths:
   - `apps/mobile/src/MallFlowScreen.tsx`
   - `apps/mobile/src/App.tsx`
@@ -54,29 +54,35 @@
   - 新增独立 `MallFlowScreen`，连续覆盖商城首页、商品详情、购物车、结算、履约选择、订单详情与概念状态推进。
   - 商品、商城券、用户和合作门店继续直接消费 `@prototype/shared`；演示地址、购物车和概念订单只存在当前会话，不写回 Shared。
   - 主路径明确经过购物车；施工方送审前发现商品详情可直达结算会绕过 T005 合同中的购物车环节，已在 `d9f873c` 主动修正。
-  - 全国配送到家表达一件代发方向；送至合作门店表达送店后自提。两者均不伪装真实库存、供应商下单、物流或到货通知。
+  - 全国配送到家表达一件代发方向；送至合作门店表达送店后自提。两者均不伪装真实库存、供应商下单、物流单号或到货通知。
+  - Codex 首轮对 `d9f873c` 提出两条 P2：送店订单刚提交即进入待自提、结算页送店时仍展示家庭地址。复核均成立，`dfb7288` 已修复：送店状态改为 `pending_fulfillment → shipping → pending_pickup → completed`，结算目的地按到家 / 送店切换。
   - 自建私域商城作为当前可点击演示路径；外部电商导流继续以 D002 Open / 待确认候选表达，不提供假跳转。
   - Shared 的商城券没有优惠门槛 / 金额字段，结算页只展示可用权益与“金额规则待确认”，不擅自扣减。
 
 ## Verification evidence
 
-- CI: PR Head `d9f873cbe309fac91ea95e6acbb0a89edb6eca58` 的 `Verify Prototype #86`（run `33153655973`）success；版本合同、全仓 typecheck 与全仓 build 通过，其中 Mobile build 覆盖 `tsc + vite build`。
+- CI:
+  - PR Head `d9f873cbe309fac91ea95e6acbb0a89edb6eca58` 的 `Verify Prototype #86`（run `33153655973`）success。
+  - 返工 Head `dfb7288e888aba90708f43b29e7ed5d8740a24cf` 的 `Verify Prototype #89`（run `33154307881`）success；版本合同、全仓 typecheck 与全仓 build 通过，其中 Mobile build 覆盖 `tsc + vite build`。
 - Page / Route: Mobile 登录后 → 首页 / 底部“商城” → 商品 → 购物车 → 结算 → 到家 / 送店 → 订单详情 → 概念状态推进。
-- Screenshot / Browser result: 尚未形成 390px 实际浏览器截图 / 点击证据，因此视觉与交互验收保持未勾选。
+- Screenshot / Browser result: 尚未形成 390px 实际浏览器截图 / 点击证据。当前执行环境无法解析 `github.com`，无法拉取仓库启动本地 Vite；不得伪造视觉验收，因此该项保持未勾选。
 - Other evidence:
-  - PR #6 首轮 Experimental OpenCode PR Review #17（run `33153655971`）绑定 Head `d9f873c`，verdict `NO_BLOCKING_FINDINGS`，无高置信 P0-P2 finding。
-  - Review 对 build 的验证 gap 已由 Verify #86 补证。
-  - Review 提到送店订单从 `pending_pickup` 直接到 `completed`、未经过 `shipping`；reviewer 判定为 V0.1 合理简化且不违反书面合同。当前不为迎合 review 擅自增加物流语义，若产品后续确认送店必须表达在途阶段，再更新领域 / 演示状态。
+  - PR #6 首轮 Experimental OpenCode PR Review #17（run `33153655971`）绑定 Head `d9f873c`，verdict `NO_BLOCKING_FINDINGS`。
+  - GitHub Codex Review 对 `d9f873c` 提出两条 P2；复核成立并在 `dfb7288` 返工，两个 inline thread 均已回执修复。
+  - 返工 Head `dfb7288` 的 Experimental OpenCode PR Review #20（run `33154307887`）verdict `NO_BLOCKING_FINDINGS`，无高置信 P0-P2 finding。
+  - OpenCode #20 仅指出 P3 文档一致性：此前任务卡将“送店不经过 shipping”记录为可接受简化，但 `dfb7288` 已根据 Codex P2 改为经过 `shipping`；本次证据回写明确旧判断已被后续 review 与返工替代。
 
 ## Status history
 
-- 2026-08-28 `TODO → DOING`：用户明确要求从最新 `dev` 新建功能分支施工 T005，并向 `dev` 发起 PR，接收 Experimental OpenCode review 后复核 finding、必要时返工，直到最新 review 无阻塞项。
+- 2026-08-28 `TODO → DOING`：用户明确要求从最新 `dev` 新建功能分支施工 T005，并向 `dev` 发起 PR，接收 review 后复核 finding、必要时返工，直到最新 review 无阻塞项。
 - Work branch: `feature/T005-mobile-mall-flow`（base: `dev@e21ff937ec421769d65c2af76302b2d9585a0e96`）。
-- 2026-08-28 `DOING → REVIEW`：主流程施工、自审修正、Verify #86 与 PR #6 首轮 OpenCode review 均完成；首轮 verdict 为 `NO_BLOCKING_FINDINGS`。任务仍等待 390px 实际浏览器验收，不自动 PASS。
+- 2026-08-28 `DOING → REVIEW`：主流程施工、自审修正、Verify #86 与 PR #6 首轮 OpenCode review 完成；任务进入 REVIEW。
+- 2026-08-28 Review 返工：Codex 对 `d9f873c` 的两条 P2 复核成立；`dfb7288` 修复送店状态推进与结算目的地，Verify #89 success，OpenCode #20 对返工 Head 返回 `NO_BLOCKING_FINDINGS`。
+- 2026-08-28 Review truth-source 对账：OpenCode #20 指出旧文档判断与返工后代码矛盾；本次明确以 `dfb7288` 实现为当前结论，旧“送店不经过 shipping”判断仅保留为被后续 review 替代的历史。
 
 ## Review
 
 - Reviewer: Tomz
 - Result: REVIEW
-- Conclusion: 代码层面已完成 T005 主链、履约区分与渠道候选边界；首轮独立 review 无阻塞 finding，CI 已补足构建证据。当前唯一明确的任务验收缺口为 390px 实际视觉 / 交互检查。
-- Follow-up: 本次证据回写会改变 PR Head，需以更新后 Head 的最新 Experimental OpenCode review 为准；若仍为 `NO_BLOCKING_FINDINGS`，代码评审闭环可视为通过，但任务保持 REVIEW 直到视觉 / 产品验收。
+- Conclusion: PR #6 当前代码评审闭环已通过：返工 Head `dfb7288` 的 Verify #89 success，最新 marked OpenCode #20 为 `NO_BLOCKING_FINDINGS`；Codex 首轮两条 P2 已返工。当前唯一明确的任务验收缺口为 390px 实际视觉 / 交互检查。
+- Follow-up: 本次文档对账会再次改变 PR Head，需以新 Head 的 Verify / latest marked review 作为最终代码评审证据；390px 浏览器验收完成前不自动将 T005 标为 PASS。
