@@ -15,6 +15,7 @@ import {
   redemptions,
   stores,
 } from "@prototype/shared";
+import { MallFlowScreen } from "./MallFlowScreen";
 
 type Tab = "home" | "store" | "mall" | "care" | "me";
 type Screen = Tab | "activity";
@@ -50,8 +51,8 @@ const sceneEntries: SceneEntry[] = [
     id: "mall",
     label: "线上商城",
     eyebrow: "全国配送",
-    description: "进入自有私域商城概念入口，后续支持到家或到店履约演示。",
-    handoff: "T005 将继续完成商品、结算与一件代发闭环。",
+    description: "进入自建私域商城演示，支持商品、购物车、结算和到家 / 到店履约。",
+    handoff: "T005 已接入商品、结算与一件代发概念闭环。",
     icon: "modules",
   },
   {
@@ -568,7 +569,8 @@ export function App() {
         <main className="mx-auto max-w-[390px] space-y-6 px-4 py-5 pb-28">
           {screen === "home" && <HomeScreen go={go} openActivity={() => go("activity")} />}
           {screen === "store" && <StoreFlowScreen openActivity={() => go("activity")} />}
-          {(screen === "mall" || screen === "care") && activeScene && <SceneScreen scene={activeScene} goHome={() => go("home")} />}
+          {screen === "mall" && <MallFlowScreen />}
+          {screen === "care" && activeScene && <SceneScreen scene={activeScene} goHome={() => go("home")} />}
           {screen === "activity" && <ActivityScreen goHome={() => go("home")} />}
           {screen === "me" && <ProfileScreen />}
         </main>

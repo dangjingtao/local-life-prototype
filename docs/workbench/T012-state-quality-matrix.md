@@ -4,18 +4,19 @@
 
 ## 1. 当前覆盖范围
 
-### 已有页面，可进入本轮质量基线
+### 已有页面，可进入质量审计
 
-- Mobile：T003 登录 / 首页 / 统一身份；T004 门店自提闭环。
+- Mobile：T003 登录 / 首页 / 统一身份；T004 门店自提闭环；T005 线上商城一件代发闭环。
 - PC：T008 角色 / 权限壳；T009 店主工作台；T010 平台运营中台；T011 管理层数据驾驶舱。
+
+其中 T005 页面已经存在并完成业务代码 review，但尚未完成本矩阵要求的 390px 状态恢复、键盘焦点、触控目标、溢出 / 遮挡与浏览器交互审计，因此仍是 T012 的明确 outstanding 项，不能因 T005 的 build / code review 通过而视为质量验收完成。
 
 ### 尚未存在，不能伪造验收
 
-- T005 线上商城一件代发闭环。
 - T006 智慧抗衰体验闭环。
 - T007 会员、积分与权益中心。
 
-因此本轮 PR 可以合入共享质量基线，但 T012 任务本身继续保持 `DOING`。
+因此共享质量基线可以继续复用，但 T012 任务本身继续保持 `DOING`。
 
 ## 2. 五态语义与切换方式
 
@@ -39,7 +40,7 @@ PR #4 首轮 review 发现：原来的 `setPrototypeView()` 使用 `window.locat
 - ready / loading / empty / error 使用 `history.replaceState` + `prototype:viewchange` 在当前文档内切换。
 - `PrototypeState` 始终返回同一个 Fragment；业务 children 始终位于第一个固定 wrapper。
 - ready 时固定 wrapper 使用 `display: contents`，不额外改变页面布局。
-- loading / empty / error 时同一 wrapper 使用 `hidden`，从布局、焦点和可访问树移除，但 React subtree 不卸载；恢复 ready 后门店 step、选中模块等局部 state 应继续保留。
+- loading / empty / error 时同一 wrapper 使用 `hidden`，从布局、焦点和可访问树移除，但 React subtree 不卸载；恢复 ready 后门店 step、商城 step、选中模块等局部 state 应继续保留。
 - permission 仍保留文档导航，因为 PC 三角色已有独立业务级 permission 壳，需要根组件重新读取 `?view=permission`。
 
 ## 3. 可复现路由
@@ -55,6 +56,8 @@ PR #4 首轮 review 发现：原来的 `setPrototypeView()` 使用 `window.locat
 - permission：`?demoAuth=1&view=permission`
 
 从已登录页面通过 PrototypePanel 切 ready / loading / empty / error 不刷新文档；permission 会重新读取页面边界，`demoAuth=1` 保证不会退回登录页。
+
+T005 商城复用同一 Mobile 根级 PrototypeState。实际审计时应先进入底部“商城”，再在商品详情 / 购物车 / 结算 / 订单详情等深层 step 切换状态并恢复，验证 MallFlowScreen 的局部 state 不被卸载。
 
 ### PC 店主
 
@@ -90,6 +93,7 @@ PR #4 首轮 review 发现：原来的 `setPrototypeView()` 使用 `window.locat
 - loading 使用 `aria-busy`；error 使用 `role=alert`；其余非 ready 状态使用 status / live region 表达。
 - loading skeleton 只在 `motion-safe` 时播放 pulse，尊重 reduced-motion。
 - Mobile 顶部消息按钮维持 44×44px；底部 Tab 维持 52px 高度。
+- T005 商品分类与履约方式使用 `aria-pressed` 表达选中状态；主要流程按钮继续消费 Design System Button / SecondaryButton。
 
 这些只能证明实现基线，不能代替真实浏览器 Tab 顺序、读屏、颜色对比或触控体验验证。
 
@@ -101,8 +105,12 @@ PR #4 首轮 review 发现：原来的 `setPrototypeView()` 使用 `window.locat
 - [ ] 登录后首页五态切换不丢失演示身份。
 - [ ] 门店详情 / 确认 / 凭证等局部 step 在 loading / empty / error 切换和恢复后保持原 step。
 - [ ] 门店列表 / 详情 / 确认 / 凭证 / 成功页无横向溢出或底部导航遮挡。
-- [ ] PrototypePanel 展开后不遮住关键恢复按钮。
-- [ ] 键盘或等价焦点检查：场景入口、消息入口、门店、商品、提交、核销、底部 Tab 均有单一且清晰的可见焦点。
+- [ ] T005 商城首页 / 商品详情 / 购物车 / 结算 / 订单详情无横向溢出、文本挤压或底部导航遮挡。
+- [ ] T005 在商品详情 / 购物车 / 结算 / 订单详情切 loading / empty / error 后恢复 ready，仍停留原商城 step，已选商品、履约方式和订单状态不被意外重置。
+- [ ] T005 到家 / 送店在结算页及订单详情持续显示不同目的地；送店状态仍按 `pending_fulfillment → shipping → pending_pickup → completed` 演示。
+- [ ] PrototypePanel 展开后不遮住门店 / 商城关键恢复按钮。
+- [ ] 键盘或等价焦点检查：场景入口、消息入口、门店、商品、商城分类、加入购物车、结算、履约方式、订单状态推进、核销、底部 Tab 均有单一且清晰的可见焦点。
+- [ ] T005 分类、履约选项及主要流程按钮触控目标在 390px 下可操作，无相邻误触风险。
 
 ### 1024px PC
 
@@ -123,20 +131,28 @@ PR #4 首轮 review 发现：原来的 `setPrototypeView()` 使用 `window.locat
 - [ ] error / permission 不只依赖颜色表达。
 - [ ] 禁用按钮仍可理解，且不会被键盘误触发。
 
-## 6. PR #4 Review 记录
+## 6. Review 记录
+
+### PR #4 · 共享质量基线
 
 - 初始 Head `21a1296`：Verify Prototype #79 success。
 - Codex P2：empty / error 从嵌套页面触发与恢复会因整页刷新丢失当前 page / step。判定成立，改为 Runtime 原地切换。
 - OpenCode #12：组件 ring 与未分层全局 outline 在 Tailwind v3 cascade 下会形成双焦点。判定成立，fallback 移入 `@layer base`。
 - 首轮返工 Head `8e3e64b`：Verify Prototype #80 success。
 - OpenCode #13：ready 与 non-ready 返回结构不同，React reconciliation 仍会卸载业务 children，nested Mobile step 仍会重置。判定为高置信 P1；第二次返工改为固定 Fragment + 固定第一 wrapper，只有 visibility 改变，React tree position 不变。
-- 第二次返工 Head 仍需新的 Verify 与 marked OpenCode review。
+- 第二次返工 Head `6f3f297`：Verify Prototype #81 success，OpenCode #14 `NO_BLOCKING_FINDINGS`；共享质量基线随后合入 `dev`。
+
+### T005 纳入质量范围
+
+- T005 PR #6 已建立 `MallFlowScreen` 并完成业务代码 review；这只证明页面存在及业务合同代码层通过。
+- PR #6 current-head Codex 复审指出总台账把 T012 剩余范围错误缩成 T006-T007，而本矩阵仍把 T005 列为“尚未存在”，可能导致后续 T012 漏审 T005。该 P2 复核成立。
+- 当前修正：T005 从“尚未存在”移入“已有页面、质量审计 outstanding”，并补入 390px 深层 step 状态恢复、溢出 / 遮挡、键盘焦点、触控目标及到家 / 送店语义检查项；未把任何未执行浏览器检查标成完成。
 
 ## 7. 完成条件
 
 T012 只有在以下条件同时满足后才能进入 `REVIEW`：
 
-1. T005、T006、T007 页面已存在并纳入同一状态 / 可访问性抽查。
+1. T005 已完成本矩阵的状态 / 可访问性抽查；T006、T007 页面已存在并纳入同一质量抽查。
 2. `npm run verify` / 对应 PR Verify 通过。
 3. 390px、1024px、1440px 实际浏览器检查有证据。
 4. 关键按钮完成键盘焦点抽查；颜色对比至少完成一次浏览器级检查。
