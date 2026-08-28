@@ -43,7 +43,8 @@ The value must use OpenCode's `provider/model` format. If the variable is absent
 
 The OpenCode review job is intentionally read-only:
 
-- repository token: contents read; PR/issues write only so the result can be posted back to the PR
+- GitHub token: repository contents read, pull requests read, issues write only for the PR conversation comment
+- GitHub token has no `contents: write` or `pull-requests: write`, so the workflow cannot push code or submit an APPROVE / REQUEST_CHANGES review state
 - OpenCode `edit`: denied
 - OpenCode `bash`: denied
 - OpenCode subagent/task: denied
@@ -88,6 +89,8 @@ It writes:
 
 - `.ai/reviews/pr-123.md`
 - `.ai/reviews/latest.md`
+
+The local copy also records the current PR Head SHA, so a coding agent can reject stale review output before acting on it.
 
 `.ai/reviews/` is gitignored. Local agents should read `.ai/reviews/latest.md`, verify each finding against the current code and project contracts, then decide whether to fix, reject, or escalate the finding.
 
