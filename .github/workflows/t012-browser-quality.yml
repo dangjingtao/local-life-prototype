@@ -1,0 +1,42 @@
+name: T012 Browser Quality
+
+on:
+  pull_request:
+    paths:
+      - "apps/mobile/**"
+      - "apps/pc/**"
+      - "packages/design-system/**"
+      - "packages/prototype-runtime/**"
+      - "tests/browser/**"
+      - "playwright.config.mjs"
+      - ".github/workflows/t012-browser-quality.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  browser-quality:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v6
+      - uses: actions/setup-node@v6
+        with:
+          node-version: 24
+      - run: npm install
+      - name: Install Playwright test runner
+        run: npm install --no-save --package-lock=false @playwright/test@1.55.0
+      - name: Install Chromium
+        run: npx playwright install --with-deps chromium
+      - name: Run T012 browser quality audit
+        run: npx playwright test --config=playwright.config.mjs
+      - name: Upload browser report on failure
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: t012-browser-quality-report
+          path: |
+            playwright-report
+            test-results
+          if-no-files-found: ignore
