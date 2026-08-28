@@ -17,6 +17,7 @@ import {
 } from "@prototype/shared";
 import { CareFlowScreen } from "./CareFlowScreen";
 import { MallFlowScreen } from "./MallFlowScreen";
+import { MembershipCenterScreen } from "./MembershipCenterScreen";
 
 type Tab = "home" | "store" | "mall" | "care" | "me";
 type Screen = Tab | "activity";
@@ -490,35 +491,6 @@ function ActivityScreen({ goHome }: { goHome: () => void }) {
   );
 }
 
-function ProfileScreen() {
-  return (
-    <>
-      <section className="rounded-[var(--radius-overlay)] bg-[var(--color-surface)] p-5">
-        <div className="flex items-center gap-3">
-          <div className="flex h-12 w-12 items-center justify-center rounded-full bg-[var(--color-brand-subtle)] text-lg font-semibold text-[var(--color-primary-pressed)]">
-            {coreDemoUser.displayName.slice(0, 1)}
-          </div>
-          <div className="min-w-0 flex-1">
-            <h2 className="font-semibold">{coreDemoUser.displayName}</h2>
-            <p className="mt-1 text-sm text-[var(--color-text-secondary)]">统一用户 ID · {coreDemoUser.id}</p>
-          </div>
-          <StatusTag tone="success">{memberLevel}</StatusTag>
-        </div>
-        <div className="mt-5 grid grid-cols-3 gap-3 border-t border-[var(--color-border)] pt-4 text-center">
-          <div><strong className="block text-lg">{coreDemoUser.pointsBalance.toLocaleString("zh-CN")}</strong><span className="text-xs text-[var(--color-text-tertiary)]">积分</span></div>
-          <div><strong className="block text-lg">{availableDiscountCoupons.length}</strong><span className="text-xs text-[var(--color-text-tertiary)]">可用优惠券</span></div>
-          <div><strong className="block text-lg">{availableExperienceCoupons.length}</strong><span className="text-xs text-[var(--color-text-tertiary)]">可用体验券</span></div>
-        </div>
-      </section>
-
-      <Card className="bg-[var(--color-surface-subtle)]">
-        <p className="font-medium">统一会员身份已接入 T002 演示数据</p>
-        <p className="mt-2 text-sm leading-6 text-[var(--color-text-secondary)]">订单、积分明细、券和检测报告的完整用户中心将在 T007 中继续施工；本卡不提前固化未确认的会员规则。</p>
-      </Card>
-    </>
-  );
-}
-
 export function App() {
   const view = getPrototypeView();
   const [authenticated, setAuthenticated] = useState(() => {
@@ -573,7 +545,7 @@ export function App() {
           {screen === "mall" && <MallFlowScreen />}
           {screen === "care" && activeScene && (activeScene.id === "care" ? <CareFlowScreen /> : <SceneScreen scene={activeScene} goHome={() => go("home")} />)}
           {screen === "activity" && <ActivityScreen goHome={() => go("home")} />}
-          {screen === "me" && <ProfileScreen />}
+          {screen === "me" && <MembershipCenterScreen />}
         </main>
       </PrototypeState>
 

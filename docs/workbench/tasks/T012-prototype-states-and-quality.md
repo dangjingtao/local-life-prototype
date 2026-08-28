@@ -41,7 +41,7 @@
 
 - 前置：T003-T011 的对应页面完成。
 - 风险：全局状态不能替代业务级状态，需按关键流程抽查。
-- 当前依赖缺口：T005、T006 已完成业务代码施工并进入 `REVIEW`，但两者的 390px 状态 / 可访问性 / 恢复路径审计仍 outstanding；T007 仍为 `TODO`。因此 T012 继续保持 `DOING`。
+- 当前依赖缺口：T005、T006 已完成业务代码施工并进入 `REVIEW`；T007 页面也已在功能分支存在。三者的 390px 状态 / 可访问性 / 恢复路径审计仍 outstanding，因此 T012 继续保持 `DOING`。
 - 轻微技术债：OpenCode 最终复审指出 `PrototypeState` 仍保留已不参与渲染控制的 `view` prop；当前无运行时影响，后续可在不破坏调用合同的前提下清理。
 
 ## Implementation record
@@ -55,7 +55,7 @@
   - ready / loading / empty / error 使用 `useSyncExternalStore` + history 事件在当前文档内切换；permission 因 PC 有角色专属边界页，仍使用文档导航。
   - 首轮返工后，OpenCode 二审继续发现 React reconciliation P1：ready 与非 ready 返回结构不同仍会卸载业务 children。第二次返工改为 `PrototypeState` 始终返回同一 Fragment，业务 children 始终位于第一个稳定 wrapper；ready 时 wrapper 使用 `display: contents`，非 ready 时用 `hidden` 从布局、焦点和可访问树移除，因此 nested React state 不因质量状态切换而卸载。
   - loading 动画使用 `motion-safe:animate-pulse`；全局焦点 fallback 放入 `@layer base`，由组件级 Tailwind ring 正常覆盖，避免双焦点。
-  - T005 `MallFlowScreen` 与 T006 `CareFlowScreen` 已存在，但业务 code review / build 不能替代 T012 的状态、键盘、触控与 390px 浏览器检查。
+  - T005 `MallFlowScreen`、T006 `CareFlowScreen` 与 T007 `MembershipCenterScreen` 已存在，但业务 code review / build 不能替代 T012 的状态、键盘、触控与 390px 浏览器检查。
 
 ## Verification evidence
 
@@ -74,12 +74,12 @@
   - PC 店主：`?role=merchant&view=loading|empty|error|permission`。
   - PC 运营：`?role=operator&view=loading|empty|error|permission`。
   - PC 管理层：`?role=management&view=loading|empty|error|permission`。
-- Screenshot / Browser result: 390px / 1024px / 1440px 实际浏览器视觉、键盘 Tab 顺序与对比度抽查尚未形成证据；T005/T006 均尚未完成 390px 质量审计。
+- Screenshot / Browser result: 390px / 1024px / 1440px 实际浏览器视觉、键盘 Tab 顺序与对比度抽查尚未形成证据；T005/T006/T007 均尚未完成 390px 质量审计。
 - Other evidence: `docs/workbench/T012-state-quality-matrix.md` 记录当前状态语义、路由和剩余人工验证项。
 
 ## Review
 
 - Reviewer: Tomz
 - Result: DOING
-- Conclusion: 共享质量基线已合入 `dev`；T005/T006 已存在但质量证据仍未补齐，T007 仍未施工，因此 T012 继续保持 `DOING`。
-- Follow-up: 完成 T005/T006 的 Mobile 五态恢复、键盘焦点、触控与 390px 抽查；T007 完成后同样纳入，再完成 390/1024/1440 浏览器与颜色对比验收。
+- Conclusion: 共享质量基线已合入 `dev`；T005/T006/T007 页面现均存在，但 Mobile 质量证据仍未补齐，因此 T012 继续保持 `DOING`。
+- Follow-up: 完成 T005-T007 的 Mobile 五态恢复、键盘焦点、触控与 390px 抽查，再完成 390/1024/1440 浏览器与颜色对比验收。
