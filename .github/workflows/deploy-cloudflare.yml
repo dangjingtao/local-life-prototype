@@ -77,6 +77,16 @@ jobs:
             curl --silent --show-error --output "$output" --write-out '%{http_code}' "${AUTH[@]}" "$API/$name"
           }
 
+          count_nonlegacy_domains() {
+            local input="$1"
+            jq -r --arg legacy "$LEGACY_PROJECT.pages.dev" '[.result.domains[]? | select(. != $legacy)] | length' "$input"
+          }
+
+          print_nonlegacy_domains() {
+            local input="$1"
+            jq -r --arg legacy "$LEGACY_PROJECT.pages.dev" '.result.domains[]? | select(. != $legacy)' "$input"
+          }
+
           create_project() {
             local payload
             payload="$(jq -nc --arg name "$PROJECT" '{name:$name,production_branch:"prod"}')"
@@ -90,10 +100,10 @@ jobs:
           if [ "$project_status" = "404" ]; then
             legacy_status="$(get_project "$LEGACY_PROJECT" "$RUNNER_TEMP/cf-legacy.json")"
             if [ "$legacy_status" = "200" ]; then
-              custom_count="$(jq -r '.result.domains | length' "$RUNNER_TEMP/cf-legacy.json")"
-              if [ "$custom_count" != "0" ]; then
-                echo "Legacy Pages project $LEGACY_PROJECT has custom domains; refusing automatic replacement."
-                jq -r '.result.domains[]' "$RUNNER_TEMP/cf-legacy.json"
+              unsafe_count="$(count_nonlegacy_domains "$RUNNER_TEMP/cf-legacy.json")"
+              if [ "$unsafe_count" != "0" ]; then
+                echo "Legacy Pages project $LEGACY_PROJECT has additional domains; refusing automatic replacement."
+                print_nonlegacy_domains "$RUNNER_TEMP/cf-legacy.json"
                 exit 1
               fi
               create_project
@@ -116,13 +126,13 @@ jobs:
             exit 1
           fi
 
-          custom_count="$(jq -r '.result.domains | length' "$RUNNER_TEMP/cf-project.json")"
+          unsafe_count="$(count_nonlegacy_domains "$RUNNER_TEMP/cf-project.json")"
           deployment_urls="$(jq -r '[.result.latest_deployment.url, (.result.latest_deployment.aliases[]?)] | map(select(. != null)) | join("\n")' "$RUNNER_TEMP/cf-project.json")"
 
           if printf '%s\n' "$deployment_urls" | grep -Fq ".$LEGACY_PROJECT.pages.dev"; then
-            if [ "$custom_count" != "0" ]; then
-              echo "Pages project $PROJECT still uses the legacy pages.dev hostname and has custom domains; refusing automatic recreation."
-              jq -r '.result.domains[]' "$RUNNER_TEMP/cf-project.json"
+            if [ "$unsafe_count" != "0" ]; then
+              echo "Pages project $PROJECT still uses the legacy pages.dev hostname and has additional domains; refusing automatic recreation."
+              print_nonlegacy_domains "$RUNNER_TEMP/cf-project.json"
               exit 1
             fi
 
@@ -203,9 +213,10 @@ jobs:
           if [ "$LEGACY_CLEANUP" = "true" ]; then
             legacy_status="$(curl --silent --show-error --output "$RUNNER_TEMP/cf-legacy-final.json" --write-out '%{http_code}' "${AUTH[@]}" "$API/$LEGACY_PROJECT")"
             if [ "$legacy_status" = "200" ]; then
-              custom_count="$(jq -r '.result.domains | length' "$RUNNER_TEMP/cf-legacy-final.json")"
-              if [ "$custom_count" != "0" ]; then
-                echo "Legacy project $LEGACY_PROJECT unexpectedly has custom domains; keeping it for safety."
+              unsafe_count="$(jq -r --arg legacy "$LEGACY_PROJECT.pages.dev" '[.result.domains[]? | select(. != $legacy)] | length' "$RUNNER_TEMP/cf-legacy-final.json")"
+              if [ "$unsafe_count" != "0" ]; then
+                echo "Legacy project $LEGACY_PROJECT unexpectedly has additional domains; keeping it for safety."
+                jq -r --arg legacy "$LEGACY_PROJECT.pages.dev" '.result.domains[]? | select(. != $legacy)' "$RUNNER_TEMP/cf-legacy-final.json"
                 exit 1
               fi
               curl --fail-with-body --silent --show-error --request DELETE "${AUTH[@]}" "$API/$LEGACY_PROJECT" > "$RUNNER_TEMP/cf-deleted-legacy.json"
