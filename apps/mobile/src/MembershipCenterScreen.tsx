@@ -32,6 +32,8 @@ const memberPoints = pointLedger.filter((item) => item.userId === coreDemoUser.i
 const earnEntry = memberPoints.find((item) => item.id === "POINT-8888-003");
 const exchangeEntry = memberPoints.find((item) => item.id === "POINT-8888-004");
 const memberRedemptions = redemptions.filter((item) => item.userId === coreDemoUser.id);
+const reportCount = coreDemoReport ? 1 : 0;
+const businessRecordCount = coreUserOrders.length + reportCount + memberRedemptions.length;
 
 function date(value: string) {
   return new Intl.DateTimeFormat("zh-CN", { month: "numeric", day: "numeric" }).format(new Date(value));
@@ -83,7 +85,7 @@ export function MembershipCenterScreen() {
         <div className="mt-6 grid grid-cols-3 gap-3 border-t border-white/20 pt-5 text-center">
           <div><strong className="block text-xl">{coreDemoUser.pointsBalance}</strong><span className="text-xs text-white/70">当前积分</span></div>
           <div><strong className="block text-xl">{availableCount}</strong><span className="text-xs text-white/70">可用券</span></div>
-          <div><strong className="block text-xl">{coreUserOrders.length + 1}</strong><span className="text-xs text-white/70">业务记录</span></div>
+          <div><strong className="block text-xl">{businessRecordCount}</strong><span className="text-xs text-white/70">业务记录</span></div>
         </div>
       </section>
       <Card className="border-[var(--color-warning)] bg-[var(--color-warning-bg)]">
@@ -130,7 +132,7 @@ export function MembershipCenterScreen() {
       <Back onClick={() => go("overview")} />
       <div><p className="text-sm text-[var(--color-text-secondary)]">统一账号记录</p><h2 className="mt-1 text-2xl font-semibold">订单、报告与核销</h2></div>
       <Section title={`我的订单 · ${coreUserOrders.length}`}><div className="space-y-3">{coreUserOrders.map((order) => <Card key={order.id}><div className="flex flex-wrap items-center gap-2"><p className="font-semibold">{order.id}</p><StatusTag>{businessSceneLabels[order.scene]}</StatusTag><StatusTag>{orderStatusLabels[order.status]}</StatusTag></div><p className="mt-2 text-sm text-[var(--color-text-secondary)]">{order.items.map((item) => `${item.name} × ${item.quantity}`).join("、")} · ¥{order.amountYuan}</p></Card>)}</div></Section>
-      <Section title="检测报告 · 1"><Card><div className="flex flex-wrap items-center gap-2"><p className="font-semibold">{coreDemoReport.id}</p><StatusTag tone="success">基础中性结果</StatusTag></div><p className="mt-3 text-sm leading-6 text-[var(--color-text-secondary)]">{coreDemoReport.summary}</p><p className="mt-2 text-xs text-[var(--color-text-tertiary)]">{coreDemoReport.disclaimer}</p></Card></Section>
+      <Section title={`检测报告 · ${reportCount}`}><Card><div className="flex flex-wrap items-center gap-2"><p className="font-semibold">{coreDemoReport.id}</p><StatusTag tone="success">基础中性结果</StatusTag></div><p className="mt-3 text-sm leading-6 text-[var(--color-text-secondary)]">{coreDemoReport.summary}</p><p className="mt-2 text-xs text-[var(--color-text-tertiary)]">{coreDemoReport.disclaimer}</p></Card></Section>
       <Section title={`核销记录 · ${memberRedemptions.length}`}><div className="space-y-3">{memberRedemptions.map((record) => <Card key={record.id} className="bg-[var(--color-surface-subtle)]"><div className="flex items-center justify-between gap-3"><div><p className="font-medium">{record.code}</p><p className="mt-1 text-xs text-[var(--color-text-tertiary)]">{record.targetType} · {record.targetId}</p></div><StatusTag>{redemptionStatusLabels[record.status]}</StatusTag></div></Card>)}</div></Section>
       <Card className="bg-[var(--color-surface-subtle)]"><p className="text-sm leading-6 text-[var(--color-text-secondary)]">这里只汇总 LL-8888 的 Shared 记录，不重复实现 T004-T006 的业务履约流程。</p></Card>
     </>
