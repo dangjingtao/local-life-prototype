@@ -17,8 +17,10 @@ export const CORE_DEMO_IDS = {
   partner: "PARTNER-YUNLING",
   store: "STORE-YUNLING",
   pickupOrder: "LL-1024",
+  experienceCoupon: "EXPERIENCE-8888-01",
   report: "REPORT-CARE-0001",
   pickupRedemption: "REDEEM-LL-1024",
+  careRedemption: "REDEEM-EXPERIENCE-8888-01",
 } as const;
 
 export const prototypeRules = {
@@ -194,7 +196,7 @@ export const coupons: Coupon[] = [
   { id: "COUPON-8888-01", userId: CORE_DEMO_IDS.user, kind: "discount", title: "门店 10 元优惠券", scene: "store", status: "available", applicableStoreIds: [CORE_DEMO_IDS.store], claimedAt: "2026-08-20T12:00:00+08:00", expiresAt: "2026-09-30T23:59:59+08:00" },
   { id: "COUPON-8888-02", userId: CORE_DEMO_IDS.user, kind: "discount", title: "商城满减券", scene: "mall", status: "available", applicableStoreIds: [], claimedAt: "2026-08-21T12:00:00+08:00", expiresAt: "2026-09-15T23:59:59+08:00" },
   { id: "COUPON-8888-03", userId: CORE_DEMO_IDS.user, kind: "discount", title: "生活服务代金券", scene: "store", status: "used", applicableStoreIds: ["STORE-NANAN"], claimedAt: "2026-08-01T12:00:00+08:00" },
-  { id: "EXPERIENCE-8888-01", userId: CORE_DEMO_IDS.user, kind: "experience", title: "基础检测体验券", scene: "care", status: "available", applicableStoreIds: [CORE_DEMO_IDS.store, "STORE-NANAN"], claimedAt: "2026-08-27T08:30:00+08:00", expiresAt: "2026-09-30T23:59:59+08:00" },
+  { id: CORE_DEMO_IDS.experienceCoupon, userId: CORE_DEMO_IDS.user, kind: "experience", title: "基础检测体验券", scene: "care", status: "available", applicableStoreIds: [CORE_DEMO_IDS.store, "STORE-NANAN"], claimedAt: "2026-08-27T08:30:00+08:00", expiresAt: "2026-09-30T23:59:59+08:00" },
   { id: "EXPERIENCE-8888-02", userId: CORE_DEMO_IDS.user, kind: "experience", title: "护理体验券", scene: "care", status: "available", applicableStoreIds: ["STORE-NANAN"], claimedAt: "2026-08-22T10:00:00+08:00", expiresAt: "2026-09-22T23:59:59+08:00" },
 ];
 
@@ -229,6 +231,16 @@ export const redemptions: RedemptionRecord[] = [
     code: "LL-1024",
     status: "pending",
     createdAt: "2026-08-27T10:20:00+08:00",
+  },
+  {
+    id: CORE_DEMO_IDS.careRedemption,
+    userId: CORE_DEMO_IDS.user,
+    storeId: CORE_DEMO_IDS.store,
+    targetType: "coupon",
+    targetId: CORE_DEMO_IDS.experienceCoupon,
+    code: "CARE-8888",
+    status: "pending",
+    createdAt: "2026-08-27T08:35:00+08:00",
   },
   {
     id: "REDEEM-EXPERIENCE-8892-01",
