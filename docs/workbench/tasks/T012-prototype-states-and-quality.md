@@ -1,6 +1,6 @@
 # T012 · 关键状态、可访问性与原型质量
 
-- Status: DOING
+- Status: REVIEW
 - Target version: 0.1.0
 - Impact: Mobile / PC / Shared
 - Owner: Mira
@@ -35,18 +35,18 @@ Prototype Runtime 已具备全局五态与恢复基线；T003-T011 对应业务�
 
 ## Acceptance
 
-- [ ] 双端关键页面五态均可稳定触发。
+- [x] 双端关键页面五态均可稳定触发。
 - [x] error 有恢复动作，empty 有下一步，permission 有边界说明。
-- [ ] 关键按钮可键盘操作且移动端触控目标合格。
-- [ ] 390px、1024px、1440px 无明显横向溢出；关键恢复路径不被固定导航 / PrototypePanel 阻断。
-- [ ] T004-T007 深层 step / 子视图在 loading / empty / error 往返后保持局部状态。
-- [ ] 关键文本 / 主按钮颜色对比浏览器计算通过。
-- [x] `npm run verify` 基线通过（PR #4 第二次返工 Head Verify Prototype #81 success）。
+- [x] 关键按钮可键盘操作且移动端触控目标合格。
+- [x] 390px、1024px、1440px 无明显横向溢出；关键恢复路径不被固定导航 / PrototypePanel 阻断。
+- [x] T004-T007 深层 step / 子视图在 loading / empty / error 往返后保持局部状态。
+- [x] 关键文本 / 主按钮颜色对比浏览器计算通过。
+- [x] `npm run verify` 基线通过；当前施工 Head 前一轮 Verify Prototype #116 success，最终合并仍以 latest-head CI 为准。
 
 ## Risks / Dependencies
 
 - 前置：T003-T011 对应页面均已完成施工；T005、T006、T007 已进入业务 review / merge 状态。
-- 当前无外部阻塞。未完成项属于 T012 自身质量施工与验收，不再表述为“等待 T005-T007”。
+- 当前无外部阻塞。未完成项属于最终独立 review / 用户验收，不再表述为“等待 T005-T007”。
 - 风险：全局状态不能替代业务级状态，因此必须进入门店、商城、抗衰、会员中心的深层流程抽查。
 - 风险：自动化浏览器检查能验证 DOM、布局尺寸、焦点、对比度和状态保持，但不能替代用户最终的产品视觉判断。
 - 轻微技术债：`PrototypeState` 仍保留已不参与渲染控制的 `view` prop；当前无运行时影响，后续可在不破坏调用合同的前提下清理。
@@ -62,6 +62,8 @@ Prototype Runtime 已具备全局五态与恢复基线；T003-T011 对应业务�
   - 浏览器审计真实启动 Mobile / PC 两个 Vite 服务并使用 Chromium，不通过静态 grep 冒充浏览器证据。
   - 390px Mobile 覆盖五态、键盘可见焦点、44px 触控目标、核心颜色对比、T004 门店凭证、T005 商城结算、T006 体验券核销状态、T007 会员子视图 / replay / 券筛选恢复。
   - 1024px / 1440px PC 覆盖三角色五态横向溢出，并验证运营非默认“订单 / 核销”模块 error → ready 后保持当前模块。
+  - 首轮真实 Chromium 审计抓到 Mobile PrototypePanel 遮挡 TabBar / CTA；返工后折叠态缩小并自动收起，同时将实际点击目标修正到 44px 以上。
+  - Browser Quality workflow 现覆盖 `packages/shared/**` 与 `packages/icons/**`，共享 fixtures / icon 输入变化也会触发质量审计。
   - T007 已有 PR #8 merge `3dca4ef`、最终 Head `161c513`、Verify #109 success、OpenCode #38 `NO_BLOCKING_FINDINGS`；T007 任务卡在本分支同步推进到 `REVIEW`。
 
 ## Verification evidence
@@ -72,7 +74,9 @@ Prototype Runtime 已具备全局五态与恢复基线；T003-T011 对应业务�
   - 第二次返工 Head `6f3f2973b6f0046c5b835d344f6f7b381b8c449c`：Verify Prototype #81 success。
 - 既有 AI Review：OpenCode #14 metadata Head 与 `6f3f297` 一致，最终 verdict `NO_BLOCKING_FINDINGS`。
 - T007 收口证据：PR #8 merged；最终 Head `161c513` 的 Verify Prototype #109（run `33162212350`）success；Experimental OpenCode PR Review #38（run `33162212398`）success，verdict `NO_BLOCKING_FINDINGS`。
-- 当前浏览器证据：等待本分支 `T012 Browser Quality` 的 current-head Chromium run；未运行前本卡不提前勾选浏览器验收项。
+- 浏览器质量证据：Head `349fef98bf050827f4aecbe5be3303e849b6d313` 的 T012 Browser Quality #6（run `33165176097`）success，13/13 Chromium tests 通过；同 Head Verify Prototype #116 success。
+- OpenCode #44 对 `349fef9` 的唯一 P2 是 T007 总台账状态仍为 DOING；复核成立，本轮同步修正。其 Chromium 未运行、折叠面板定位两项 review gap 已由 Browser Quality #6 的真实执行关闭；shared/icons 触发范围 gap 同步补齐。
+- 最终合并证据：本卡进入 `REVIEW` 后产生新 Head，仍以 latest-head Browser Quality + Verify + marked OpenCode review 为准，不复用旧 Head 结论。
 - Page / Route：
   - Mobile：`?demoAuth=1&view=loading|empty|error|permission`；ready 为 `?demoAuth=1`。
   - PC 店主：`?role=merchant&view=...`。
@@ -83,6 +87,6 @@ Prototype Runtime 已具备全局五态与恢复基线；T003-T011 对应业务�
 ## Review
 
 - Reviewer: Tomz
-- Result: DOING
-- Conclusion: 所有业务页面已具备审计对象，当前不存在“等待 T005-T007 施工”的阻塞。T012 已进入真实 Chromium 质量审计阶段。
-- Follow-up: current-head 浏览器审计 + Verify + 独立 review 通过后，施工方可将 T012 推进到 `REVIEW`；是否 `PASS` 仍由用户验收决定。
+- Result: REVIEW
+- Conclusion: T012 自身施工与浏览器自检已完成，真实 Chromium 已覆盖 390px / 1024px / 1440px、五态、深层状态恢复、触控目标、焦点、对比度和横向溢出；当前等待 latest-head 独立 review / 用户确认，不自动 PASS。
+- Follow-up: latest-head Browser Quality + Verify + marked OpenCode review 通过后可合入 `dev`；是否 `PASS` 仍由用户验收决定。
