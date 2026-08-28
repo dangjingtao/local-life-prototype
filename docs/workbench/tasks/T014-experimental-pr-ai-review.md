@@ -49,8 +49,8 @@
 ## 风险 / 依赖
 
 - 依赖 repository secret `OPENCODE_API_KEY`。
-- 默认实验模型为 `opencode/mimo-v2.5-free`；可通过 repository Actions variable `OPENCODE_REVIEW_MODEL` 更换。
-- `opencode/gpt-5.4-mini` 已验证能到达真实 OpenCode 模型调用，但当前 Zen workspace 余额不足，因此不是实验默认模型。
+- 默认评审模型为 `opencode/deepseek-v4-pro`；可通过 repository Actions variable `OPENCODE_REVIEW_MODEL` 更换。
+- 初始 smoke test 曾使用 `opencode/mimo-v2.5-free` 验通完整链路；该免费模型不再作为正式实验默认值。
 - Fork PR 默认跳过，避免 secret 暴露给不可信代码。
 - 大 diff 会截断模型输入，因此不能把实验 review 当完整代码审计。
 - 模型可能误报 / 漏报；输出要求分离 Observation / Inference / Judgment，并保持非阻塞。
@@ -93,5 +93,7 @@
 ## Review 结论
 
 施工与 smoke test 已满足进入独立评审的条件，状态从 `BLOCKED` 推进到 `REVIEW`。
+
+默认模型现已按用户要求切换为 DeepSeek V4 Pro；后续真实业务 PR 应以 `opencode/deepseek-v4-pro` 作为当前评审基线。
 
 仍保持实验边界：OpenCode review 的 `NO_BLOCKING_FINDINGS` 不能把 T014 自动推进为 `PASS`；是否正式接受这套基础版由用户 / 独立评审决定。
