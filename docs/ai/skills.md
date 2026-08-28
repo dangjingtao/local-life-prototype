@@ -153,7 +153,7 @@ Seed 内置可供确认的 Skill：
 - Confirmed at: 2026-08-27
 - Extended at: 2026-08-28（实验性 PR AI Review）
 - Confirmed by: Tomz
-- Project name: `comuilty`
+- Project name: `local-life`
 - Project title: `本地生活`
 - Project goal: V0.1 概念原型验证线下门店、线上商城、智慧抗衰三大场景及统一私域中台结构
 - GitHub repository: `https://github.com/dangjingtao/local-life-prototype`
