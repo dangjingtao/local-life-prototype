@@ -42,10 +42,10 @@ test.describe("T020 · Mobile 智慧抗衰预约与核销", () => {
 
     await page.getByRole("button", { name: /15:00/ }).click();
     await expect(page.getByRole("heading", { name: "确认本次到店安排" })).toBeVisible();
-    await expect(page.getByText("LL-8888")).toBeVisible();
-    await expect(page.getByText("CARE-PROJECT-BASIC")).toBeVisible();
-    await expect(page.getByText("STORE-YUNLING")).toBeVisible();
-    await expect(page.getByText("SLOT-YUNLING-0901-1500")).toBeVisible();
+    await expect(page.getByText("LL-8888", { exact: true })).toBeVisible();
+    await expect(page.getByText("CARE-PROJECT-BASIC", { exact: true })).toBeVisible();
+    await expect(page.getByText("STORE-YUNLING", { exact: true })).toBeVisible();
+    await expect(page.getByText("SLOT-YUNLING-0901-1500", { exact: true })).toBeVisible();
 
     await page.getByRole("button", { name: "确认预约" }).click();
     await expect(page.getByRole("heading", { name: "预约已确认" })).toBeVisible();
@@ -55,7 +55,7 @@ test.describe("T020 · Mobile 智慧抗衰预约与核销", () => {
 
     await page.getByRole("button", { name: "查看预约二维码 / 预约码" }).click();
     await expect(page.getByRole("heading", { name: "出示预约二维码" })).toBeVisible();
-    await expect(page.getByText("CARE-APPT-8888-T020")).toBeVisible();
+    await expect(page.getByText("CARE-APPT-8888-T020", { exact: true })).toBeVisible();
 
     await page.getByRole("button", { name: "模拟店员扫码核销" }).click();
     await expect(page.getByRole("heading", { name: "核销中" })).toBeVisible();
@@ -66,19 +66,20 @@ test.describe("T020 · Mobile 智慧抗衰预约与核销", () => {
     await expect(page.getByRole("heading", { name: "检测中" })).toBeVisible();
     await page.getByRole("button", { name: "完成模拟检测" }).click();
     await expect(page.getByRole("heading", { name: "本次到店流程已完成" })).toBeVisible();
-    await expect(page.getByText("T021 handoff")).toBeVisible();
+    await expect(page.getByText("T021 handoff", { exact: true })).toBeVisible();
     await expectNoHorizontalOverflow(page);
   });
 
   test("global search carries Care Project into appointment flow", async ({ page }) => {
     await openMobile(page);
-    await page.getByRole("button", { name: "打开全局搜索" }).click();
+    await page.getByRole("banner").getByRole("button", { name: "打开全局搜索" }).click();
     await page.getByLabel("全局搜索").fill("基础状态检测");
     await page.getByRole("button", { name: "查看智慧抗衰结果：基础状态检测" }).click();
 
+    await expect(page.getByText("来自全局搜索", { exact: true })).toBeVisible();
     await expect(page.getByRole("heading", { name: "基础状态检测" })).toBeVisible();
-    await expect(page.getByText("搜索已直接定位到项目")).toBeVisible();
-    await expect(page.getByText("CARE-PROJECT-BASIC")).toBeVisible();
+    await expect(page.getByText("搜索已直接定位到项目", { exact: true })).toBeVisible();
+    await expect(page.getByText(/CARE-PROJECT-BASIC/).first()).toBeVisible();
     await expectNoHorizontalOverflow(page);
   });
 });
