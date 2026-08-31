@@ -172,8 +172,8 @@ export function V02HomeScreen({ onOpenSearch, onOpenDomain, onOpenCampaign }: V0
             <div><p className="text-lg font-semibold">{availableCoupons.length}</p><p className="mt-1 text-xs text-[var(--color-text-tertiary)]">可用券</p></div>
             <div><p className="text-lg font-semibold">{memberLevel}</p><p className="mt-1 text-xs text-[var(--color-text-tertiary)]">会员身份</p></div>
           </div>
-          <button type="button" onClick={() => onOpenSearch("优惠")} className="mt-4 flex min-h-11 w-full items-center justify-between rounded-[var(--radius-control)] bg-[var(--color-surface-subtle)] px-3 text-sm font-medium">
-            <span>看看今天有哪些权益与活动</span><span aria-hidden="true">›</span>
+          <button type="button" onClick={() => onOpenSearch("初秋")} className="mt-4 flex min-h-11 w-full items-center justify-between rounded-[var(--radius-control)] bg-[var(--color-surface-subtle)] px-3 text-sm font-medium">
+            <span>看看今天有哪些活动与精选</span><span aria-hidden="true">›</span>
           </button>
         </Card>
       </Section>
