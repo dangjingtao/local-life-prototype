@@ -93,4 +93,15 @@ test.describe("T020 · Mobile 智慧抗衰预约与核销", () => {
     await expect(page.getByText(/CARE-PROJECT-BASIC/).first()).toBeVisible();
     await expectNoHorizontalOverflow(page);
   });
+
+  test("unmapped care service does not falsely claim a resolved appointment handoff", async ({ page }) => {
+    await openMobile(page);
+    await page.getByRole("banner").getByRole("button", { name: "打开全局搜索" }).click();
+    await page.getByLabel("全局搜索").fill("护理套餐");
+    await page.getByRole("button", { name: "查看智慧抗衰结果：护理套餐", exact: true }).click();
+
+    await expect(page.getByRole("heading", { name: "先预约，再到店完成检测与服务。" })).toBeVisible();
+    await expect(page.getByText("已定位", { exact: true })).toHaveCount(0);
+    await expectNoHorizontalOverflow(page);
+  });
 });
