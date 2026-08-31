@@ -6,7 +6,7 @@ import { coreDemoUser, membershipLevelLabels } from "@prototype/shared";
 import { CampaignActivityScreen } from "./CampaignActivityScreen";
 import { CareFlowScreen } from "./CareFlowScreen";
 import { GlobalSearchScreen, type SearchBusinessHandoff } from "./GlobalSearchScreen";
-import { MallFlowScreen } from "./MallFlowScreen";
+import { MallFlowScreen, type StorefrontCartState } from "./MallFlowScreen";
 import { MembershipCenterScreen } from "./MembershipCenterScreen";
 import { StoreFlowScreen } from "./StoreFlowScreen";
 import { V02HomeScreen } from "./V02HomeScreen";
@@ -68,7 +68,7 @@ function SearchHandoffBanner({ handoff }: { handoff: SearchBusinessHandoff }) {
         </div>
         <StatusTag tone="success">已定位</StatusTag>
       </div>
-      <p className="mt-3 text-xs leading-5 text-[var(--color-text-tertiary)]">已保留实体 {handoff.entityId}；T019 / T020 将继续把该上下文接入完整购买或预约流程。</p>
+      <p className="mt-3 text-xs leading-5 text-[var(--color-text-tertiary)]">已保留实体 {handoff.entityId}；对应业务流程会继续消费该上下文，而不只展示定位提示。</p>
     </Card>
   );
 }
@@ -83,6 +83,7 @@ export function App() {
   const [searchPreset, setSearchPreset] = useState("");
   const [selectedCampaignId, setSelectedCampaignId] = useState<string | null>(null);
   const [searchHandoff, setSearchHandoff] = useState<SearchBusinessHandoff | null>(null);
+  const [mallCarts, setMallCarts] = useState<StorefrontCartState>({});
 
   const activeTab: Tab = screen === "search" || screen === "activity" ? "home" : screen;
   const title = screen === "search"
@@ -185,7 +186,11 @@ export function App() {
           {screen === "mall" && (
             <>
               {searchHandoff?.domain === "mall" && <SearchHandoffBanner handoff={searchHandoff} />}
-              <MallFlowScreen />
+              <MallFlowScreen
+                entryContext={searchHandoff?.domain === "mall" ? searchHandoff : undefined}
+                carts={mallCarts}
+                setCarts={setMallCarts}
+              />
             </>
           )}
           {screen === "care" && (
