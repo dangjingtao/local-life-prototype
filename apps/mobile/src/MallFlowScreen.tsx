@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, type Dispatch, type SetStateAction } from "react";
 import { Button, Card, SecondaryButton, Section, StatusTag } from "@prototype/design-system";
 import { PrototypeIcon } from "@prototype/icons";
 import {
@@ -11,9 +11,27 @@ import {
   type OrderStatus,
   type Product,
 } from "@prototype/shared";
+import type { SearchBusinessHandoff } from "./GlobalSearchScreen";
 
 type MallStep = "home" | "detail" | "cart" | "checkout" | "order";
-type StorefrontCartState = Record<string, Record<string, number>>;
+export type StorefrontCartState = Record<string, Record<string, number>>;
+
+type MallOrderSnapshot = {
+  id: string;
+  storefrontName: string;
+  channelName: string;
+  itemCount: number;
+  subtotal: number;
+  shippingFee: number;
+  payable: number;
+  address: string;
+};
+
+interface MallFlowScreenProps {
+  entryContext?: SearchBusinessHandoff;
+  carts: StorefrontCartState;
+  setCarts: Dispatch<SetStateAction<StorefrontCartState>>;
+}
 
 const mallProducts = catalogProducts.filter((product) => product.scenes.includes("mall"));
 const activeStorefronts = storefronts.filter((storefront) => storefront.status === "active");
@@ -53,14 +71,17 @@ function ProductVisual({ product, compact = false }: { product: Product; compact
   );
 }
 
-export function MallFlowScreen() {
-  const [step, setStep] = useState<MallStep>("home");
+export function MallFlowScreen({ entryContext, carts, setCarts }: MallFlowScreenProps) {
+  const entryProduct = entryContext?.entityType === "product"
+    ? findById(catalogProducts, entryContext.entityId)
+    : undefined;
+  const [step, setStep] = useState<MallStep>(() => entryProduct ? "detail" : "home");
   const [selectedStorefrontId, setSelectedStorefrontId] = useState(defaultStorefront?.id ?? "");
-  const [selectedProductId, setSelectedProductId] = useState(defaultProduct?.id ?? "");
+  const [selectedProductId, setSelectedProductId] = useState(entryProduct?.id ?? defaultProduct?.id ?? "");
   const [category, setCategory] = useState("全部");
   const [query, setQuery] = useState("");
-  const [carts, setCarts] = useState<StorefrontCartState>({});
   const [orderStatus, setOrderStatus] = useState<Extract<OrderStatus, "pending_fulfillment" | "shipping" | "completed">>("pending_fulfillment");
+  const [orderSnapshot, setOrderSnapshot] = useState<MallOrderSnapshot | null>(null);
 
   const selectedStorefront = findById(storefronts, selectedStorefrontId) ?? defaultStorefront;
   const selectedChannel = selectedStorefront ? findById(channels, selectedStorefront.channelId) : undefined;
@@ -82,7 +103,6 @@ export function MallFlowScreen() {
   const subtotal = cartRows.reduce((sum, row) => sum + row.subtotal, 0);
   const shippingFee = subtotal >= freeShippingThreshold ? 0 : standardShippingFee;
   const payable = subtotal + shippingFee;
-  const demoOrderId = `MALL-${selectedStorefront?.id ?? "STORE"}-${coreDemoUser.id.replace("LL-", "")}`;
 
   const goStep = (next: MallStep) => {
     setStep(next);
@@ -123,6 +143,19 @@ export function MallFlowScreen() {
   };
 
   const submitOrder = () => {
+    if (!selectedStorefront || !selectedChannel || cartRows.length === 0) return;
+    const orderId = `MALL-${selectedStorefront.id}-${coreDemoUser.id.replace("LL-", "")}`;
+    setOrderSnapshot({
+      id: orderId,
+      storefrontName: selectedStorefront.name,
+      channelName: selectedChannel.name,
+      itemCount: cartCount,
+      subtotal,
+      shippingFee,
+      payable,
+      address: demoAddress,
+    });
+    setCarts((current) => ({ ...current, [selectedStorefront.id]: {} }));
     setOrderStatus("pending_fulfillment");
     goStep("order");
   };
@@ -413,12 +446,22 @@ export function MallFlowScreen() {
         <Card className="bg-[var(--color-surface-subtle)]">
           <div className="flex items-start gap-3">
             <PrototypeIcon name="info" size={19} className="mt-0.5 shrink-0 text-[var(--color-primary)]" />
-            <p className="text-sm leading-6 text-[var(--color-text-secondary)]">提交只生成当前会话内的 Mock 商城订单，不发起真实支付、外部平台下单、库存锁定或物流创建。</p>
+            <p className="text-sm leading-6 text-[var(--color-text-secondary)]">提交只生成当前会话内的 Mock 商城订单，不发起真实支付、外部平台下单、库存锁定或物流创建。提交成功后会消费当前 Storefront 的购物车。</p>
           </div>
         </Card>
 
         <Button className="w-full" disabled={cartRows.length === 0} onClick={submitOrder}>提交演示订单</Button>
       </>
+    );
+  }
+
+  if (!orderSnapshot) {
+    return (
+      <Card>
+        <p className="font-semibold">订单快照不可用</p>
+        <p className="mt-2 text-sm text-[var(--color-text-secondary)]">请返回商城重新从购物车提交演示订单。</p>
+        <Button className="mt-4 w-full" onClick={() => goStep("home")}>返回商城</Button>
+      </Card>
     );
   }
 
@@ -428,7 +471,7 @@ export function MallFlowScreen() {
     <>
       <div>
         <p className="text-sm text-[var(--color-text-secondary)]">商城订单详情</p>
-        <h2 className="mt-1 break-all text-2xl font-semibold">{demoOrderId}</h2>
+        <h2 className="mt-1 break-all text-2xl font-semibold">{orderSnapshot.id}</h2>
       </div>
 
       <section className="rounded-[var(--radius-overlay)] bg-[var(--color-surface)] p-5">
@@ -436,11 +479,13 @@ export function MallFlowScreen() {
           <StatusTag tone={orderStatus === "completed" ? "success" : undefined}>{status}</StatusTag>
           <span className="text-xs text-[var(--color-text-tertiary)]">Mock order</span>
         </div>
-        <p className="mt-5 font-semibold">{selectedStorefront.name}</p>
-        <p className="mt-1 text-sm text-[var(--color-text-secondary)]">{selectedChannel.name} · 全国快递 · {cartCount} 件商品</p>
+        <p className="mt-5 font-semibold">{orderSnapshot.storefrontName}</p>
+        <p className="mt-1 text-sm text-[var(--color-text-secondary)]">{orderSnapshot.channelName} · 全国快递 · {orderSnapshot.itemCount} 件商品</p>
         <div className="mt-5 space-y-3 border-t border-[var(--color-border)] pt-4 text-sm">
-          <div className="flex justify-between gap-3"><span className="text-[var(--color-text-secondary)]">应付</span><span className="font-semibold">¥{payable.toFixed(2)}</span></div>
-          <div className="flex justify-between gap-3"><span className="text-[var(--color-text-secondary)]">收货</span><span className="max-w-[230px] text-right font-medium">{demoAddress}</span></div>
+          <div className="flex justify-between gap-3"><span className="text-[var(--color-text-secondary)]">商品小计</span><span className="font-medium">¥{orderSnapshot.subtotal.toFixed(2)}</span></div>
+          <div className="flex justify-between gap-3"><span className="text-[var(--color-text-secondary)]">运费</span><span className="font-medium">{orderSnapshot.shippingFee === 0 ? "包邮" : `¥${orderSnapshot.shippingFee.toFixed(2)}`}</span></div>
+          <div className="flex justify-between gap-3"><span className="text-[var(--color-text-secondary)]">应付</span><span className="font-semibold">¥{orderSnapshot.payable.toFixed(2)}</span></div>
+          <div className="flex justify-between gap-3"><span className="text-[var(--color-text-secondary)]">收货</span><span className="max-w-[230px] text-right font-medium">{orderSnapshot.address}</span></div>
         </div>
       </section>
 
@@ -465,7 +510,7 @@ export function MallFlowScreen() {
       {orderStatus === "completed" && (
         <Card className="bg-[var(--color-success-bg)]">
           <p className="font-semibold">订单已签收</p>
-          <p className="mt-1 text-sm leading-6 text-[var(--color-text-secondary)]">T019 的商城首页 → 商品详情 → 独立购物车 → 结算 → 待发货 → 运输中 → 签收闭环已走通。</p>
+          <p className="mt-1 text-sm leading-6 text-[var(--color-text-secondary)]">T019 的商城首页 → 商品详情 → 独立购物车 → 结算 → 待发货 → 运输中 → 签收闭环已走通；已提交购物车不会再次出现在商城中。</p>
         </Card>
       )}
       <SecondaryButton className="w-full" onClick={() => goStep("home")}>返回商城继续购物</SecondaryButton>
