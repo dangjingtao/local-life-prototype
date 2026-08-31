@@ -1,6 +1,6 @@
 # T001 · 本地生活 V0.1 概念原型
 
-- Status: DOING
+- Status: PASS
 - Target version: 0.1.0
 - Impact: Mobile / PC / Shared / Docs
 - Owner: Tomz / Mira
@@ -34,41 +34,39 @@
 - 真实支付、库存、物流、分账、外部电商和检测设备接入。
 - 独立 App 和生产级后端。
 - 未经用户确认的会员、积分、结算或检测规则。
-- commit、push 和部署。
 
 ## Acceptance
 
-- [ ] Mobile 三条主流程可连续演示。
-- [ ] PC 三类管理/数据视图可连续演示。
-- [ ] 一个账号/用户 ID 贯穿三个业务场景。
-- [ ] 三个场景均体现私域承接入口。
-- [ ] 订单、积分、券、检测报告和核销体现统一用户关联。
-- [ ] 关键状态可通过 Prototype Runtime 或明确 mock 触发。
-- [ ] `npm run typecheck` 通过。
-- [ ] `npm run build` 通过。
-- [ ] 完成桌面端和移动端视觉验收后进入 REVIEW。
+- [x] Mobile 三条主流程可连续演示。
+- [x] PC 三类管理/数据视图可连续演示。
+- [x] 一个账号/用户 ID 贯穿三个业务场景。
+- [x] 三个场景均体现私域承接入口。
+- [x] 订单、积分、券、检测报告和核销体现统一用户关联。
+- [x] 关键状态可通过 Prototype Runtime 或明确 mock 触发。
+- [x] `npm run typecheck` 通过。
+- [x] `npm run build` 通过。
+- [x] 完成桌面端和移动端视觉验收。
 
 ## Risks / Dependencies
 
-- 智慧抗衰最终命名、检测能力、外部电商方案、结算规则和店主端最终形态待确认。
-- 需求不确定时必须暂停相关设计并询问用户。
+- V0.1 已完结；后续新增需求由 V0.2 PRD 与新任务卡承接，不回写为 V0.1 未完成项。
 
 ## Implementation record
 
-- Commit / PR: `feat: initialize local-life concept prototype`
-- Changed paths: 初始化工程、双端概念页面、共享包、治理文档、工作台账与 T001-T013 任务卡
-- Notes: 作为 `dev` 首个远端基线提交；后续按 T002-T013 继续施工。
+- Commit / PR: `feat: initialize local-life concept prototype`；T002-T012 各任务提交 / PR 见总台账。
+- Changed paths: 初始化工程、双端概念页面、共享包、治理文档、工作台账与 V0.1 任务卡。
+- Notes: V0.1 作为 `dev` 已验收基线保留。
 
 ## Verification evidence
 
-- CI: 推送 `dev` 后触发 GitHub Actions Verify 与 Cloudflare Preview
-- Page / Route: Mobile `/`；PC `/`
-- Screenshot / Browser result: 待 T012/T013 完成双端视觉与流程验收
-- Other evidence: 2026-08-27 本地 `npm run verify` 通过（Mobile / PC typecheck 与 production build）
+- CI: T012 最终 Verify Prototype #119、T012 Browser Quality #9、Experimental OpenCode PR Review #47 success。
+- Page / Route: Mobile `/`；PC `/`。
+- Screenshot / Browser result: T012 使用真实 Chromium 覆盖 390px Mobile、1024px / 1440px PC、关键状态、触控目标、焦点、对比度与横向溢出。
+- Other evidence: 2026-08-31 用户明确确认 V0.1 完结；这是最终产品验收依据。
 
 ## Review
 
 - Reviewer: Tomz
-- Result: REVIEW / PASS / BLOCKED
-- Conclusion: 待原型完成后评审
-- Follow-up: 待记录
+- Result: PASS
+- Conclusion: V0.1 完结，作为 V0.2 的已验收基线。
+- Follow-up: V0.2 见 `docs/product/01-v0.2-prd.md` 与 T015-T026。
