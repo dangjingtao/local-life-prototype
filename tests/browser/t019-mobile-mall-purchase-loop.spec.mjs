@@ -2,8 +2,13 @@ import { expect, test } from "@playwright/test";
 
 const MOBILE = "http://127.0.0.1:4173";
 
-async function openMall(page) {
+async function openApp(page) {
   await page.goto(`${MOBILE}/?demoAuth=1`);
+  await expect(page.getByRole("navigation", { name: "一级导航" })).toBeVisible();
+}
+
+async function openMall(page) {
+  await openApp(page);
   await page.getByRole("navigation", { name: "一级导航" }).getByRole("button", { name: "商城", exact: true }).click();
   await expect(page.getByRole("heading", { name: "线上商城" })).toBeVisible();
 }
@@ -35,6 +40,20 @@ test.describe("T019 · Mobile mall medium-high fidelity purchase loop", () => {
     await expectNoHorizontalOverflow(page);
   });
 
+  test("global search target opens the actual mall product detail", async ({ page }) => {
+    await openApp(page);
+    await page.getByRole("button", { name: "打开全局搜索" }).first().click();
+    const search = page.getByRole("textbox", { name: "全局搜索" });
+    await search.fill("胶原");
+    await page.getByRole("button", { name: /线上商城结果：胶原蛋白肽饮/ }).click();
+
+    await expect(page.getByText("来自全局搜索", { exact: true })).toBeVisible();
+    await expect(page.getByRole("heading", { name: "胶原蛋白肽饮", exact: true })).toBeVisible();
+    await expect(page.getByRole("img", { name: "胶原蛋白肽饮 商品图", exact: true })).toBeVisible();
+    await expect(page.getByRole("button", { name: "立即购买", exact: true })).toBeVisible();
+    await expectNoHorizontalOverflow(page);
+  });
+
   test("product search and detail show mature mall purchase information", async ({ page }) => {
     await openMall(page);
 
@@ -49,6 +68,29 @@ test.describe("T019 · Mobile mall medium-high fidelity purchase loop", () => {
     await expect(page.getByText(/满 ¥99 包邮/).first()).toBeVisible();
     await expect(page.getByRole("button", { name: "加入购物车", exact: true })).toBeVisible();
     await expect(page.getByRole("button", { name: "立即购买", exact: true })).toBeVisible();
+    await expectNoHorizontalOverflow(page);
+  });
+
+  test("storefront carts stay isolated and survive leaving the mall tab", async ({ page }) => {
+    await openMall(page);
+
+    const storefrontSwitches = page.getByRole("button", { name: /切换商城：/ });
+    const firstStorefrontName = await storefrontSwitches.first().getAttribute("aria-label");
+    await page.getByRole("button", { name: /查看商品：/ }).first().click();
+    await page.getByRole("button", { name: "加入购物车", exact: true }).click();
+    await page.getByRole("button", { name: "返回商城", exact: true }).click();
+    await expect(page.getByRole("button", { name: "商城购物车，共 1 件", exact: true })).toBeVisible();
+
+    await storefrontSwitches.nth(1).click();
+    await expect(page.getByRole("button", { name: "商城购物车，共 0 件", exact: true })).toBeVisible();
+    if (firstStorefrontName) {
+      await page.getByRole("button", { name: firstStorefrontName, exact: true }).click();
+      await expect(page.getByRole("button", { name: "商城购物车，共 1 件", exact: true })).toBeVisible();
+    }
+
+    await page.getByRole("navigation", { name: "一级导航" }).getByRole("button", { name: "首页", exact: true }).click();
+    await page.getByRole("navigation", { name: "一级导航" }).getByRole("button", { name: "商城", exact: true }).click();
+    await expect(page.getByRole("button", { name: "商城购物车，共 1 件", exact: true })).toBeVisible();
     await expectNoHorizontalOverflow(page);
   });
 
@@ -69,7 +111,7 @@ test.describe("T019 · Mobile mall medium-high fidelity purchase loop", () => {
     await expectNoHorizontalOverflow(page);
   });
 
-  test("order advances through pending shipment, shipping and signed states", async ({ page }) => {
+  test("order consumes its cart and advances through shipment states", async ({ page }) => {
     await openMall(page);
 
     await page.getByRole("button", { name: /查看商品：/ }).first().click();
@@ -85,6 +127,9 @@ test.describe("T019 · Mobile mall medium-high fidelity purchase loop", () => {
     await page.getByRole("button", { name: "模拟签收", exact: true }).click();
     await expect(page.getByText("已签收 / 已完成", { exact: true })).toBeVisible();
     await expect(page.getByText("订单已签收", { exact: true })).toBeVisible();
+
+    await page.getByRole("button", { name: "返回商城继续购物", exact: true }).click();
+    await expect(page.getByRole("button", { name: "商城购物车，共 0 件", exact: true })).toBeVisible();
     await expectNoHorizontalOverflow(page);
   });
 });
