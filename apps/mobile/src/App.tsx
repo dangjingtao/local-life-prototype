@@ -189,10 +189,13 @@ export function App() {
             </>
           )}
           {screen === "care" && (
-            <CareFlowScreen
-              key={searchHandoff?.domain === "care" ? `${searchHandoff.entityType}:${searchHandoff.entityId}` : "care-default"}
-              entryContext={searchHandoff?.domain === "care" ? searchHandoff : undefined}
-            />
+            <>
+              {searchHandoff?.domain === "care" && <SearchHandoffBanner handoff={searchHandoff} />}
+              <CareFlowScreen
+                key={searchHandoff?.domain === "care" ? `${searchHandoff.entityType}:${searchHandoff.entityId}` : "care-default"}
+                entryContext={searchHandoff?.domain === "care" ? searchHandoff : undefined}
+              />
+            </>
           )}
           {screen === "me" && <MembershipCenterScreen />}
           {screen === "activity" && (
