@@ -165,20 +165,19 @@ test.describe("T012 · 390px Mobile", () => {
     await expectMobileTouchTargets(page);
   });
 
-  test("T006 care voucher state survives empty → ready", async ({ page }) => {
+  test("T020 care appointment state survives empty → ready", async ({ page }) => {
     await openMobile(page);
     await mobileTab(page, "智慧抗衰");
-    await page.getByRole("button", { name: "开始体验流程" }).click();
-    await page.getByRole("button", { name: "查看体验券" }).click();
-    await page.getByRole("button", { name: "使用体验券并选择门店" }).click();
-    await page.getByRole("button", { name: "选择此门店" }).click();
-    await page.getByRole("button", { name: "模拟店员核销体验券" }).click();
-    await expect(page.getByRole("button", { name: "进入基础检测 / 体验" })).toBeVisible();
+    await page.getByRole("button", { name: "查看项目并预约" }).first().click();
+    await page.getByRole("button", { name: "选择此门店" }).first().click();
+    await page.getByRole("button", { name: /15:00/ }).click();
+    await page.getByRole("button", { name: "确认预约" }).click();
+    await expect(page.getByRole("heading", { name: "预约已确认" })).toBeVisible();
 
     await setPrototypeView(page, "empty");
     await page.getByRole("button", { name: "返回可用数据" }).click();
-    await expect(page.getByRole("button", { name: "进入基础检测 / 体验" })).toBeVisible();
-    await expect(page.getByRole("heading", { name: "出示体验码" })).toBeVisible();
+    await expect(page.getByRole("heading", { name: "预约已确认" })).toBeVisible();
+    await expect(page.getByRole("button", { name: "查看预约二维码 / 预约码" })).toBeVisible();
     await expectNoHorizontalOverflow(page);
   });
 
