@@ -1,85 +1,92 @@
 # T012 · 关键状态、可访问性与原型质量
 
-- Status: DOING
+- Status: REVIEW
 - Target version: 0.1.0
 - Impact: Mobile / PC / Shared
 - Owner: Mira
 
 ## Background
 
-当前 Prototype Runtime 能全局切换状态，但还需验证状态与各业务页面匹配，并补齐恢复路径和基础可访问性。
+Prototype Runtime 已具备全局五态与恢复基线；T003-T011 对应业务页面现均已完成施工并进入可审计状态。T012 当前工作不再等待页面施工，而是统一验证状态恢复、响应式布局、键盘焦点、触控目标与颜色对比。
 
 ## Goal
 
-让关键页面可验证 ready、loading、empty、error、permission，并完成交互与可访问性基础检查。
+让双端关键页面可稳定验证 ready、loading、empty、error、permission，并形成可重复的浏览器级质量证据。
 
 ## Product facts
 
 - 关键状态必须可由 URL `?view=` 或 PrototypePanel 触发。
 - 状态需要说明原因和下一步，不应只有占位文字。
-- CI 通过不等于视觉或产品验收通过。
+- CI 通过不等于产品验收通过；T012 需要真实浏览器执行证据。
+- T005、T006、T007 已完成业务施工，不是 T012 的外部阻塞或待施工前置。
 
 ## Scope
 
 - 双端关键页面的五态覆盖与恢复动作。
 - 键盘焦点、语义标签、触控目标、颜色对比和溢出检查。
-- 状态触发说明与验证清单。
+- 390px Mobile、1024px / 1440px PC 的真实 Chromium 审计。
+- T004-T007 深层 React 局部状态在 quality-state 往返后的保持性。
+- 状态触发说明、自动化验证清单和失败报告。
 
 ## Out of scope
 
-- 完整 WCAG 认证、自动化视觉平台和生产级监控。
+- 完整 WCAG 认证、生产级监控、跨浏览器矩阵。
+- 把业务 code review 或普通 build 当作浏览器质量验收。
 
 ## Acceptance
 
-- [ ] 双端关键页面五态均可稳定触发。
+- [x] 双端关键页面五态均可稳定触发。
 - [x] error 有恢复动作，empty 有下一步，permission 有边界说明。
-- [ ] 关键按钮可键盘操作且移动端触控目标合格。
-- [ ] 390px、1024px、1440px 无明显溢出或遮挡。
-- [x] `npm run verify` 通过（第二次返工 Head Verify Prototype #81 success）。
+- [x] 关键按钮可键盘操作且移动端触控目标合格。
+- [x] 390px、1024px、1440px 无明显横向溢出；关键恢复路径不被固定导航 / PrototypePanel 阻断。
+- [x] T004-T007 深层 step / 子视图在 loading / empty / error 往返后保持局部状态。
+- [x] 关键文本 / 主按钮颜色对比浏览器计算通过。
+- [x] `npm run verify` 基线通过；当前施工 Head 前一轮 Verify Prototype #116 success，最终合并仍以 latest-head CI 为准。
 
 ## Risks / Dependencies
 
-- 前置：T003-T011 的对应页面完成。
-- 风险：全局状态不能替代业务级状态，需按关键流程抽查。
-- 当前依赖缺口：T005、T006 已完成业务代码施工并进入 `REVIEW`；T007 页面也已在功能分支存在。三者的 390px 状态 / 可访问性 / 恢复路径审计仍 outstanding，因此 T012 继续保持 `DOING`。
-- 轻微技术债：OpenCode 最终复审指出 `PrototypeState` 仍保留已不参与渲染控制的 `view` prop；当前无运行时影响，后续可在不破坏调用合同的前提下清理。
+- 前置：T003-T011 对应页面均已完成施工；T005、T006、T007 已进入业务 review / merge 状态。
+- 当前无外部阻塞。未完成项属于最终独立 review / 用户验收，不再表述为“等待 T005-T007”。
+- 风险：全局状态不能替代业务级状态，因此必须进入门店、商城、抗衰、会员中心的深层流程抽查。
+- 风险：自动化浏览器检查能验证 DOM、布局尺寸、焦点、对比度和状态保持，但不能替代用户最终的产品视觉判断。
+- 轻微技术债：`PrototypeState` 仍保留已不参与渲染控制的 `view` prop；当前无运行时影响，后续可在不破坏调用合同的前提下清理。
 
 ## Implementation record
 
-- Commit / PR: PR #4 `feat: T012 prototype states and accessibility baseline`; work branch `task/T012-prototype-states-quality`; merge commit `d6a10b5ef248bbd2405d308a98843bc0bffefa42`
-- Changed paths: `packages/prototype-runtime/src/index.tsx`; `packages/design-system/src/ui.tsx`; `apps/mobile/src/App.tsx`; `apps/mobile/src/styles.css`; `apps/pc/src/styles.css`; `docs/workbench/T012-state-quality-matrix.md`; 本任务卡与总台账。
+- 共享质量基线：PR #4 `feat: T012 prototype states and accessibility baseline`，merge `d6a10b5ef248bbd2405d308a98843bc0bffefa42`。
+- 当前浏览器审计分支：`task/T012-browser-quality-audit`，基于 `dev@3dca4ef9ecb1ceaf856adc5e0732947cb84163ae`。
+- 新增：`playwright.config.mjs`、`tests/browser/t012-quality.spec.mjs`、`.github/workflows/t012-browser-quality.yml`。
 - Notes:
-  - Prototype Runtime 的 loading / empty / error / permission 增加可理解原因；empty / error / permission 增加返回 ready 的明确恢复动作；loading 增加 `aria-busy`，error 使用 alert 语义。
-  - PrototypePanel 的交互目标提升到 44px 级并增加键盘焦点；Design System Button / SecondaryButton 与双端普通按钮统一补 `focus-visible` 可见焦点。
-  - Mobile 演示登录把 `demoAuth=1` 保留在 URL。该参数只用于直接状态链接和 permission 文档跳转后的演示身份复现，不代表真实鉴权。
-  - ready / loading / empty / error 使用 `useSyncExternalStore` + history 事件在当前文档内切换；permission 因 PC 有角色专属边界页，仍使用文档导航。
-  - 首轮返工后，OpenCode 二审继续发现 React reconciliation P1：ready 与非 ready 返回结构不同仍会卸载业务 children。第二次返工改为 `PrototypeState` 始终返回同一 Fragment，业务 children 始终位于第一个稳定 wrapper；ready 时 wrapper 使用 `display: contents`，非 ready 时用 `hidden` 从布局、焦点和可访问树移除，因此 nested React state 不因质量状态切换而卸载。
-  - loading 动画使用 `motion-safe:animate-pulse`；全局焦点 fallback 放入 `@layer base`，由组件级 Tailwind ring 正常覆盖，避免双焦点。
-  - T005 `MallFlowScreen`、T006 `CareFlowScreen` 与 T007 `MembershipCenterScreen` 已存在，但业务 code review / build 不能替代 T012 的状态、键盘、触控与 390px 浏览器检查。
+  - Prototype Runtime 的 loading / empty / error / permission 已有可理解原因；empty / error / permission 有恢复动作；loading 有 `aria-busy`，error 使用 alert 语义。
+  - ready / loading / empty / error 使用 `useSyncExternalStore` + history 事件在当前文档内切换；业务 children 位于稳定 wrapper，避免 React reconciliation 卸载深层 state。
+  - 浏览器审计真实启动 Mobile / PC 两个 Vite 服务并使用 Chromium，不通过静态 grep 冒充浏览器证据。
+  - 390px Mobile 覆盖五态、键盘可见焦点、44px 触控目标、核心颜色对比、T004 门店凭证、T005 商城结算、T006 体验券核销状态、T007 会员子视图 / replay / 券筛选恢复。
+  - 1024px / 1440px PC 覆盖三角色五态横向溢出，并验证运营非默认“订单 / 核销”模块 error → ready 后保持当前模块。
+  - 首轮真实 Chromium 审计抓到 Mobile PrototypePanel 遮挡 TabBar / CTA；返工后折叠态缩小并自动收起，同时将实际点击目标修正到 44px 以上。
+  - Browser Quality workflow 现覆盖 `packages/shared/**` 与 `packages/icons/**`，共享 fixtures / icon 输入变化也会触发质量审计。
+  - T007 已有 PR #8 merge `3dca4ef`、最终 Head `161c513`、Verify #109 success、OpenCode #38 `NO_BLOCKING_FINDINGS`；T007 任务卡在本分支同步推进到 `REVIEW`。
 
 ## Verification evidence
 
-- CI:
-  - 初始 Head `21a1296d8829e97da7b6d03e807c46c2d69050d1`：Verify Prototype #79（run `33144289370`）success。
-  - 首轮返工 Head `8e3e64bcc3d9f481c0efb25e9836956bb1b171a3`：Verify Prototype #80（run `33144696578`）success。
-  - 第二次返工 Head `6f3f2973b6f0046c5b835d344f6f7b381b8c449c`：Verify Prototype #81（run `33145171233`）success；版本合同、全仓 typecheck、全仓 build 均通过。
-- AI Review:
-  - Codex P2：`setPrototypeView("ready")` 整页导航导致 Mobile 深层门店 step / PC 非默认模块恢复后掉回默认页面。复核成立，改为非 permission 状态无刷新切换。
-  - OpenCode #12 verdict `CHANGES_NEEDED`：组件 ring 与未分层全局 outline 在 Tailwind v3 cascade 下可能形成双焦点。复核成立，fallback 改为 `@layer base`。
-  - OpenCode #13 verdict `CHANGES_NEEDED`：首轮返工虽然不刷新文档，但 ready / non-ready 的 React 返回树不同，业务 children 仍会卸载重挂，门店局部 step 无法真正保持。复核为高置信 P1，第二次返工改为稳定 wrapper 始终处于同一 React tree position。
-  - OpenCode #14（run `33145171238`）review success，metadata Head 与 `6f3f297` 一致，最终 verdict `NO_BLOCKING_FINDINGS`；未发现新的高置信 P0-P2。
-  - T005 PR #6 与 T006 PR #7 的 Codex 复审均指出新页面必须继续留在 T012 outstanding 范围；两项 finding 均已复核并同步任务 / 矩阵 / ledger。
-- Page / Route:
-  - Mobile：登录后 URL 自动带 `demoAuth=1`；可组合 `?demoAuth=1&view=loading|empty|error|permission`。
-  - PC 店主：`?role=merchant&view=loading|empty|error|permission`。
-  - PC 运营：`?role=operator&view=loading|empty|error|permission`。
-  - PC 管理层：`?role=management&view=loading|empty|error|permission`。
-- Screenshot / Browser result: 390px / 1024px / 1440px 实际浏览器视觉、键盘 Tab 顺序与对比度抽查尚未形成证据；T005/T006/T007 均尚未完成 390px 质量审计。
-- Other evidence: `docs/workbench/T012-state-quality-matrix.md` 记录当前状态语义、路由和剩余人工验证项。
+- 既有 CI：
+  - 初始 Head `21a1296d8829e97da7b6d03e807c46c2d69050d1`：Verify Prototype #79 success。
+  - 首轮返工 Head `8e3e64bcc3d9f481c0efb25e9836956bb1b171a3`：Verify Prototype #80 success。
+  - 第二次返工 Head `6f3f2973b6f0046c5b835d344f6f7b381b8c449c`：Verify Prototype #81 success。
+- 既有 AI Review：OpenCode #14 metadata Head 与 `6f3f297` 一致，最终 verdict `NO_BLOCKING_FINDINGS`。
+- T007 收口证据：PR #8 merged；最终 Head `161c513` 的 Verify Prototype #109（run `33162212350`）success；Experimental OpenCode PR Review #38（run `33162212398`）success，verdict `NO_BLOCKING_FINDINGS`。
+- 浏览器质量证据：Head `349fef98bf050827f4aecbe5be3303e849b6d313` 的 T012 Browser Quality #6（run `33165176097`）success，13/13 Chromium tests 通过；同 Head Verify Prototype #116 success。
+- OpenCode #44 对 `349fef9` 的唯一 P2 是 T007 总台账状态仍为 DOING；复核成立，本轮同步修正。其 Chromium 未运行、折叠面板定位两项 review gap 已由 Browser Quality #6 的真实执行关闭；shared/icons 触发范围 gap 同步补齐。
+- 最终合并证据：本卡进入 `REVIEW` 后产生新 Head，仍以 latest-head Browser Quality + Verify + marked OpenCode review 为准，不复用旧 Head 结论。
+- Page / Route：
+  - Mobile：`?demoAuth=1&view=loading|empty|error|permission`；ready 为 `?demoAuth=1`。
+  - PC 店主：`?role=merchant&view=...`。
+  - PC 运营：`?role=operator&view=...`。
+  - PC 管理层：`?role=management&view=...`。
+- Other evidence: `docs/workbench/T012-state-quality-matrix.md` 记录详细审计矩阵。
 
 ## Review
 
 - Reviewer: Tomz
-- Result: DOING
-- Conclusion: 共享质量基线已合入 `dev`；T005/T006/T007 页面现均存在，但 Mobile 质量证据仍未补齐，因此 T012 继续保持 `DOING`。
-- Follow-up: 完成 T005-T007 的 Mobile 五态恢复、键盘焦点、触控与 390px 抽查，再完成 390/1024/1440 浏览器与颜色对比验收。
+- Result: REVIEW
+- Conclusion: T012 自身施工与浏览器自检已完成，真实 Chromium 已覆盖 390px / 1024px / 1440px、五态、深层状态恢复、触控目标、焦点、对比度和横向溢出；当前等待 latest-head 独立 review / 用户确认，不自动 PASS。
+- Follow-up: latest-head Browser Quality + Verify + marked OpenCode review 通过后可合入 `dev`；是否 `PASS` 仍由用户验收决定。
