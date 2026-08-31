@@ -146,21 +146,22 @@ test.describe("T012 · 390px Mobile", () => {
     await expectNoHorizontalOverflow(page);
   });
 
-  test("T005 mall checkout selection survives error → ready", async ({ page }) => {
+  test("T019 mall checkout state survives error → ready", async ({ page }) => {
     await openMobile(page);
     await mobileTab(page, "商城");
-    await page.locator("main button").filter({ hasText: "共享商品" }).first().click();
-    await page.getByRole("button", { name: "加入购物车" }).click();
-    await page.getByRole("button", { name: "去结算" }).click();
-    await expect(page.getByRole("heading", { name: "选择配送方式" })).toBeVisible();
-
-    const storeDelivery = page.getByRole("button", { name: /送至合作门店/ });
-    if (await storeDelivery.count()) await storeDelivery.first().click();
+    await page.getByRole("button", { name: /查看商品：/ }).first().click();
+    await page.getByRole("button", { name: "立即购买", exact: true }).click();
+    await page.getByRole("button", { name: /增加/ }).first().click();
+    await expect(page.getByText("2", { exact: true })).toBeVisible();
+    await page.getByRole("button", { name: /去结算/ }).click();
+    await expect(page.getByRole("heading", { name: "确认收货与订单" })).toBeVisible();
+    await expect(page.getByText(/2 件/)).toBeVisible();
 
     await setPrototypeView(page, "error");
     await page.getByRole("button", { name: "重新加载演示" }).click();
-    await expect(page.getByRole("heading", { name: "选择配送方式" })).toBeVisible();
-    if (await storeDelivery.count()) await expect(storeDelivery.first()).toHaveAttribute("aria-pressed", "true");
+    await expect(page.getByRole("heading", { name: "确认收货与订单" })).toBeVisible();
+    await expect(page.getByText(/2 件/)).toBeVisible();
+    await expect(page.getByText("全国快递", { exact: true }).first()).toBeVisible();
     await expectNoHorizontalOverflow(page);
     await expectMobileTouchTargets(page);
   });
