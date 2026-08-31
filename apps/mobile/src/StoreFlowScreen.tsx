@@ -3,11 +3,13 @@ import { Button, Card, SecondaryButton, Section, StatusTag } from "@prototype/de
 import { PrototypeIcon } from "@prototype/icons";
 import {
   CORE_DEMO_IDS,
+  catalogProducts,
   coreDemoStore,
   coreDemoUser,
   corePickupOrder,
   findById,
   partners,
+  productAvailability,
   products,
   redemptions,
   stores,
@@ -23,8 +25,8 @@ const carrierLabels = {
   club: "会所",
 } as const;
 
-const storeProducts = products.filter((product) => product.scenes.includes("store"));
-const corePickupProduct = findById(products, corePickupOrder.items[0].id) ?? storeProducts[0];
+const legacyStoreProducts = products.filter((product) => product.scenes.includes("store"));
+const corePickupProduct = findById(products, corePickupOrder.items[0].id) ?? legacyStoreProducts[0];
 const pickupRedemption = findById(redemptions, CORE_DEMO_IDS.pickupRedemption)!;
 
 interface StoreFlowScreenProps {
@@ -36,17 +38,25 @@ export function StoreFlowScreen({ openActivity, entryContext }: StoreFlowScreenP
   const entryStoreId = entryContext?.storeId && stores.some((store) => store.id === entryContext.storeId)
     ? entryContext.storeId
     : undefined;
-  const entryProduct = entryContext?.entityId ? findById(products, entryContext.entityId) : undefined;
+  const entryProductCandidate = entryContext?.entityId ? findById(catalogProducts, entryContext.entityId) : undefined;
+  const entryProduct = entryProductCandidate?.scenes.includes("store") ? entryProductCandidate : undefined;
   const [step, setStep] = useState<StoreStep>(entryStoreId ? "detail" : "list");
   const [selectedStoreId, setSelectedStoreId] = useState(entryStoreId ?? coreDemoStore.id);
   const [selectedProductId, setSelectedProductId] = useState(entryProduct?.id ?? corePickupProduct?.id ?? "");
 
   const selectedStore = findById(stores, selectedStoreId) ?? coreDemoStore;
   const selectedPartner = partners.find((partner) => partner.id === selectedStore.partnerId);
-  const selectedProduct = findById(products, selectedProductId) ?? corePickupProduct;
+  const selectedProduct = findById(catalogProducts, selectedProductId) ?? corePickupProduct;
   const selectedCarrier = selectedPartner ? carrierLabels[selectedPartner.carrierType] : "合作载体";
   const isCoreDemoStore = selectedStore.id === coreDemoStore.id;
-  const showingSearchContext = Boolean(entryContext?.storeId === selectedStore.id);
+  const showingSearchContext = Boolean(entryContext?.storeId === selectedStore.id && entryProduct);
+  const selectedIsLegacy = Boolean(selectedProduct && products.some((product) => product.id === selectedProduct.id));
+  const visibleStoreProducts = showingSearchContext && entryProduct
+    ? [entryProduct, ...legacyStoreProducts.filter((product) => product.id !== entryProduct.id)]
+    : legacyStoreProducts;
+  const selectedAvailability = selectedProduct
+    ? productAvailability.find((item) => item.storeId === selectedStore.id && item.productId === selectedProduct.id)
+    : undefined;
 
   const openStore = (storeId: string) => {
     setSelectedStoreId(storeId);
@@ -119,7 +129,7 @@ export function StoreFlowScreen({ openActivity, entryContext }: StoreFlowScreenP
               <div className="min-w-0">
                 <p className="text-xs font-semibold text-[var(--color-primary-pressed)]">来自全局搜索 · 门店上下文已保留</p>
                 <p className="mt-2 font-semibold">{entryContext.title}</p>
-                <p className="mt-1 text-sm leading-6 text-[var(--color-text-secondary)]">已锁定 {selectedStore.name}；商品实体 {entryContext.entityId} 将由 T017 的门店商品浏览 / 独立购物车继续承接。</p>
+                <p className="mt-1 text-sm leading-6 text-[var(--color-text-secondary)]">已锁定 {selectedStore.name}；商品实体 {entryContext.entityId} 已从 V0.2 catalog 解析，并按当前门店读取可售关系。</p>
               </div>
               <StatusTag tone="success">已定位</StatusTag>
             </div>
@@ -149,23 +159,31 @@ export function StoreFlowScreen({ openActivity, entryContext }: StoreFlowScreenP
 
         <Section title="可自提商品">
           <div className="space-y-3">
-            {storeProducts.map((product) => {
+            {visibleStoreProducts.map((product) => {
               const selected = selectedProduct?.id === product.id;
+              const availability = productAvailability.find((item) => item.storeId === selectedStore.id && item.productId === product.id);
+              const isEntryProduct = entryProduct?.id === product.id;
+              const orderable = !isEntryProduct || !availability || availability.status === "available" || availability.status === "low_stock";
+              const displayPrice = availability?.memberPriceYuan ?? availability?.priceYuan ?? product.memberPriceYuan ?? product.priceYuan;
               return (
                 <button
                   key={product.id}
                   type="button"
+                  disabled={!orderable}
                   onClick={() => setSelectedProductId(product.id)}
-                  className={`w-full rounded-[var(--radius-container)] border p-4 text-left transition ${selected ? "border-[var(--color-primary)] bg-[var(--color-brand-subtle)]" : "border-[var(--color-border)] bg-[var(--color-surface)] active:bg-[var(--color-surface-subtle)]"}`}
+                  className={`w-full rounded-[var(--radius-container)] border p-4 text-left transition disabled:cursor-not-allowed disabled:opacity-55 ${selected ? "border-[var(--color-primary)] bg-[var(--color-brand-subtle)]" : "border-[var(--color-border)] bg-[var(--color-surface)] active:bg-[var(--color-surface-subtle)]"}`}
                 >
                   <div className="flex items-center justify-between gap-3">
                     <div>
-                      <p className="font-semibold">{product.name}</p>
-                      <p className="mt-1 text-sm text-[var(--color-text-secondary)]">{product.category} · 支持门店自提</p>
+                      <div className="flex flex-wrap items-center gap-2">
+                        <p className="font-semibold">{product.name}</p>
+                        {isEntryProduct && <StatusTag tone={orderable ? "success" : "warning"}>{availability?.stockLabel ?? availability?.status ?? "门店可售待确认"}</StatusTag>}
+                      </div>
+                      <p className="mt-1 text-sm text-[var(--color-text-secondary)]">{product.category} · {availability ? "按当前门店价格 / 库存" : "支持门店自提"}</p>
                     </div>
                     <div className="text-right">
-                      <p className="font-semibold text-[var(--color-primary-pressed)]">¥{product.priceYuan}</p>
-                      <p className="mt-1 text-xs text-[var(--color-text-tertiary)]">{selected ? "已选择" : "选择"}</p>
+                      <p className="font-semibold text-[var(--color-primary-pressed)]">¥{displayPrice}</p>
+                      <p className="mt-1 text-xs text-[var(--color-text-tertiary)]">{selected ? "已选择" : orderable ? "选择" : "不可选"}</p>
                     </div>
                   </div>
                 </button>
@@ -174,7 +192,7 @@ export function StoreFlowScreen({ openActivity, entryContext }: StoreFlowScreenP
           </div>
         </Section>
 
-        {isCoreDemoStore ? (
+        {isCoreDemoStore && selectedIsLegacy ? (
           <>
             <Card className="bg-[var(--color-surface-subtle)]">
               <p className="text-sm font-medium">到店激励 · 演示概念</p>
@@ -182,6 +200,13 @@ export function StoreFlowScreen({ openActivity, entryContext }: StoreFlowScreenP
             </Card>
             <Button className="w-full" disabled={!selectedProduct} onClick={() => goStep("confirm")}>选择此门店自提</Button>
           </>
+        ) : showingSearchContext && selectedProduct ? (
+          <Card className="border-[var(--color-primary)] bg-[var(--color-brand-subtle)] p-4">
+            <p className="text-sm font-semibold">搜索商品已定位到具体门店</p>
+            <p className="mt-2 text-sm leading-6 text-[var(--color-text-secondary)]">
+              {selectedProduct.name} · {selectedAvailability?.stockLabel ?? "可售状态已读取"} · ¥{selectedAvailability?.memberPriceYuan ?? selectedAvailability?.priceYuan ?? selectedProduct.priceYuan}。T016 到这里完成发现与门店上下文交接；加购、独立购物车与结算由 T017 / T018 承接。
+            </p>
+          </Card>
         ) : (
           <Card className="border-[var(--color-warning)] bg-[var(--color-warning-bg)]">
             <StatusTag tone="warning">载体适配演示</StatusTag>
