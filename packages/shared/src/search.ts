@@ -121,24 +121,26 @@ export function searchGlobalCatalog(input: string): GlobalSearchResult[] {
 }
 
 export function getConvenienceProductStoreOptions(productId: string): ConvenienceProductStoreOption[] {
-  return productAvailability
-    .filter((item) => item.productId === productId)
-    .map((availability) => {
-      const store = offlineStores.find((item) => item.id === availability.storeId);
-      if (!store) return undefined;
-      return {
-        storeId: store.id,
-        storeName: store.name,
-        address: store.address,
-        distanceKm: store.distanceKm,
-        storeStatus: store.status,
-        availabilityStatus: availability.status,
-        priceYuan: availability.priceYuan,
-        memberPriceYuan: availability.memberPriceYuan,
-        stockLabel: availability.stockLabel,
-        orderable: store.status === "open" && (availability.status === "available" || availability.status === "low_stock"),
-      } satisfies ConvenienceProductStoreOption;
-    })
-    .filter((item): item is ConvenienceProductStoreOption => Boolean(item))
-    .sort((a, b) => (a.distanceKm ?? Number.POSITIVE_INFINITY) - (b.distanceKm ?? Number.POSITIVE_INFINITY));
+  const options: ConvenienceProductStoreOption[] = [];
+
+  for (const availability of productAvailability) {
+    if (availability.productId !== productId) continue;
+    const store = offlineStores.find((item) => item.id === availability.storeId);
+    if (!store) continue;
+
+    options.push({
+      storeId: store.id,
+      storeName: store.name,
+      address: store.address,
+      ...(store.distanceKm !== undefined ? { distanceKm: store.distanceKm } : {}),
+      storeStatus: store.status,
+      availabilityStatus: availability.status,
+      priceYuan: availability.priceYuan,
+      ...(availability.memberPriceYuan !== undefined ? { memberPriceYuan: availability.memberPriceYuan } : {}),
+      ...(availability.stockLabel !== undefined ? { stockLabel: availability.stockLabel } : {}),
+      orderable: store.status === "open" && (availability.status === "available" || availability.status === "low_stock"),
+    });
+  }
+
+  return options.sort((a, b) => (a.distanceKm ?? Number.POSITIVE_INFINITY) - (b.distanceKm ?? Number.POSITIVE_INFINITY));
 }
