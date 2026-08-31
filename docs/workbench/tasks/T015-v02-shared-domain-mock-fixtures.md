@@ -1,9 +1,9 @@
 # T015 · V0.2 共享领域模型与 Mock Fixtures
 
-- Status: TODO
+- Status: DOING
 - Target version: 0.2.0
 - Impact: Shared / Mobile / PC
-- Owner: -
+- Owner: Mira
 
 ## Background
 
@@ -53,20 +53,26 @@ V0.2 新增门店独立购物车、短距配送、线上 Storefront / Channel、
 
 ## Implementation record
 
-- Commit / PR:
-- Changed paths:
+- Commit / PR: `task/T015-v02-shared-fixtures`（施工中）
+- Changed paths: `packages/shared/src/domain.ts`、`packages/shared/src/fixtures.ts`、`packages/shared/src/selectors.ts`
 - Notes:
+  - 保留 V0.1 `demoFixtures` / 既有数组导出作为兼容视图，避免 T015 地基施工提前改变 V0.1 页面行为。
+  - 新增 `v02Fixtures` 作为 V0.2 完整共享事实集，后续 Mobile / PC 按任务逐步迁移。
 
 ## Verification evidence
 
-- CI:
-- Page / Route:
-- Screenshot / Browser result:
-- Other evidence:
+- CI: 待 PR 完整验证。
+- Page / Route: N/A（Shared 类型与 fixtures 任务）。
+- Screenshot / Browser result: N/A。
+- Other evidence: 独立 TypeScript `strict` 编译通过；`validateDemoFixtureRelations()` 返回 `[]`（提交后仍以仓库 CI 为准）。
+
+## Status history
+
+- 2026-08-31 `TODO → DOING`：用户明确要求阅读项目约定并完成 T015；按项目规则创建短生命周期任务分支开始施工。
 
 ## Review
 
-- Reviewer:
+- Reviewer: -
 - Result: REVIEW / PASS / BLOCKED
 - Conclusion:
 - Follow-up:
