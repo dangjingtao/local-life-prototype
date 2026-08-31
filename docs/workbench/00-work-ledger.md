@@ -48,7 +48,7 @@
 | T014 | 实验性 PR AI Review | CI / Review | REVIEW | 0.1.0 | GitHub Actions、`OPENCODE_API_KEY` | 独立实验性 Review，不阻塞产品版本 |
 | T015 | V0.2 共享领域模型与 Mock Fixtures | Shared | REVIEW | 0.2.0 | V0.2 PRD | PR #10；`Verify Prototype #151`、`T012 Browser Quality #10` success；等待人工验收 |
 | T016 | Mobile 运营首页、一级 IA 与全局搜索 | Mobile | REVIEW | 0.2.0 | T015 | stacked PR #11；`Verify Prototype #160`、`T012 Browser Quality #19` success；等待 T015 合入后 retarget `dev` 并人工验收 |
-| T017 | Mobile 便利店门店页、商品浏览与独立购物车 | Mobile | TODO | 0.2.0 | T015、T016 | 先选店、门店独立购物车、成熟即时零售浏览体验 |
+| T017 | Mobile 便利店门店页、商品浏览与独立购物车 | Mobile | REVIEW | 0.2.0 | T015、T016 | stacked PR #12；`7ec0614`；Verify Prototype #168、T012 Browser Quality #27 success；等待前置合入后 retarget `dev` 完成最终 AI Review / 验收 |
 | T018 | Mobile 便利店结算、自提与 3 公里短距配送 | Mobile | TODO | 0.2.0 | T017 | 自提时段、取货码、短配地址 / 范围、订单状态、权益结算 |
 | T019 | Mobile 线上商城中高保真购买闭环 | Mobile | TODO | 0.2.0 | T015、T016 | 成熟商城、独立购物车、全国快递、Storefront / Channel 语义 |
 | T020 | Mobile 智慧抗衰项目、预约与二维码核销 | Mobile | TODO | 0.2.0 | T015、T016 | 项目 → 门店 → 时段 → 预约码 → 核销 → 检测完成 |
@@ -119,5 +119,5 @@ T018 与 T021 可并行。
 
 1. 评审 T015；验收通过后改为 `PASS` 并合入 `dev`。
 2. T015 合入后，将 stacked PR #11 retarget 到 `dev`，完成 dev-base AI Review 与 T016 人工验收。
-3. T016 `PASS` 后，T017 / T019 / T020 进入第一批并行施工。
-4. 不提前启动依赖未稳定的 PC 或总验收卡，以减少返工和并行竞态。
+3. T016 合入 `dev` 后，将 stacked PR #12 retarget 到 `dev`；读取最新 AI Review，必要时修复，接受后合并。
+4. T017 / T019 / T020 继续按 Wave 1 并行，不提前启动依赖未稳定的 PC 或总验收卡。
