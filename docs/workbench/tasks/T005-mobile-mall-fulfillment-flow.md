@@ -1,6 +1,6 @@
 # T005 · Mobile 线上商城一件代发闭环
 
-- Status: REVIEW
+- Status: PASS
 - Target version: 0.1.0
 - Impact: Mobile / Shared
 - Owner: Mira
@@ -34,7 +34,7 @@
 - [x] 一件代发流程从商城首页连续到订单详情。
 - [x] 到家与到店方式能被用户区分。
 - [x] 渠道候选方案有“待确认”边界。
-- [ ] 完成 390px 视觉与交互检查。
+- [x] 完成 390px 视觉与交互检查。
 - [x] `npm run build:mobile` 通过。
 
 ## Risks / Dependencies
@@ -65,7 +65,7 @@
   - PR Head `d9f873cbe309fac91ea95e6acbb0a89edb6eca58` 的 `Verify Prototype #86`（run `33153655973`）success。
   - 返工 Head `dfb7288e888aba90708f43b29e7ed5d8740a24cf` 的 `Verify Prototype #89`（run `33154307881`）success；版本合同、全仓 typecheck 与全仓 build 通过，其中 Mobile build 覆盖 `tsc + vite build`。
 - Page / Route: Mobile 登录后 → 首页 / 底部“商城” → 商品 → 购物车 → 结算 → 到家 / 送店 → 订单详情 → 概念状态推进。
-- Screenshot / Browser result: 尚未形成 390px 实际浏览器截图 / 点击证据。当前执行环境无法解析 `github.com`，无法拉取仓库启动本地 Vite；不得伪造视觉验收，因此该项保持未勾选。
+- Screenshot / Browser result: 最终 390px 视觉、交互、触控及结算深层状态恢复由 T012 PR #9 的真实 Chromium 审计统一覆盖，并由用户明确验收通过。
 - Other evidence:
   - PR #6 首轮 Experimental OpenCode PR Review #17（run `33153655971`）绑定 Head `d9f873c`，verdict `NO_BLOCKING_FINDINGS`。
   - GitHub Codex Review 对 `d9f873c` 提出两条 P2；复核成立并在 `dfb7288` 返工，两个 inline thread 均已回执修复。
@@ -79,10 +79,11 @@
 - 2026-08-28 `DOING → REVIEW`：主流程施工、自审修正、Verify #86 与 PR #6 首轮 OpenCode review 完成；任务进入 REVIEW。
 - 2026-08-28 Review 返工：Codex 对 `d9f873c` 的两条 P2 复核成立；`dfb7288` 修复送店状态推进与结算目的地，Verify #89 success，OpenCode #20 对返工 Head 返回 `NO_BLOCKING_FINDINGS`。
 - 2026-08-28 Review truth-source 对账：OpenCode #20 指出旧文档判断与返工后代码矛盾；本次明确以 `dfb7288` 实现为当前结论，旧“送店不经过 shipping”判断仅保留为被后续 review 替代的历史。
+- 2026-08-31 `REVIEW → PASS`：用户明确确认前置任务均验收通过；T012 PR #9 已补齐 390px 与深层状态恢复质量证据。
 
 ## Review
 
 - Reviewer: Tomz
-- Result: REVIEW
-- Conclusion: PR #6 当前代码评审闭环已通过：返工 Head `dfb7288` 的 Verify #89 success，最新 marked OpenCode #20 为 `NO_BLOCKING_FINDINGS`；Codex 首轮两条 P2 已返工。当前唯一明确的任务验收缺口为 390px 实际视觉 / 交互检查。
-- Follow-up: 本次文档对账会再次改变 PR Head，需以新 Head 的 Verify / latest marked review 作为最终代码评审证据；390px 浏览器验收完成前不自动将 T005 标为 PASS。
+- Result: PASS
+- Conclusion: PR #6 代码评审闭环、返工验证、390px 浏览器质量审计及用户最终验收均通过。
+- Follow-up: 无；由 T013 负责跨端演示串联。
