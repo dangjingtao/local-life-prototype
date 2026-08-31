@@ -85,9 +85,9 @@ test.describe("T016 · Mobile operations home and global search", () => {
     await expect(page.getByText("已确认门店上下文")).toBeVisible();
     await expect(page.getByText(/云岭社区店 · 燕麦拿铁/)).toBeVisible();
     await page.getByRole("button", { name: "进入便利店" }).click();
-    await expect(page.getByText("来自全局搜索 · 门店上下文已保留")).toBeVisible();
-    await expect(page.getByRole("heading", { name: "云岭社区店" })).toBeVisible();
-    await expect(page.getByText("燕麦拿铁", { exact: true }).first()).toBeVisible();
+    await expect(page.getByRole("heading", { name: "燕麦拿铁" })).toBeVisible();
+    await expect(page.getByText(/云岭社区店/).first()).toBeVisible();
+    await expect(page.getByText("¥11.90")).toBeVisible();
     await expectNoHorizontalOverflow(page);
   });
 
