@@ -50,7 +50,7 @@
 | T016 | Mobile 运营首页、一级 IA 与全局搜索 | Mobile | REVIEW | 0.2.0 | T015 | PR #11 已合入 `dev`；其验收状态由对应任务卡 / 线程维护 |
 | T017 | Mobile 便利店门店页、商品浏览与独立购物车 | Mobile | REVIEW | 0.2.0 | T015、T016 | PR #12；`95013eb` 修复 Codex P1/P2/P2；实现 head `a70e581` 的 Verify #178、Browser #35、OpenCode #56 success / `NO_BLOCKING_FINDINGS`；PASS 记账 head `753fcab` 的 Verify #182、Browser #39 success，OpenCode #60 仅因 PASS 证据时序给出 `HUMAN_CHECK_NEEDED`，故回退 REVIEW 后再做最终 head 校验 |
 | T018 | Mobile 便利店结算、自提与 3 公里短距配送 | Mobile | TODO | 0.2.0 | T017 | 自提时段、取货码、短配地址 / 范围、订单状态、权益结算 |
-| T019 | Mobile 线上商城中高保真购买闭环 | Mobile | REVIEW | 0.2.0 | T015、T016 | `task/T019-mobile-mall-purchase-loop`；商城首页→商品→独立购物车→结算→物流闭环，PR/CI 待验证 |
+| T019 | Mobile 线上商城中高保真购买闭环 | Mobile | PASS | 0.2.0 | T015、T016 | PR #13 merge `c9aa08342e81199934feff95be5045d925c38ea6`；Verify #187、Browser Quality #44、OpenCode #65 success；Codex 最终重审无 major issues；2026-08-31 用户验收通过 |
 | T020 | Mobile 智慧抗衰项目、预约与二维码核销 | Mobile | TODO | 0.2.0 | T015、T016 | 项目 → 门店 → 时段 → 预约码 → 核销 → 检测完成 |
 | T021 | Mobile 智慧抗衰检测报告、转化与历史对比 | Mobile | TODO | 0.2.0 | T015、T020 | 结果、护理建议、专属券、套餐、复测、历史报告对比 |
 | T022 | PC 便利店订单、履约与核销后台 | PC | TODO | 0.2.0 | T015、T018 | 自提 / 短配订单、核销、门店可售关系、履约配置 mock |
