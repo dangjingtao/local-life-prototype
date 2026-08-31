@@ -36,11 +36,10 @@ test.describe("T020 · Mobile 智慧抗衰预约与核销", () => {
     await expect(page.getByRole("heading", { name: "基础状态检测" })).toBeVisible();
     await page.getByRole("button", { name: "选择此门店" }).first().click();
 
-    await expect(page.getByText(/已满：/)).toBeVisible();
-    await expect(page.getByText(/不可约：/)).toBeVisible();
-    await expect(page.getByRole("button", { name: /10:30/ })).toBeDisabled();
+    const bookedSlot = page.getByRole("button", { name: /10:30.*不可约.*已预约/ });
+    await expect(bookedSlot).toBeDisabled();
+    await page.getByRole("button", { name: /15:00.*可约/ }).click();
 
-    await page.getByRole("button", { name: /15:00/ }).click();
     await expect(page.getByRole("heading", { name: "确认本次到店安排" })).toBeVisible();
     await expect(page.getByText("LL-8888", { exact: true })).toBeVisible();
     await expect(page.getByText("CARE-PROJECT-BASIC", { exact: true })).toBeVisible();
@@ -67,6 +66,18 @@ test.describe("T020 · Mobile 智慧抗衰预约与核销", () => {
     await page.getByRole("button", { name: "完成模拟检测" }).click();
     await expect(page.getByRole("heading", { name: "本次到店流程已完成" })).toBeVisible();
     await expect(page.getByText("T021 handoff", { exact: true })).toBeVisible();
+    await expectNoHorizontalOverflow(page);
+  });
+
+  test("full slot is shown only in its own project/store context", async ({ page }) => {
+    await openSmartCare(page);
+    await page.getByRole("button", { name: "查看项目并预约" }).nth(1).click();
+    await expect(page.getByRole("heading", { name: "屏障舒缓护理" })).toBeVisible();
+    await page.getByRole("button", { name: "选择此门店" }).click();
+
+    const fullSlot = page.getByRole("button", { name: /14:00.*已满/ });
+    await expect(fullSlot).toBeDisabled();
+    await expect(page.getByText("SLOT-NANAN-0901-1400")).toHaveCount(0);
     await expectNoHorizontalOverflow(page);
   });
 
