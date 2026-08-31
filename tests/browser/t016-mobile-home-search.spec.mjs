@@ -69,7 +69,7 @@ test.describe("T016 · Mobile operations home and global search", () => {
     await expectNoHorizontalOverflow(page);
   });
 
-  test("convenience search requires a concrete store before handing off", async ({ page }) => {
+  test("convenience search carries the chosen store and product into the domain", async ({ page }) => {
     await openMobile(page);
     await page.getByRole("button", { name: "打开全局搜索" }).first().click();
     await search(page, "燕麦");
@@ -85,8 +85,34 @@ test.describe("T016 · Mobile operations home and global search", () => {
     await expect(page.getByText("已确认门店上下文")).toBeVisible();
     await expect(page.getByText(/云岭社区店 · 燕麦拿铁/)).toBeVisible();
     await page.getByRole("button", { name: "进入便利店" }).click();
-    await expect(page.getByRole("heading", { name: "选择附近合作门店" })).toBeVisible();
+    await expect(page.getByText("来自全局搜索 · 门店上下文已保留")).toBeVisible();
+    await expect(page.getByRole("heading", { name: "云岭社区店" })).toBeVisible();
+    await expect(page.getByText("燕麦拿铁", { exact: true }).first()).toBeVisible();
     await expectNoHorizontalOverflow(page);
+  });
+
+  test("mall and care results preserve the selected entity on domain handoff", async ({ page }) => {
+    await openMobile(page);
+    await page.getByRole("button", { name: "打开全局搜索" }).first().click();
+    await search(page, "胶原");
+    await page.getByRole("button", { name: /线上商城结果：胶原蛋白肽饮/ }).click();
+    await expect(page.getByText("来自全局搜索", { exact: true })).toBeVisible();
+    await expect(page.getByText("胶原蛋白肽饮", { exact: true }).first()).toBeVisible();
+
+    await page.getByRole("button", { name: "打开全局搜索" }).first().click();
+    await search(page, "基础状态检测");
+    await page.getByRole("button", { name: "查看智慧抗衰结果：基础状态检测", exact: true }).click();
+    await expect(page.getByText("来自全局搜索", { exact: true })).toBeVisible();
+    await expect(page.getByText("基础状态检测", { exact: true }).first()).toBeVisible();
+    await expectNoHorizontalOverflow(page);
+  });
+
+  test("home activity CTA opens a preset that has real search results", async ({ page }) => {
+    await openMobile(page);
+    await page.getByRole("button", { name: "看看今天有哪些活动与精选" }).click();
+    const input = page.getByRole("textbox", { name: "全局搜索" });
+    await expect(input).toHaveValue("初秋");
+    await expect(page.getByRole("button", { name: /活动结果：初秋轻生活计划/ })).toBeVisible();
   });
 
   test("search preserves its query across loading and error prototype states", async ({ page }) => {
