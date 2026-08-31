@@ -68,7 +68,7 @@ function SearchHandoffBanner({ handoff }: { handoff: SearchBusinessHandoff }) {
         </div>
         <StatusTag tone="success">已定位</StatusTag>
       </div>
-      <p className="mt-3 text-xs leading-5 text-[var(--color-text-tertiary)]">已保留实体 {handoff.entityId}；T019 / T020 将继续把该上下文接入完整购买或预约流程。</p>
+      <p className="mt-3 text-xs leading-5 text-[var(--color-text-tertiary)]">搜索实体 {handoff.entityId} 已传入当前业务域；后续页面继续沿用同一实体上下文，不重新猜测用户意图。</p>
     </Card>
   );
 }
@@ -189,10 +189,10 @@ export function App() {
             </>
           )}
           {screen === "care" && (
-            <>
-              {searchHandoff?.domain === "care" && <SearchHandoffBanner handoff={searchHandoff} />}
-              <CareFlowScreen />
-            </>
+            <CareFlowScreen
+              key={searchHandoff?.domain === "care" ? `${searchHandoff.entityType}:${searchHandoff.entityId}` : "care-default"}
+              entryContext={searchHandoff?.domain === "care" ? searchHandoff : undefined}
+            />
           )}
           {screen === "me" && <MembershipCenterScreen />}
           {screen === "activity" && (
