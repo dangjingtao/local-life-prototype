@@ -5,7 +5,7 @@ import { getPrototypeView, PrototypePanel, PrototypeState } from "@prototype/run
 import { coreDemoUser, membershipLevelLabels } from "@prototype/shared";
 import { CampaignActivityScreen } from "./CampaignActivityScreen";
 import { CareFlowScreen } from "./CareFlowScreen";
-import { GlobalSearchScreen } from "./GlobalSearchScreen";
+import { GlobalSearchScreen, type SearchBusinessHandoff } from "./GlobalSearchScreen";
 import { MallFlowScreen } from "./MallFlowScreen";
 import { MembershipCenterScreen } from "./MembershipCenterScreen";
 import { StoreFlowScreen } from "./StoreFlowScreen";
@@ -57,6 +57,22 @@ function LoginScreen({ onLogin }: { onLogin: () => void }) {
   );
 }
 
+function SearchHandoffBanner({ handoff }: { handoff: SearchBusinessHandoff }) {
+  return (
+    <Card className="border-[var(--color-primary)] bg-[var(--color-brand-subtle)] p-4">
+      <div className="flex items-start justify-between gap-3">
+        <div className="min-w-0">
+          <p className="text-xs font-semibold text-[var(--color-primary-pressed)]">来自全局搜索</p>
+          <p className="mt-2 font-semibold">{handoff.title}</p>
+          <p className="mt-1 text-sm leading-6 text-[var(--color-text-secondary)]">{handoff.subtitle}</p>
+        </div>
+        <StatusTag tone="success">已定位</StatusTag>
+      </div>
+      <p className="mt-3 text-xs leading-5 text-[var(--color-text-tertiary)]">已保留实体 {handoff.entityId}；T019 / T020 将继续把该上下文接入完整购买或预约流程。</p>
+    </Card>
+  );
+}
+
 export function App() {
   const view = getPrototypeView();
   const [authenticated, setAuthenticated] = useState(() => {
@@ -66,6 +82,7 @@ export function App() {
   const [screen, setScreen] = useState<Screen>("home");
   const [searchPreset, setSearchPreset] = useState("");
   const [selectedCampaignId, setSelectedCampaignId] = useState<string | null>(null);
+  const [searchHandoff, setSearchHandoff] = useState<SearchBusinessHandoff | null>(null);
 
   const activeTab: Tab = screen === "search" || screen === "activity" ? "home" : screen;
   const title = screen === "search"
@@ -74,24 +91,39 @@ export function App() {
       ? "活动中心"
       : tabs.find((item) => item.id === activeTab)?.label ?? "首页";
 
+  const scrollTop = () => window.scrollTo({ top: 0, behavior: "smooth" });
+
   const go = (next: Screen) => {
+    setSearchHandoff(null);
     setScreen(next);
-    window.scrollTo({ top: 0, behavior: "smooth" });
+    scrollTop();
+  };
+
+  const openBusinessFromSearch = (handoff: SearchBusinessHandoff) => {
+    setSearchHandoff(handoff);
+    setScreen(handoff.domain);
+    scrollTop();
   };
 
   const openSearch = (preset = "") => {
+    setSearchHandoff(null);
     setSearchPreset(preset);
-    go("search");
+    setScreen("search");
+    scrollTop();
   };
 
   const openCampaign = (campaignId: string) => {
+    setSearchHandoff(null);
     setSelectedCampaignId(campaignId);
-    go("activity");
+    setScreen("activity");
+    scrollTop();
   };
 
   const openActivityCenter = () => {
+    setSearchHandoff(null);
     setSelectedCampaignId(null);
-    go("activity");
+    setScreen("activity");
+    scrollTop();
   };
 
   const authenticateDemo = () => {
@@ -145,13 +177,23 @@ export function App() {
               key={searchPreset}
               initialQuery={searchPreset}
               onBack={() => go("home")}
-              onOpenDomain={(domain) => go(domain)}
+              onOpenBusiness={openBusinessFromSearch}
               onOpenCampaign={openCampaign}
             />
           )}
-          {screen === "store" && <StoreFlowScreen openActivity={openActivityCenter} />}
-          {screen === "mall" && <MallFlowScreen />}
-          {screen === "care" && <CareFlowScreen />}
+          {screen === "store" && <StoreFlowScreen openActivity={openActivityCenter} entryContext={searchHandoff?.domain === "store" ? searchHandoff : undefined} />}
+          {screen === "mall" && (
+            <>
+              {searchHandoff?.domain === "mall" && <SearchHandoffBanner handoff={searchHandoff} />}
+              <MallFlowScreen />
+            </>
+          )}
+          {screen === "care" && (
+            <>
+              {searchHandoff?.domain === "care" && <SearchHandoffBanner handoff={searchHandoff} />}
+              <CareFlowScreen />
+            </>
+          )}
           {screen === "me" && <MembershipCenterScreen />}
           {screen === "activity" && (
             <CampaignActivityScreen
