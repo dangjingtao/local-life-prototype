@@ -11,18 +11,7 @@ import {
   type AppointmentSlotStatus,
 } from "@prototype/shared";
 
-type CareStep =
-  | "zone"
-  | "project"
-  | "store"
-  | "slot"
-  | "confirm"
-  | "detail"
-  | "voucher"
-  | "checking"
-  | "checked_in"
-  | "detecting"
-  | "complete";
+type CareStep = "zone" | "project" | "slot" | "confirm" | "detail" | "voucher" | "checking" | "checked_in" | "detecting" | "complete";
 
 type CareEntryContext = {
   entityId: string;
@@ -79,10 +68,6 @@ function formatTime(value: string) {
   }).format(new Date(value));
 }
 
-function getModificationDeadline(scheduledAt: string) {
-  return new Date(new Date(scheduledAt).getTime() - TWO_HOURS_MS).toISOString();
-}
-
 function canModifyAppointment(scheduledAt: string, now = DEMO_NOW) {
   return new Date(scheduledAt).getTime() - new Date(now).getTime() > TWO_HOURS_MS;
 }
@@ -106,16 +91,17 @@ function BackButton({ onClick, children }: { onClick: () => void; children: stri
   );
 }
 
-function RelationGrid({ projectId, storeId, slotId, appointmentId = generatedAppointmentId }: { projectId: string; storeId: string; slotId: string; appointmentId?: string }) {
+function RelationGrid({ projectId, storeId, slotId }: { projectId: string; storeId: string; slotId: string }) {
   const rows = [
     ["User", coreDemoUser.id],
     ["Care Project", projectId],
     ["Store", storeId],
     ["Time Slot", slotId],
-    ["Appointment", appointmentId],
+    ["Appointment", generatedAppointmentId],
   ];
+
   return (
-    <div className="grid grid-cols-1 gap-2 rounded-[var(--radius-container)] bg-[var(--color-surface-subtle)] p-3 text-xs">
+    <div className="grid gap-2 rounded-[var(--radius-container)] bg-[var(--color-surface-subtle)] p-3 text-xs">
       {rows.map(([label, value]) => (
         <div key={label} className="flex items-start justify-between gap-3">
           <span className="text-[var(--color-text-tertiary)]">{label}</span>
@@ -131,6 +117,7 @@ export function CareFlowScreen({ entryContext }: CareFlowScreenProps) {
   const [step, setStep] = useState<CareStep>(() => entryProjectId ? "project" : "zone");
   const [selectedProjectId, setSelectedProjectId] = useState(() => entryProjectId ?? careProjects[0]?.id ?? "");
   const [selectedStoreId, setSelectedStoreId] = useState("");
+  const [selectedDateKey, setSelectedDateKey] = useState("");
   const [selectedSlotId, setSelectedSlotId] = useState("");
   const [appointmentStatus, setAppointmentStatus] = useState<"scheduled" | "cancelled">("scheduled");
   const [rescheduling, setRescheduling] = useState(false);
@@ -152,6 +139,7 @@ export function CareFlowScreen({ entryContext }: CareFlowScreenProps) {
   const chooseProject = (projectId: string) => {
     setSelectedProjectId(projectId);
     setSelectedStoreId("");
+    setSelectedDateKey("");
     setSelectedSlotId("");
     setActionNotice("");
     goStep("project");
@@ -159,18 +147,15 @@ export function CareFlowScreen({ entryContext }: CareFlowScreenProps) {
 
   const chooseStore = (storeId: string) => {
     setSelectedStoreId(storeId);
+    setSelectedDateKey("");
     setSelectedSlotId("");
     setActionNotice("");
     goStep("slot");
   };
 
-  const chooseSlot = (slotId: string) => {
-    setSelectedSlotId(slotId);
-    goStep("confirm");
-  };
-
   const resetToZone = () => {
     setSelectedStoreId("");
+    setSelectedDateKey("");
     setSelectedSlotId("");
     setAppointmentStatus("scheduled");
     setRescheduling(false);
@@ -190,19 +175,6 @@ export function CareFlowScreen({ entryContext }: CareFlowScreenProps) {
   if (step === "zone") {
     return (
       <>
-        {entryContext && (
-          <Card className="border-[var(--color-primary)] bg-[var(--color-brand-subtle)] p-4">
-            <div className="flex items-start justify-between gap-3">
-              <div>
-                <p className="text-xs font-semibold text-[var(--color-primary-pressed)]">来自全局搜索</p>
-                <p className="mt-2 font-semibold">{entryContext.title}</p>
-                <p className="mt-1 text-sm leading-6 text-[var(--color-text-secondary)]">{entryContext.subtitle}</p>
-              </div>
-              <StatusTag tone="success">已定位</StatusTag>
-            </div>
-          </Card>
-        )}
-
         <section className="overflow-hidden rounded-[var(--radius-overlay)] border border-[var(--color-border)] bg-[var(--color-surface)]">
           <div className="bg-[var(--color-primary)] p-5 text-[var(--color-on-primary)]">
             <div className="flex items-center justify-between gap-3">
@@ -223,16 +195,12 @@ export function CareFlowScreen({ entryContext }: CareFlowScreenProps) {
         {existingAppointment && existingProject && existingStore && (
           <Section title="我的预约">
             <Card className="border-[var(--color-warning)] bg-[var(--color-warning-bg)] p-4">
-              <div className="flex items-start justify-between gap-3">
-                <div>
-                  <div className="flex flex-wrap items-center gap-2">
-                    <p className="font-semibold">{existingProject.name}</p>
-                    <StatusTag tone="warning">{existingLocked ? "2 小时内已锁定" : "可改期 / 取消"}</StatusTag>
-                  </div>
-                  <p className="mt-2 text-sm text-[var(--color-text-secondary)]">{formatDate(existingAppointment.scheduledAt)} {formatTime(existingAppointment.scheduledAt)} · {existingStore.name}</p>
-                  <p className="mt-2 text-xs leading-5 text-[var(--color-text-tertiary)]">规则演示时间：2026-09-01 08:45。该预约 10:30 开始，08:30 起进入开始前 2 小时锁定期，所以取消 / 改期按钮不可用。</p>
-                </div>
+              <div className="flex flex-wrap items-center gap-2">
+                <p className="font-semibold">{existingProject.name}</p>
+                <StatusTag tone="warning">{existingLocked ? "2 小时内已锁定" : "可改期 / 取消"}</StatusTag>
               </div>
+              <p className="mt-2 text-sm text-[var(--color-text-secondary)]">{formatDate(existingAppointment.scheduledAt)} {formatTime(existingAppointment.scheduledAt)} · {existingStore.name}</p>
+              <p className="mt-2 text-xs leading-5 text-[var(--color-text-tertiary)]">规则演示时间：2026-09-01 08:45。该预约 10:30 开始，08:30 起进入开始前 2 小时锁定期，所以取消 / 改期按钮不可用。</p>
               <div className="mt-4 grid grid-cols-2 gap-2">
                 <SecondaryButton disabled={existingLocked} className="w-full">改期</SecondaryButton>
                 <SecondaryButton disabled={existingLocked} className="w-full">取消预约</SecondaryButton>
@@ -299,7 +267,7 @@ export function CareFlowScreen({ entryContext }: CareFlowScreenProps) {
           <p className="mt-3 text-sm leading-6 text-[var(--color-text-secondary)]">{selectedProject.summary}</p>
         </div>
 
-        <Card className="p-0 overflow-hidden">
+        <Card className="overflow-hidden p-0">
           <div className="grid grid-cols-3 divide-x divide-[var(--color-border)]">
             <div className="p-4"><p className="text-xs text-[var(--color-text-tertiary)]">时长</p><p className="mt-2 font-semibold">{selectedProject.durationMinutes} 分钟</p></div>
             <div className="p-4"><p className="text-xs text-[var(--color-text-tertiary)]">价格</p><p className="mt-2 font-semibold">¥{selectedProject.priceYuan}</p></div>
@@ -310,7 +278,7 @@ export function CareFlowScreen({ entryContext }: CareFlowScreenProps) {
         <Section title="适用门店">
           <div className="space-y-3">
             {projectStores.map((store) => {
-              const hasSlots = appointmentSlots.some((slot) => slot.careProjectId === selectedProject.id && slot.storeId === store.id);
+              const storeSlots = appointmentSlots.filter((slot) => slot.careProjectId === selectedProject.id && slot.storeId === store.id);
               return (
                 <Card key={store.id} className="p-4">
                   <div className="flex items-start justify-between gap-3">
@@ -322,7 +290,7 @@ export function CareFlowScreen({ entryContext }: CareFlowScreenProps) {
                       <p className="mt-2 text-sm leading-6 text-[var(--color-text-secondary)]">{store.address}</p>
                       <p className="mt-1 text-xs text-[var(--color-text-tertiary)]">距你 {store.distanceKm?.toFixed(1) ?? "--"} km · {store.businessHours ?? "营业时间待配置"}</p>
                     </div>
-                    <span className="shrink-0 text-xs text-[var(--color-text-tertiary)]">{hasSlots ? "已有时段" : "暂无时段"}</span>
+                    <span className="shrink-0 text-xs text-[var(--color-text-tertiary)]">{storeSlots.length ? `${storeSlots.length} 个时段` : "暂无时段"}</span>
                   </div>
                   <Button className="mt-4 w-full" disabled={store.status !== "open"} onClick={() => chooseStore(store.id)}>选择此门店</Button>
                 </Card>
@@ -340,9 +308,9 @@ export function CareFlowScreen({ entryContext }: CareFlowScreenProps) {
     }
 
     const storeSlots = appointmentSlots.filter((slot) => slot.careProjectId === selectedProject.id && slot.storeId === selectedStore.id);
-    const fullSample = appointmentSlots.find((slot) => slot.status === "full");
-    const bookedSample = appointmentSlots.find((slot) => slot.status === "booked");
     const dateKeys = Array.from(new Set(storeSlots.map((slot) => slot.startsAt.slice(0, 10))));
+    const activeDateKey = selectedDateKey && dateKeys.includes(selectedDateKey) ? selectedDateKey : (dateKeys[0] ?? "");
+    const visibleSlots = storeSlots.filter((slot) => slot.startsAt.slice(0, 10) === activeDateKey);
 
     return (
       <>
@@ -350,30 +318,45 @@ export function CareFlowScreen({ entryContext }: CareFlowScreenProps) {
         <div>
           <p className="text-sm text-[var(--color-text-secondary)]">选择日期 / 时段</p>
           <h2 className="mt-1 text-2xl font-semibold">{selectedStore.name}</h2>
-          <p className="mt-2 text-sm leading-6 text-[var(--color-text-secondary)]">时段按“门店 × 项目 × 日期”维护；不可约状态不会被隐藏或伪装成可点击。</p>
+          <p className="mt-2 text-sm leading-6 text-[var(--color-text-secondary)]">时段严格按当前“门店 × 项目 × 日期”过滤；已满与已预约状态保留在所属上下文，不跨店借样例。</p>
         </div>
 
         {actionNotice && <Card className="border-[var(--color-primary)] bg-[var(--color-brand-subtle)] p-4"><p className="text-sm font-medium text-[var(--color-primary-pressed)]">{actionNotice}</p></Card>}
 
-        <div className="flex gap-2 overflow-x-auto pb-1" aria-label="预约日期">
-          {(dateKeys.length ? dateKeys : ["2026-09-01"]).map((dateKey) => (
-            <button key={dateKey} type="button" aria-pressed="true" className="min-h-11 shrink-0 rounded-full border border-[var(--color-primary)] bg-[var(--color-brand-subtle)] px-4 text-sm font-medium text-[var(--color-primary-pressed)]">
-              {dateKey === "2026-09-01" ? "9月1日 周二" : dateKey}
-            </button>
-          ))}
-        </div>
+        {dateKeys.length > 0 ? (
+          <div className="flex gap-2 overflow-x-auto pb-1" aria-label="预约日期">
+            {dateKeys.map((dateKey) => {
+              const pressed = dateKey === activeDateKey;
+              const representative = storeSlots.find((slot) => slot.startsAt.startsWith(dateKey));
+              return (
+                <button
+                  key={dateKey}
+                  type="button"
+                  aria-pressed={pressed}
+                  onClick={() => setSelectedDateKey(dateKey)}
+                  className={`min-h-11 shrink-0 rounded-full border px-4 text-sm font-medium ${pressed ? "border-[var(--color-primary)] bg-[var(--color-brand-subtle)] text-[var(--color-primary-pressed)]" : "border-[var(--color-border)] bg-[var(--color-surface)] text-[var(--color-text-secondary)]"}`}
+                >
+                  {representative ? formatDate(representative.startsAt) : dateKey}
+                </button>
+              );
+            })}
+          </div>
+        ) : null}
 
         <Section title="可选时段">
-          {storeSlots.length > 0 ? (
+          {visibleSlots.length > 0 ? (
             <div className="grid grid-cols-2 gap-3">
-              {storeSlots.map((slot) => {
+              {visibleSlots.map((slot) => {
                 const meta = slotStatusMeta[slot.status];
                 return (
                   <button
                     key={slot.id}
                     type="button"
                     disabled={meta.disabled}
-                    onClick={() => chooseSlot(slot.id)}
+                    onClick={() => {
+                      setSelectedSlotId(slot.id);
+                      goStep("confirm");
+                    }}
                     className="min-h-[88px] rounded-[var(--radius-container)] border border-[var(--color-border)] bg-[var(--color-surface)] p-3 text-left disabled:cursor-not-allowed disabled:opacity-60 enabled:active:bg-[var(--color-surface-subtle)]"
                   >
                     <div className="flex items-start justify-between gap-2">
@@ -387,20 +370,11 @@ export function CareFlowScreen({ entryContext }: CareFlowScreenProps) {
             </div>
           ) : (
             <Card className="p-5 text-center">
-              <p className="font-semibold">当前门店暂无可配置时段</p>
-              <p className="mt-2 text-sm leading-6 text-[var(--color-text-secondary)]">这是 T015 fixture 的真实空档，不自动编造可预约库存。可返回选择另一门店。</p>
+              <p className="font-semibold">当前日期暂无可配置时段</p>
+              <p className="mt-2 text-sm leading-6 text-[var(--color-text-secondary)]">这是 T015 fixture 的真实空档，不自动编造预约库存。可返回选择另一门店或项目。</p>
             </Card>
           )}
         </Section>
-
-        <Card className="bg-[var(--color-surface-subtle)] p-4">
-          <p className="font-semibold">时段状态样例</p>
-          <div className="mt-3 space-y-2 text-sm text-[var(--color-text-secondary)]">
-            {fullSample && <p>已满：{formatTime(fullSample.startsAt)} · {fullSample.id}</p>}
-            {bookedSample && <p>不可约：{formatTime(bookedSample.startsAt)} · 已被当前预约占用</p>}
-            <p className="text-xs leading-5 text-[var(--color-text-tertiary)]">“不可约”可来自已预约、门店停用或规则锁定；本卡只使用现有 fixture 中可验证的 booked / full 样例。</p>
-          </div>
-        </Card>
       </>
     );
   }
@@ -441,7 +415,7 @@ export function CareFlowScreen({ entryContext }: CareFlowScreenProps) {
         <RelationGrid projectId={selectedProject.id} storeId={selectedStore.id} slotId={selectedSlot.id} />
         <Button className="w-full" onClick={() => {
           setAppointmentStatus("scheduled");
-          setActionNotice(rescheduling ? "改期已应用到当前原型会话。" : "预约已生成到当前原型会话。真实后端未接入。" );
+          setActionNotice(rescheduling ? "改期已应用到当前原型会话。" : "预约已生成到当前原型会话。真实后端未接入。");
           setRescheduling(false);
           goStep("detail");
         }}>{rescheduling ? "确认改期" : "确认预约"}</Button>
@@ -453,6 +427,7 @@ export function CareFlowScreen({ entryContext }: CareFlowScreenProps) {
     if (!selectedStore || !selectedSlot) {
       return <Card><p className="font-semibold">预约详情缺少上下文</p><Button className="mt-4 w-full" onClick={() => goStep("slot")}>重新选择时段</Button></Card>;
     }
+
     const canModify = canModifyAppointment(selectedSlot.startsAt);
     const deadline = new Date(new Date(selectedSlot.startsAt).getTime() - TWO_HOURS_MS);
 
@@ -484,7 +459,7 @@ export function CareFlowScreen({ entryContext }: CareFlowScreenProps) {
               <div className="flex items-start justify-between gap-3">
                 <div>
                   <p className="font-semibold">开始前 2 小时可取消 / 改期</p>
-                  <p className="mt-2 text-sm leading-6 text-[var(--color-text-secondary)]">当前预约最晚可在 {formatTime(deadline.toISOString())} 前操作。演示时间为 08:45，当前仍处于可修改区间。</p>
+                  <p className="mt-2 text-sm leading-6 text-[var(--color-text-secondary)]">当前预约最晚可在 {formatTime(deadline.toISOString())} 前操作。演示时间为 08:45。</p>
                 </div>
                 <StatusTag tone={canModify ? "success" : "warning"}>{canModify ? "可修改" : "已锁定"}</StatusTag>
               </div>
@@ -492,12 +467,12 @@ export function CareFlowScreen({ entryContext }: CareFlowScreenProps) {
                 <SecondaryButton disabled={!canModify} className="w-full" onClick={() => {
                   setRescheduling(true);
                   setSelectedSlotId("");
-                  setActionNotice("正在改期：请选择同项目、同门店下的新时段。开始前 2 小时规则继续生效。" );
+                  setActionNotice("正在改期：请选择同项目、同门店下的新时段。开始前 2 小时规则继续生效。");
                   goStep("slot");
                 }}>改期</SecondaryButton>
                 <SecondaryButton disabled={!canModify} className="w-full" onClick={() => {
                   setAppointmentStatus("cancelled");
-                  setActionNotice("预约已在当前原型会话中取消；未写回共享 fixtures。" );
+                  setActionNotice("预约已在当前原型会话中取消；未写回共享 fixtures。");
                 }}>取消预约</SecondaryButton>
               </div>
             </Card>
@@ -507,7 +482,7 @@ export function CareFlowScreen({ entryContext }: CareFlowScreenProps) {
           <Button className="w-full" onClick={() => {
             setAppointmentStatus("scheduled");
             setSelectedSlotId("");
-            setActionNotice("重新预约：请选择新的可约时段。" );
+            setActionNotice("重新预约：请选择新的可约时段。");
             goStep("slot");
           }}>重新选择时段</Button>
         )}
@@ -517,6 +492,7 @@ export function CareFlowScreen({ entryContext }: CareFlowScreenProps) {
 
   if (step === "voucher") {
     if (!selectedStore || !selectedSlot) return null;
+
     return (
       <>
         <BackButton onClick={() => goStep("detail")}>返回预约详情</BackButton>
@@ -551,9 +527,7 @@ export function CareFlowScreen({ entryContext }: CareFlowScreenProps) {
         </div>
         <Card className="border-[var(--color-warning)] bg-[var(--color-warning-bg)] p-5" role="status">
           <div className="flex items-start gap-3">
-            <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-[var(--color-surface)]">
-              <PrototypeIcon name="info" size={20} />
-            </span>
+            <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-[var(--color-surface)]"><PrototypeIcon name="info" size={20} /></span>
             <div>
               <p className="font-semibold">正在核对预约关系</p>
               <p className="mt-2 text-sm leading-6 text-[var(--color-text-secondary)]">检查预约码、User、Store、Care Project、Time Slot 是否一致。这里不伪装真实网络请求。</p>
@@ -569,9 +543,7 @@ export function CareFlowScreen({ entryContext }: CareFlowScreenProps) {
     return (
       <>
         <section className="rounded-[var(--radius-overlay)] border border-[var(--color-border)] bg-[var(--color-surface)] p-5">
-          <span className="flex h-12 w-12 items-center justify-center rounded-full bg-[var(--color-brand-subtle)] text-[var(--color-primary-pressed)]">
-            <PrototypeIcon name="success" size={24} />
-          </span>
+          <span className="flex h-12 w-12 items-center justify-center rounded-full bg-[var(--color-brand-subtle)] text-[var(--color-primary-pressed)]"><PrototypeIcon name="success" size={24} /></span>
           <p className="mt-5 text-sm font-medium text-[var(--color-primary-pressed)]">核销成功</p>
           <h2 className="mt-1 text-2xl font-semibold">已到店，可以开始检测</h2>
           <p className="mt-3 text-sm leading-6 text-[var(--color-text-secondary)]">当前状态从“已预约”推进到“已到店”。真实店员端与后端由 T023 之后承接，本卡只验证用户端状态设计。</p>
@@ -610,9 +582,7 @@ export function CareFlowScreen({ entryContext }: CareFlowScreenProps) {
   return (
     <>
       <section className="rounded-[var(--radius-overlay)] bg-[var(--color-primary)] p-5 text-[var(--color-on-primary)]">
-        <span className="flex h-12 w-12 items-center justify-center rounded-full bg-white/15">
-          <PrototypeIcon name="success" size={25} />
-        </span>
+        <span className="flex h-12 w-12 items-center justify-center rounded-full bg-white/15"><PrototypeIcon name="success" size={25} /></span>
         <p className="mt-5 text-sm font-medium opacity-75">检测完成</p>
         <h2 className="mt-1 text-2xl font-semibold">本次到店流程已完成</h2>
         <p className="mt-3 text-sm leading-6 opacity-80">预约 → 二维码 → 核销 → 检测完成已经串联。检测报告、护理建议、专属券、套餐与历史对比明确交给 T021。</p>
