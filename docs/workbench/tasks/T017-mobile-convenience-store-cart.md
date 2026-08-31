@@ -1,6 +1,6 @@
 # T017 · Mobile 便利店门店页、商品浏览与独立购物车
 
-- Status: TODO
+- Status: REVIEW
 - Target version: 0.2.0
 - Impact: Mobile / Shared
 - Owner: -
@@ -36,35 +36,36 @@ V0.2 要把便利店从概念商品页升级为成熟即时零售体验，并明
 
 ## Acceptance
 
-- [ ] 未选店时不能以确定库存直接购买便利店商品。
-- [ ] 至少 3 个门店在商品可售 / 履约能力上存在可观察差异。
-- [ ] 商品支持连续加购、多件商品留在当前门店购物车。
-- [ ] 切换门店不产生跨店混单。
-- [ ] 商品卡、价格、会员价、数量控制、购物车入口达到中高保真零售体验。
-- [ ] 390px Mobile 下完成浏览、详情、加购和切店真实浏览器验证。
-- [ ] `npm run typecheck`、`npm run build` 通过。
+- [x] 未选店时不能以确定库存直接购买便利店商品。
+- [x] 至少 3 个门店在商品可售 / 履约能力上存在可观察差异。
+- [x] 商品支持连续加购、多件商品留在当前门店购物车。
+- [x] 切换门店不产生跨店混单。
+- [x] 商品卡、价格、会员价、数量控制、购物车入口达到中高保真零售体验。
+- [x] 390px Mobile 下完成浏览、详情、加购和切店真实浏览器验证。
+- [x] `npm run typecheck`、`npm run build` 通过。
 
 ## Risks / Dependencies
 
 - 前置：T015、T016。
 - 不得为了模拟成熟零售而引入 PRD 未确认的生产规则。
+- 当前为 stacked PR：T015 / T016 尚未合入 `dev`，因此 PR #12 暂以 `task/T016-mobile-home-search` 为 base；项目 Experimental OpenCode PR Review 仅监听 `dev` base，需待前置合入后 retarget 再完成最终 review。
 
 ## Implementation record
 
-- Commit / PR:
-- Changed paths:
-- Notes:
+- Commit / PR: `7ec0614` / PR #12
+- Changed paths: `apps/mobile/src/StoreFlowScreen.tsx`；`tests/browser/t017-mobile-convenience-cart.spec.mjs`；`tests/browser/t016-mobile-home-search.spec.mjs`
+- Notes: 基于 T015 的门店 / 商品可售 / 独立购物车 fixtures；保留 V0.1 已验收自提码深流程作为 T012 回归入口；“去结算”只形成 T018 handoff，不提前固化配送、时段、费用或支付规则。
 
 ## Verification evidence
 
-- CI:
-- Page / Route:
-- Screenshot / Browser result:
-- Other evidence:
+- CI: Verify Prototype #168 success；T012 Browser Quality #27 success
+- Page / Route: Mobile `便利店` 一级页，`/?demoAuth=1`
+- Screenshot / Browser result: Playwright 390px 覆盖 3 店差异、门店独立购物车切换保留、商品详情门店价 / 会员价 / 售罄、购物车金额摘要与 T018 handoff；完整 browser suite success
+- Other evidence: `npm run typecheck`、`npm run build` 均由 Verify Prototype #168 实际执行并通过；T016 全局搜索门店 + 商品 handoff 回归同步通过
 
 ## Review
 
-- Reviewer:
-- Result: REVIEW / PASS / BLOCKED
-- Conclusion:
-- Follow-up:
+- Reviewer: Pending dev-base AI Review / human acceptance
+- Result: REVIEW
+- Conclusion: 施工与当前 CI / 390px browser 验证完成；因 stacked 前置尚未合入，尚未进入最终 dev-base OpenCode review，不自行标记 PASS。
+- Follow-up: T015 / T016 合入 `dev` 后 retarget PR #12 → `dev`；读取最新 review findings，必要时修复并重新验证；获得接受结论后再 PASS / merge。
