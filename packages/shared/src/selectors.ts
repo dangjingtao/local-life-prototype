@@ -97,6 +97,11 @@ export function validateDemoFixtureRelations(): string[] {
   if (detectionReports.filter((report) => report.userId === CORE_DEMO_IDS.user).length < 2) {
     issues.push(`fixture:user:${CORE_DEMO_IDS.user}:requires-at-least-2-care-reports`);
   }
+  for (const requiredStatus of ["scheduled", "checked_in", "completed", "cancelled", "rescheduled"] as const) {
+    if (!appointments.some((appointment) => appointment.status === requiredStatus)) {
+      issues.push(`fixture:missing-appointment-sample:${requiredStatus}`);
+    }
+  }
 
   // The old collections stay valid subsets of the richer V0.2 fact set.
   for (const partner of partners) if (!partnerIds.has(partner.id)) issues.push(`compat:partner:${partner.id}:missing-from-v02`);
@@ -167,6 +172,7 @@ export function validateDemoFixtureRelations(): string[] {
     if (!storeIds.has(appointment.storeId)) issues.push(`appointment:${appointment.id}:missing-store:${appointment.storeId}`);
     const project = findById(careProjects, appointment.careProjectId);
     if (project && !project.storeIds.includes(appointment.storeId)) issues.push(`appointment:${appointment.id}:project-not-available-at-store:${appointment.storeId}`);
+    if (appointment.status === "completed" && !appointment.completedAt) issues.push(`appointment:${appointment.id}:completed-status-missing-completed-at`);
     if (appointment.slotId) {
       if (!appointmentSlotIds.has(appointment.slotId)) issues.push(`appointment:${appointment.id}:missing-slot:${appointment.slotId}`);
       const slot = findById(appointmentSlots, appointment.slotId);
@@ -213,7 +219,19 @@ export function validateDemoFixtureRelations(): string[] {
       if (!store?.capabilities.includes("short_delivery")) issues.push(`order:${order.id}:store-has-no-short-delivery-capability`);
       if (store?.deliveryRadiusKm && detail.distanceKm && detail.distanceKm > store.deliveryRadiusKm) issues.push(`order:${order.id}:short-delivery-outside-radius`);
     }
-    if (detail?.appointmentId && !appointmentIds.has(detail.appointmentId)) issues.push(`order:${order.id}:missing-appointment:${detail.appointmentId}`);
+    if (detail?.appointmentId) {
+      const appointment = findById(appointments, detail.appointmentId);
+      if (!appointment) {
+        issues.push(`order:${order.id}:missing-appointment:${detail.appointmentId}`);
+      } else if (order.scene === "care") {
+        if (appointment.userId !== order.userId) issues.push(`order:${order.id}:appointment-user-mismatch:${appointment.id}`);
+        const fulfillmentStoreId = detail.storeId ?? order.storeId;
+        if (fulfillmentStoreId && appointment.storeId !== fulfillmentStoreId) issues.push(`order:${order.id}:appointment-store-mismatch:${appointment.id}`);
+        if ((order.status === "completed" || detail.status === "completed") && appointment.status !== "completed") {
+          issues.push(`order:${order.id}:completed-care-order-requires-completed-appointment:${appointment.id}`);
+        }
+      }
+    }
   }
 
   for (const coupon of v02Coupons) {
