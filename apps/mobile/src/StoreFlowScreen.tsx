@@ -22,6 +22,7 @@ type StoreStep = "stores" | "browse" | "product" | "cart" | "legacyConfirm" | "l
 type CartState = Record<string, Record<string, number>>;
 
 const pickupRedemption = findById(redemptions, CORE_DEMO_IDS.pickupRedemption)!;
+const cartStorageKey = `local-life:${coreDemoUser.id}:convenience-carts`;
 const availabilityStatusLabels: Record<ProductAvailability["status"], string> = {
   available: "现货",
   low_stock: "库存紧张",
@@ -36,6 +37,29 @@ function buildInitialCarts(): CartState {
       Object.fromEntries(cart.items.map((item) => [item.productId, item.quantity])),
     ]),
   );
+}
+
+function loadPersistedCarts(): CartState {
+  const fallback = buildInitialCarts();
+  if (typeof window === "undefined") return fallback;
+  try {
+    const raw = window.sessionStorage.getItem(cartStorageKey);
+    if (!raw) return fallback;
+    const parsed = JSON.parse(raw) as unknown;
+    if (!parsed || typeof parsed !== "object" || Array.isArray(parsed)) return fallback;
+    return parsed as CartState;
+  } catch {
+    return fallback;
+  }
+}
+
+function persistCarts(carts: CartState) {
+  if (typeof window === "undefined") return;
+  try {
+    window.sessionStorage.setItem(cartStorageKey, JSON.stringify(carts));
+  } catch {
+    // Prototype storage is best-effort; the in-memory cart still works when storage is unavailable.
+  }
 }
 
 function getEffectivePrice(product: Product, availability?: ProductAvailability) {
@@ -71,7 +95,7 @@ export function StoreFlowScreen({ openActivity, entryContext }: StoreFlowScreenP
   const [selectedProductId, setSelectedProductId] = useState(initialProductId);
   const [query, setQuery] = useState("");
   const [category, setCategory] = useState("全部");
-  const [carts, setCarts] = useState<CartState>(buildInitialCarts);
+  const [carts, setCarts] = useState<CartState>(loadPersistedCarts);
   const [checkoutHandoffVisible, setCheckoutHandoffVisible] = useState(false);
 
   const selectedStore = selectedStoreId ? findById(offlineStores, selectedStoreId) : undefined;
@@ -121,11 +145,20 @@ export function StoreFlowScreen({ openActivity, entryContext }: StoreFlowScreenP
     goStep("product");
   };
 
+  const commitCarts = (updater: (current: CartState) => CartState) => {
+    setCheckoutHandoffVisible(false);
+    setCarts((current) => {
+      const next = updater(current);
+      persistCarts(next);
+      return next;
+    });
+  };
+
   const updateQuantity = (productId: string, delta: number) => {
     if (!selectedStore) return;
     const availability = availabilityByProductId.get(productId);
     if (delta > 0 && (!isOrderable(availability) || selectedStore.status !== "open")) return;
-    setCarts((current) => {
+    commitCarts((current) => {
       const storeCart = { ...(current[selectedStore.id] ?? {}) };
       const nextQuantity = Math.max(0, (storeCart[productId] ?? 0) + delta);
       if (nextQuantity === 0) delete storeCart[productId];
@@ -136,7 +169,7 @@ export function StoreFlowScreen({ openActivity, entryContext }: StoreFlowScreenP
 
   const removeFromCart = (productId: string) => {
     if (!selectedStore) return;
-    setCarts((current) => {
+    commitCarts((current) => {
       const storeCart = { ...(current[selectedStore.id] ?? {}) };
       delete storeCart[productId];
       return { ...current, [selectedStore.id]: storeCart };
@@ -248,18 +281,20 @@ export function StoreFlowScreen({ openActivity, entryContext }: StoreFlowScreenP
           ))}
         </div>
 
-        <button type="button" onClick={openActivity} className="w-full text-left" aria-label="查看便利店活动">
-          <Card className="border-[var(--color-primary)] bg-[var(--color-brand-subtle)] p-4">
-            <div className="flex items-start justify-between gap-3">
-              <div>
-                <p className="text-xs font-semibold text-[var(--color-primary-pressed)]">本店推荐 · mock 活动位</p>
-                <p className="mt-2 font-semibold">早八能量补给</p>
-                <p className="mt-1 text-sm leading-6 text-[var(--color-text-secondary)]">咖啡、鲜食与气泡水放在同一条高频浏览动线上，具体优惠仍以 fixture 标签为准。</p>
+        {selectedStore.id === coreDemoStore.id && (
+          <button type="button" onClick={openActivity} className="w-full text-left" aria-label="查看便利店活动">
+            <Card className="border-[var(--color-primary)] bg-[var(--color-brand-subtle)] p-4">
+              <div className="flex items-start justify-between gap-3">
+                <div>
+                  <p className="text-xs font-semibold text-[var(--color-primary-pressed)]">本店推荐 · mock 活动位</p>
+                  <p className="mt-2 font-semibold">早八能量补给</p>
+                  <p className="mt-1 text-sm leading-6 text-[var(--color-text-secondary)]">咖啡、鲜食与气泡水放在同一条高频浏览动线上，具体优惠仍以 fixture 标签为准。</p>
+                </div>
+                <span className="text-[var(--color-primary)]" aria-hidden="true">›</span>
               </div>
-              <span className="text-[var(--color-primary)]" aria-hidden="true">›</span>
-            </div>
-          </Card>
-        </button>
+            </Card>
+          </button>
+        )}
 
         <Section title="本店商品">
           <div className="space-y-3">
