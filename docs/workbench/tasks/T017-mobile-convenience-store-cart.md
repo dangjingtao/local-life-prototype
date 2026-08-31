@@ -1,6 +1,6 @@
 # T017 · Mobile 便利店门店页、商品浏览与独立购物车
 
-- Status: PASS
+- Status: REVIEW
 - Target version: 0.2.0
 - Impact: Mobile / Shared
 - Owner: -
@@ -59,14 +59,15 @@ V0.2 要把便利店从概念商品页升级为成熟即时零售体验，并明
 
 ## Verification evidence
 
-- CI: current-head Verify Prototype #178 success；T012 Browser Quality #35 success；Experimental OpenCode PR Review #56 success
+- Implementation head `a70e581`: Verify Prototype #178 success；T012 Browser Quality #35 success；Experimental OpenCode #56 success，verdict `NO_BLOCKING_FINDINGS`。
+- Bookkeeping head `753fcab`: Verify Prototype #182 success；T012 Browser Quality #39 success；OpenCode #60 明确未发现高置信代码缺陷，但因该 head 自行写入 PASS、同时引用上一 head 的 review 证据而给出 `HUMAN_CHECK_NEEDED`。
 - Page / Route: Mobile `便利店` 一级页，`/?demoAuth=1`
-- Screenshot / Browser result: Playwright 390px 覆盖 3 店差异、门店独立购物车切换保留、跨一级导航购物车保留、商品详情门店价 / 会员价 / 售罄、门店活动作用域、购物车金额摘要、cart mutation 后 checkout handoff 失效与 T018 handoff；完整 browser suite success
-- Other evidence: Codex 原 P1 / P2 / P2 三条 finding 均已修复、逐条回复并 resolve；OpenCode #56 在 head `a70e581c707710f827dfd413d83489111ad9002d` 给出 `NO_BLOCKING_FINDINGS`。
+- Browser result: Playwright 390px 覆盖 3 店差异、门店独立购物车切换保留、跨一级导航购物车保留、商品详情门店价 / 会员价 / 售罄、门店活动作用域、购物车金额摘要、cart mutation 后 checkout handoff 失效与 T018 handoff；完整 browser suite success。
+- Other evidence: Codex 原 P1 / P2 / P2 三条 finding 均已修复、逐条回复并 resolve。
 
 ## Review
 
 - Reviewer: Codex + Experimental OpenCode PR Review
-- Result: PASS
-- Conclusion: Codex 提出的购物车跨一级导航丢失、checkout handoff 陈旧、门店活动作用域错误均已修复并新增回归测试；最新实现 head 的 Verify / Browser 全绿，OpenCode 给出 `NO_BLOCKING_FINDINGS`。依据用户对 T017“review 接受后合并”的明确授权，本卡通过验收。
-- Follow-up: 文档状态提交后仅再校验最终 head 的 CI 与 head-matched OpenCode；无新增阻塞 finding 即合入 `dev`，T018 可在 T017 合并后继续施工。
+- Result: REVIEW
+- Conclusion: 功能代码已修复并通过 browser / build / typecheck；当前只剩评审证据与任务状态的时序问题。为避免用“上一 head 的通过”自证“当前 PASS head”，本 PR 在合并前保持 REVIEW。
+- Follow-up: 本次 REVIEW 状态提交形成最终候选 head；要求该 head 的 Verify / Browser 全绿且 OpenCode metadata 精确匹配并给出 `NO_BLOCKING_FINDINGS`。满足后依据用户“review 接受后合并”的明确授权合入 `dev`；合并完成后再在 `dev` 记录 T017 PASS 与最终 merge 证据。
