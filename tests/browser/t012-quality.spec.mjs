@@ -93,7 +93,7 @@ async function expectCoreContrast(page) {
 
 async function openMobile(page) {
   await page.goto(`${MOBILE}/?demoAuth=1`);
-  await expect(page.getByText(/统一用户 ID/).first()).toBeVisible();
+  await expect(page.getByRole("navigation", { name: "一级导航" })).toBeVisible();
 }
 
 async function mobileTab(page, label) {
