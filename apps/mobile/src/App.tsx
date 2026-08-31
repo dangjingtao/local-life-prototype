@@ -2,7 +2,7 @@ import { useState } from "react";
 import { Button, Card, SecondaryButton, StatusTag } from "@prototype/design-system";
 import { PrototypeIcon, type PrototypeIconName } from "@prototype/icons";
 import { getPrototypeView, PrototypePanel, PrototypeState } from "@prototype/runtime";
-import { coreDemoUser, membershipLevelLabels } from "@prototype/shared";
+import { careProjects, coreDemoUser, membershipLevelLabels } from "@prototype/shared";
 import { CampaignActivityScreen } from "./CampaignActivityScreen";
 import { CareFlowScreen } from "./CareFlowScreen";
 import { GlobalSearchScreen, type SearchBusinessHandoff } from "./GlobalSearchScreen";
@@ -71,6 +71,17 @@ function SearchHandoffBanner({ handoff }: { handoff: SearchBusinessHandoff }) {
       <p className="mt-3 text-xs leading-5 text-[var(--color-text-tertiary)]">已保留实体 {handoff.entityId}；对应业务流程会继续消费该上下文，而不只展示定位提示。</p>
     </Card>
   );
+}
+
+function isResolvedCareHandoff(handoff: SearchBusinessHandoff | null) {
+  if (!handoff || handoff.domain !== "care") return false;
+  if (handoff.entityType === "care_project") {
+    return careProjects.some((item) => item.id === handoff.entityId);
+  }
+  if (handoff.entityType === "service") {
+    return careProjects.some((item) => item.serviceId === handoff.entityId);
+  }
+  return false;
 }
 
 export function App() {
@@ -195,8 +206,11 @@ export function App() {
           )}
           {screen === "care" && (
             <>
-              {searchHandoff?.domain === "care" && <SearchHandoffBanner handoff={searchHandoff} />}
-              <CareFlowScreen />
+              {searchHandoff?.domain === "care" && isResolvedCareHandoff(searchHandoff) && <SearchHandoffBanner handoff={searchHandoff} />}
+              <CareFlowScreen
+                key={searchHandoff?.domain === "care" ? `${searchHandoff.entityType}:${searchHandoff.entityId}` : "care-default"}
+                entryContext={searchHandoff?.domain === "care" ? searchHandoff : undefined}
+              />
             </>
           )}
           {screen === "me" && <MembershipCenterScreen />}
