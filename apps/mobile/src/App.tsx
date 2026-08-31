@@ -2,11 +2,11 @@ import { useState } from "react";
 import { Button, Card, SecondaryButton, StatusTag } from "@prototype/design-system";
 import { PrototypeIcon, type PrototypeIconName } from "@prototype/icons";
 import { getPrototypeView, PrototypePanel, PrototypeState } from "@prototype/runtime";
-import { coreDemoUser, membershipLevelLabels } from "@prototype/shared";
+import { careProjects, coreDemoUser, membershipLevelLabels } from "@prototype/shared";
 import { CampaignActivityScreen } from "./CampaignActivityScreen";
 import { CareFlowScreen } from "./CareFlowScreen";
 import { GlobalSearchScreen, type SearchBusinessHandoff } from "./GlobalSearchScreen";
-import { MallFlowScreen } from "./MallFlowScreen";
+import { MallFlowScreen, type StorefrontCartState } from "./MallFlowScreen";
 import { MembershipCenterScreen } from "./MembershipCenterScreen";
 import { StoreFlowScreen } from "./StoreFlowScreen";
 import { V02HomeScreen } from "./V02HomeScreen";
@@ -68,9 +68,20 @@ function SearchHandoffBanner({ handoff }: { handoff: SearchBusinessHandoff }) {
         </div>
         <StatusTag tone="success">已定位</StatusTag>
       </div>
-      <p className="mt-3 text-xs leading-5 text-[var(--color-text-tertiary)]">搜索实体 {handoff.entityId} 已传入当前业务域；后续页面继续沿用同一实体上下文，不重新猜测用户意图。</p>
+      <p className="mt-3 text-xs leading-5 text-[var(--color-text-tertiary)]">已保留实体 {handoff.entityId}；对应业务流程会继续消费该上下文，而不只展示定位提示。</p>
     </Card>
   );
+}
+
+function isResolvedCareHandoff(handoff: SearchBusinessHandoff | null) {
+  if (!handoff || handoff.domain !== "care") return false;
+  if (handoff.entityType === "care_project") {
+    return careProjects.some((item) => item.id === handoff.entityId);
+  }
+  if (handoff.entityType === "service") {
+    return careProjects.some((item) => item.serviceId === handoff.entityId);
+  }
+  return false;
 }
 
 export function App() {
@@ -83,6 +94,7 @@ export function App() {
   const [searchPreset, setSearchPreset] = useState("");
   const [selectedCampaignId, setSelectedCampaignId] = useState<string | null>(null);
   const [searchHandoff, setSearchHandoff] = useState<SearchBusinessHandoff | null>(null);
+  const [mallCarts, setMallCarts] = useState<StorefrontCartState>({});
 
   const activeTab: Tab = screen === "search" || screen === "activity" ? "home" : screen;
   const title = screen === "search"
@@ -185,12 +197,16 @@ export function App() {
           {screen === "mall" && (
             <>
               {searchHandoff?.domain === "mall" && <SearchHandoffBanner handoff={searchHandoff} />}
-              <MallFlowScreen />
+              <MallFlowScreen
+                entryContext={searchHandoff?.domain === "mall" ? searchHandoff : undefined}
+                carts={mallCarts}
+                setCarts={setMallCarts}
+              />
             </>
           )}
           {screen === "care" && (
             <>
-              {searchHandoff?.domain === "care" && <SearchHandoffBanner handoff={searchHandoff} />}
+              {searchHandoff?.domain === "care" && isResolvedCareHandoff(searchHandoff) && <SearchHandoffBanner handoff={searchHandoff} />}
               <CareFlowScreen
                 key={searchHandoff?.domain === "care" ? `${searchHandoff.entityType}:${searchHandoff.entityId}` : "care-default"}
                 entryContext={searchHandoff?.domain === "care" ? searchHandoff : undefined}
