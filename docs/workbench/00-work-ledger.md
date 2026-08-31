@@ -46,7 +46,7 @@
 | T012 | 关键状态、可访问性与原型质量 | QA / Shared | PASS | 0.1.0 | T003-T011 | PR #9 merge `5ddd6c6`；Verify #119、Browser Quality #9、OpenCode #47 success |
 | T013 | 跨端演示串联与 V0.1 验收准备 | Review / Docs | CANCELLED | 0.1.0 | T002-T012 | 被 2026-08-31 用户直接总体验收取代；不属于失败或 V0.2 阻塞 |
 | T014 | 实验性 PR AI Review | CI / Review | REVIEW | 0.1.0 | GitHub Actions、`OPENCODE_API_KEY` | 独立实验性 Review，不阻塞产品版本 |
-| T015 | V0.2 共享领域模型与 Mock Fixtures | Shared | TODO | 0.2.0 | V0.2 PRD | 门店 / 商品 / Storefront / Channel / 活动 / 订单 / 预约 / 报告共享数据基线 |
+| T015 | V0.2 共享领域模型与 Mock Fixtures | Shared | REVIEW | 0.2.0 | V0.2 PRD | PR #10；`Verify Prototype #151`、`T012 Browser Quality #10` success；等待人工验收 |
 | T016 | Mobile 运营首页、一级 IA 与全局搜索 | Mobile | TODO | 0.2.0 | T015 | 中高保真运营首页、多个虚拟活动、跨域搜索 |
 | T017 | Mobile 便利店门店页、商品浏览与独立购物车 | Mobile | TODO | 0.2.0 | T015、T016 | 先选店、门店独立购物车、成熟即时零售浏览体验 |
 | T018 | Mobile 便利店结算、自提与 3 公里短距配送 | Mobile | TODO | 0.2.0 | T017 | 自提时段、取货码、短配地址 / 范围、订单状态、权益结算 |
@@ -117,7 +117,7 @@ T018 与 T021 可并行。
 
 ## 下一步
 
-1. 首先施工 T015。
+1. 评审 T015；验收通过后改为 `PASS`。
 2. T015 稳定后施工 T016。
 3. T017 / T019 / T020 是第一批真正适合并行派发的业务卡。
 4. 不提前启动依赖未稳定的 PC 或总验收卡，以减少返工和并行竞态。
