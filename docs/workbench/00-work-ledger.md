@@ -48,7 +48,7 @@
 | T014 | 实验性 PR AI Review | CI / Review | REVIEW | 0.1.0 | GitHub Actions、`OPENCODE_API_KEY` | 独立实验性 Review，不阻塞产品版本 |
 | T015 | V0.2 共享领域模型与 Mock Fixtures | Shared | REVIEW | 0.2.0 | V0.2 PRD | PR #10 已合入 `dev`；其验收状态由对应任务卡 / 线程维护 |
 | T016 | Mobile 运营首页、一级 IA 与全局搜索 | Mobile | REVIEW | 0.2.0 | T015 | PR #11 已合入 `dev`；其验收状态由对应任务卡 / 线程维护 |
-| T017 | Mobile 便利店门店页、商品浏览与独立购物车 | Mobile | REVIEW | 0.2.0 | T015、T016 | PR #12；`95013eb` 修复 Codex P1/P2/P2；实现 head `a70e581` 的 Verify #178、Browser #35、OpenCode #56 success / `NO_BLOCKING_FINDINGS`；PASS 记账 head `753fcab` 的 Verify #182、Browser #39 success，OpenCode #60 仅因 PASS 证据时序给出 `HUMAN_CHECK_NEEDED`，故回退 REVIEW 后再做最终 head 校验 |
+| T017 | Mobile 便利店门店页、商品浏览与独立购物车 | Mobile | PASS | 0.2.0 | T015、T016 | PR #12 merge `29d6232`；最终 head `cf0b6e8` 的 Verify #191、Browser #48、OpenCode #69 success / `NO_BLOCKING_FINDINGS`；Codex P1/P2/P2 全部修复并 resolve |
 | T018 | Mobile 便利店结算、自提与 3 公里短距配送 | Mobile | TODO | 0.2.0 | T017 | 自提时段、取货码、短配地址 / 范围、订单状态、权益结算 |
 | T019 | Mobile 线上商城中高保真购买闭环 | Mobile | PASS | 0.2.0 | T015、T016 | PR #13 merge `c9aa08342e81199934feff95be5045d925c38ea6`；Verify #187、Browser Quality #44、OpenCode #65 success；Codex 最终重审无 major issues；2026-08-31 用户验收通过 |
 | T020 | Mobile 智慧抗衰项目、预约与二维码核销 | Mobile | TODO | 0.2.0 | T015、T016 | 项目 → 门店 → 时段 → 预约码 → 核销 → 检测完成 |
@@ -117,7 +117,6 @@ T018 与 T021 可并行。
 
 ## 下一步
 
-1. PR #12 当前保持 REVIEW；最终候选 head 必须取得 Verify / Browser success 与 head-matched OpenCode `NO_BLOCKING_FINDINGS`。
-2. 满足门禁后依据用户明确授权合入 `dev`，随后在 `dev` 记录 T017 PASS 与最终 merge 证据。
-3. T018 在 T017 合入后承接便利店结算、自提与 3 公里短距配送。
-4. T019 / T020 继续按 Wave 1 并行推进；对应 Mobile 业务语义稳定后再启动 PC 后台与总验收卡。
+1. T017 已 PASS 并合入 `dev`；T018 可直接承接便利店结算、自提与 3 公里短距配送。
+2. T019 已 PASS；T020 继续按 Wave 1 推进，后续对应 Mobile 业务语义稳定后再启动 PC 后台与总验收卡。
+3. T015 / T016 已合入 `dev`，其最终验收状态由各自任务线程继续维护，不反向阻塞已完成的 T017 / T019 代码基线。
