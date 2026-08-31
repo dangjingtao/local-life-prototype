@@ -50,6 +50,32 @@ test.describe("T017 · Mobile convenience store browsing and independent cart", 
     await expectNoHorizontalOverflow(page);
   });
 
+  test("cart edits survive leaving the store tab and returning", async ({ page }) => {
+    await openConvenience(page);
+    await page.getByRole("button", { name: "选择门店：云岭社区店" }).click();
+    await page.getByRole("button", { name: "加入购物车：青柠气泡水" }).click();
+    await expect(page.getByRole("button", { name: /打开购物车，4 件商品/ })).toBeVisible();
+
+    const navigation = page.getByRole("navigation", { name: "一级导航" });
+    await navigation.getByRole("button", { name: "首页", exact: true }).click();
+    await navigation.getByRole("button", { name: "便利店", exact: true }).click();
+
+    const yunling = page.getByRole("button", { name: "选择门店：云岭社区店" });
+    await expect(yunling).toContainText("4 件已在购物车");
+    await yunling.click();
+    await expect(page.getByRole("button", { name: /打开购物车，4 件商品/ })).toBeVisible();
+  });
+
+  test("featured convenience campaign is scoped to the configured store", async ({ page }) => {
+    await openConvenience(page);
+    await page.getByRole("button", { name: "选择门店：云岭社区店" }).click();
+    await expect(page.getByRole("button", { name: "查看便利店活动" })).toContainText("早八能量补给");
+
+    await page.getByRole("button", { name: "切换门店" }).click();
+    await page.getByRole("button", { name: "选择门店：南岸生活馆" }).click();
+    await expect(page.getByRole("button", { name: "查看便利店活动" })).toHaveCount(0);
+  });
+
   test("product detail uses the selected store price, member price and sellable state", async ({ page }) => {
     await openConvenience(page);
     await page.getByRole("button", { name: "选择门店：云岭社区店" }).click();
@@ -77,5 +103,17 @@ test.describe("T017 · Mobile convenience store browsing and independent cart", 
     await expect(page.getByRole("status")).toContainText("T018");
     await expect(page.getByRole("status")).toContainText("云岭社区店");
     await expectNoHorizontalOverflow(page);
+  });
+
+  test("checkout handoff is invalidated when the cart changes", async ({ page }) => {
+    await openConvenience(page);
+    await page.getByRole("button", { name: "选择门店：云岭社区店" }).click();
+    await page.getByRole("button", { name: /打开购物车，3 件商品/ }).click();
+    await page.getByRole("button", { name: "去结算" }).click();
+    await expect(page.getByRole("status")).toBeVisible();
+
+    await page.getByRole("button", { name: "增加燕麦拿铁" }).click();
+    await expect(page.getByRole("status")).toHaveCount(0);
+    await expect(page.getByText("商品件数").locator("xpath=following-sibling::*[1]")).toHaveText("4 件");
   });
 });
