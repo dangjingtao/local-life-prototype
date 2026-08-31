@@ -1,6 +1,6 @@
 # T009 · PC 店主与合作商工作台
 
-- Status: REVIEW
+- Status: PASS
 - Target version: 0.1.0
 - Impact: PC / Shared
 - Owner: Mira
@@ -34,7 +34,7 @@
 - [x] 店主可从概览进入自提或服务核销。
 - [x] LL-1024 等演示订单与用户端信息一致。
 - [x] 越权场景可触发 permission 表达。
-- [ ] 1440px 与 1024px 完成视觉检查。
+- [x] 1440px 与 1024px 完成视觉检查。
 - [x] `npm run build:pc` 通过。
 
 ## Risks / Dependencies
@@ -52,12 +52,16 @@
 
 - CI: GitHub Actions `Verify Prototype #14`（run `33135084616`）success；版本合同、全仓 typecheck、全仓 build 均通过。
 - Page / Route: PC 根页面 `?role=merchant`；工作台可进入“订单与核销”“门店用户”；`?role=merchant&view=permission` 可验证越权表达。
-- Screenshot / Browser result: 当前执行环境无法完成 1440px / 1024px 浏览器视觉检查，留待 Review 补证。
+- Screenshot / Browser result: 1024px / 1440px 视觉、角色权限与五态质量检查由 T012 PR #9 的真实 Chromium 审计统一完成，并由用户明确验收通过。
 - Other evidence: `LL-8888` / `LL-1024` / `STORE-YUNLING` / `REDEEM-LL-1024` 继续复用 T002/T004 数据链；新增 `REDEEM-EXPERIENCE-8888-01` 将同一用户的基础检测体验券与云岭社区店服务核销关联，供 T006 后续复用。
+
+## Status history
+
+- 2026-08-31 `REVIEW → PASS`：用户明确确认前置任务均验收通过；T012 PR #9 已补齐 1024px / 1440px 浏览器质量证据。
 
 ## Review
 
 - Reviewer: Tomz
-- Result: REVIEW
-- Conclusion: 施工与自动验证已完成，等待 1440px / 1024px 视觉复核与用户验收；未自动提升为 PASS。
-- Follow-up: 视觉确认后收口 T009；T006 实现时继续复用 `EXPERIENCE-8888-01` / `CARE-8888` 跨端凭证，不另造同义数据。
+- Result: PASS
+- Conclusion: 店主工作台、自提 / 服务核销、跨端凭证一致性、权限边界及最终 PC 浏览器质量验收均通过。
+- Follow-up: 无；由 T013 负责跨端演示串联。
