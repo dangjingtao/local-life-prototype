@@ -1,6 +1,6 @@
 # T007 · Mobile 会员、积分与权益中心
 
-- Status: REVIEW
+- Status: PASS
 - Target version: 0.1.0
 - Impact: Mobile / Shared
 - Owner: Mira
@@ -34,7 +34,7 @@
 - [x] 用户可查看积分、券、订单和报告入口。
 - [x] 至少一条积分获取与一条兑换状态变化可演示。
 - [x] 未确认规则明确标注为候选或待确认。
-- [ ] 完成 390px 视觉与交互检查（转入 T012 统一质量审计）。
+- [x] 完成 390px 视觉与交互检查（由 T012 统一质量审计完成）。
 - [x] `npm run build:mobile` / 全仓 Verify 对应 Mobile build 通过。
 
 ## Risks / Dependencies
@@ -57,12 +57,16 @@
 - CI: 最终 Head `161c513f7f169122ee84c9263da57787ae813b6e` 的 Verify Prototype #109（run `33162212350`）success；全仓 typecheck / build 通过。
 - AI Review: Experimental OpenCode PR Review #38（run `33162212398`）success；marked comment Head 与 `161c513` 一致，verdict `NO_BLOCKING_FINDINGS`。Codex replay P2 已返工并复核。
 - Page / Route: 登录后底部“我的” → 会员中心 → 积分 / 券 / 统一账号记录。
-- Screenshot / Browser result: 390px 实际浏览器检查转入 T012 统一执行，不在 T007 重复造一套验收流程。
+- Screenshot / Browser result: 390px、会员子视图 / replay / 券筛选状态恢复、触控、焦点与对比度由 T012 PR #9 统一完成真实 Chromium 审计，并由用户明确验收通过。
 - Other evidence: PR #8 已合入 `dev`，merge `3dca4ef`。
+
+## Status history
+
+- 2026-08-31 `REVIEW → PASS`：用户明确确认前置任务均验收通过；T012 PR #9 已补齐本卡最终浏览器质量证据。
 
 ## Review
 
 - Reviewer: Tomz
-- Result: REVIEW
-- Conclusion: T007 业务施工、CI 与独立代码 review 已完成并合入 `dev`；不再作为 T012 的“未施工前置”。390px、状态恢复、键盘焦点、触控目标和对比度由 T012 统一质量审计收口。
-- Follow-up: 等待 T012 浏览器质量证据；本卡不自动进入 `PASS`。
+- Result: PASS
+- Conclusion: T007 业务施工、CI、独立代码 review、390px 浏览器质量审计及用户最终验收均通过；Candidate / 待确认规则边界继续保留。
+- Follow-up: 无；由 T013 负责跨端演示串联。
