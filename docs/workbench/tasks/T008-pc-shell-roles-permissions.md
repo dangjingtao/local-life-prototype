@@ -1,6 +1,6 @@
 # T008 · PC 工作台框架、角色与权限
 
-- Status: REVIEW
+- Status: PASS
 - Target version: 0.1.0
 - Impact: PC / Shared
 - Owner: Mira
@@ -34,7 +34,7 @@ PC 端同时承载店主/合作商、平台运营和管理层，需要先建立�
 - [x] 三类角色入口与能力边界可理解。
 - [x] 店主视图不暴露其他门店明细。
 - [x] permission 状态提供明确原因与下一步。
-- [ ] 1440px 与 1024px 完成视觉检查。
+- [x] 1440px 与 1024px 完成视觉检查。
 - [x] `npm run build:pc` 通过。
 
 ## Risks / Dependencies
@@ -52,12 +52,16 @@ PC 端同时承载店主/合作商、平台运营和管理层，需要先建立�
 
 - CI: GitHub Actions `Verify Prototype #6`（run `33134308795`）success；版本合同、全仓 typecheck、全仓 build 均通过。
 - Page / Route: PC 根页面；`?role=merchant|operator|management`；`?view=permission`。
-- Screenshot / Browser result: 当前执行环境无法启动本地浏览器，1440px / 1024px 视觉检查留待 Review 补证。
+- Screenshot / Browser result: 1024px / 1440px 三角色、五态、横向溢出与焦点检查由 T012 PR #9 的真实 Chromium 审计统一完成，并由用户明确验收通过。
 - Other evidence: 已回读 `dev` 上的 PC 壳代码；店主导航不包含合作商/门店全量管理与驾驶舱，管理层仅保留只读驾驶舱入口。
+
+## Status history
+
+- 2026-08-31 `REVIEW → PASS`：用户明确确认前置任务均验收通过；T012 PR #9 已补齐 1024px / 1440px 浏览器质量证据。
 
 ## Review
 
 - Reviewer: Tomz
-- Result: REVIEW
-- Conclusion: 施工与自动验证已完成，等待 1440px / 1024px 视觉复核与用户验收；未自动提升为 PASS。
-- Follow-up: 视觉确认后可收口 T008，并解锁 T009-T011 的独立验收。
+- Result: PASS
+- Conclusion: 三类角色入口、权限边界、构建验证以及 1024px / 1440px 最终浏览器质量验收均通过。
+- Follow-up: 无；由 T013 负责跨端演示串联。
