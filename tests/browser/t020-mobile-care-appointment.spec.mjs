@@ -85,7 +85,7 @@ test.describe("T020 · Mobile 智慧抗衰预约与核销", () => {
     await openMobile(page);
     await page.getByRole("banner").getByRole("button", { name: "打开全局搜索" }).click();
     await page.getByLabel("全局搜索").fill("基础状态检测");
-    await page.getByRole("button", { name: "查看智慧抗衰结果：基础状态检测" }).click();
+    await page.getByRole("button", { name: "查看智慧抗衰结果：基础状态检测", exact: true }).click();
 
     await expect(page.getByText("来自全局搜索", { exact: true })).toBeVisible();
     await expect(page.getByRole("heading", { name: "基础状态检测" })).toBeVisible();
