@@ -62,7 +62,7 @@ test.describe("T016 · Mobile operations home and global search", () => {
     await expect(page.getByRole("button", { name: /线上商城结果：胶原蛋白肽饮/ })).toBeVisible();
 
     await search(page, "基础状态检测");
-    await expect(page.getByRole("button", { name: /智慧抗衰结果：基础状态检测/ })).toBeVisible();
+    await expect(page.getByRole("button", { name: "查看智慧抗衰结果：基础状态检测", exact: true })).toBeVisible();
 
     await search(page, "初秋");
     await expect(page.getByRole("button", { name: /活动结果：初秋轻生活计划/ })).toBeVisible();
