@@ -12,6 +12,7 @@ import {
   redemptions,
   stores,
 } from "@prototype/shared";
+import type { SearchBusinessHandoff } from "./GlobalSearchScreen";
 
 type StoreStep = "list" | "detail" | "confirm" | "voucher" | "success";
 
@@ -26,16 +27,26 @@ const storeProducts = products.filter((product) => product.scenes.includes("stor
 const corePickupProduct = findById(products, corePickupOrder.items[0].id) ?? storeProducts[0];
 const pickupRedemption = findById(redemptions, CORE_DEMO_IDS.pickupRedemption)!;
 
-export function StoreFlowScreen({ openActivity }: { openActivity: () => void }) {
-  const [step, setStep] = useState<StoreStep>("list");
-  const [selectedStoreId, setSelectedStoreId] = useState(coreDemoStore.id);
-  const [selectedProductId, setSelectedProductId] = useState(corePickupProduct?.id ?? "");
+interface StoreFlowScreenProps {
+  openActivity: () => void;
+  entryContext?: SearchBusinessHandoff;
+}
+
+export function StoreFlowScreen({ openActivity, entryContext }: StoreFlowScreenProps) {
+  const entryStoreId = entryContext?.storeId && stores.some((store) => store.id === entryContext.storeId)
+    ? entryContext.storeId
+    : undefined;
+  const entryProduct = entryContext?.entityId ? findById(products, entryContext.entityId) : undefined;
+  const [step, setStep] = useState<StoreStep>(entryStoreId ? "detail" : "list");
+  const [selectedStoreId, setSelectedStoreId] = useState(entryStoreId ?? coreDemoStore.id);
+  const [selectedProductId, setSelectedProductId] = useState(entryProduct?.id ?? corePickupProduct?.id ?? "");
 
   const selectedStore = findById(stores, selectedStoreId) ?? coreDemoStore;
   const selectedPartner = partners.find((partner) => partner.id === selectedStore.partnerId);
   const selectedProduct = findById(products, selectedProductId) ?? corePickupProduct;
   const selectedCarrier = selectedPartner ? carrierLabels[selectedPartner.carrierType] : "合作载体";
   const isCoreDemoStore = selectedStore.id === coreDemoStore.id;
+  const showingSearchContext = Boolean(entryContext?.storeId === selectedStore.id);
 
   const openStore = (storeId: string) => {
     setSelectedStoreId(storeId);
@@ -101,6 +112,19 @@ export function StoreFlowScreen({ openActivity }: { openActivity: () => void }) 
         <button type="button" onClick={() => goStep("list")} className="inline-flex min-h-[44px] items-center gap-2 text-sm font-medium text-[var(--color-text-secondary)]">
           <PrototypeIcon name="back" size={18} /> 返回门店列表
         </button>
+
+        {showingSearchContext && entryContext && (
+          <Card className="border-[var(--color-primary)] bg-[var(--color-brand-subtle)] p-4">
+            <div className="flex items-start justify-between gap-3">
+              <div className="min-w-0">
+                <p className="text-xs font-semibold text-[var(--color-primary-pressed)]">来自全局搜索 · 门店上下文已保留</p>
+                <p className="mt-2 font-semibold">{entryContext.title}</p>
+                <p className="mt-1 text-sm leading-6 text-[var(--color-text-secondary)]">已锁定 {selectedStore.name}；商品实体 {entryContext.entityId} 将由 T017 的门店商品浏览 / 独立购物车继续承接。</p>
+              </div>
+              <StatusTag tone="success">已定位</StatusTag>
+            </div>
+          </Card>
+        )}
 
         <section className="rounded-[var(--radius-overlay)] bg-[var(--color-surface)] p-5">
           <div className="flex items-start justify-between gap-3">
