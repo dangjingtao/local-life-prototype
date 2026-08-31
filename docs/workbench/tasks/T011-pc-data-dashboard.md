@@ -1,6 +1,6 @@
 # T011 · PC 数据驾驶舱
 
-- Status: REVIEW
+- Status: PASS
 - Target version: 0.1.0
 - Impact: PC / Shared
 - Owner: Mira
@@ -34,8 +34,8 @@
 - [x] AC-007 所列指标均有可理解的展示。
 - [x] 三大场景可比较且模拟数值口径不冲突。
 - [x] 页面明确标注模拟数据、周期和待确认口径。
-- [ ] 1440px 与 1024px 完成视觉检查。
-- [x] `npm run build:pc` 通过（PR 首轮 Verify #74；返工后当前 Head 需再次通过 Verify）。
+- [x] 1440px 与 1024px 完成视觉检查。
+- [x] `npm run build:pc` 通过。
 
 ## Risks / Dependencies
 
@@ -51,15 +51,19 @@
 
 ## Verification evidence
 
-- CI: PR 首轮 `Verify Prototype #74`（run `33142887282`）success；版本合同、全仓 typecheck、全仓 build 均通过。返工 push 后等待当前 Head 的新一轮 Verify。
-- AI Review: 首轮 `Experimental OpenCode PR Review #8`（run `33142887276`）success，Head `d2e639f3fb45fd4ee9110c458e7a0e25a7b35a98`，verdict `CHANGES_NEEDED`；高置信 P2 为店主端角色切换仍渲染旧 T011 placeholder。另有 Codex P2 指出任务卡 DOING 与总台账 TODO 不一致。两项均判定成立并返工。
+- CI: PR 首轮 `Verify Prototype #74`（run `33142887282`）success；返工 Head 后续 Verify #77 success 并已合入 `dev`。
+- AI Review: 首轮 `Experimental OpenCode PR Review #8` verdict `CHANGES_NEEDED`；高置信角色切换 P2 与台账状态 P2 均完成返工，最终 marked OpenCode review 为 `NO_BLOCKING_FINDINGS`。
 - Page / Route: `?role=management`; `?role=management&view=permission`；从 `?role=merchant` 切换平台运营 / 平台管理层会进入对应独立控制台。
-- Screenshot / Browser result: 当前执行环境尚未形成 1440px / 1024px 浏览器视觉证据，留待 Review 补证。
+- Screenshot / Browser result: 1024px / 1440px 三角色、五态、驾驶舱横向溢出与布局质量由 T012 PR #9 的真实 Chromium 审计统一完成，并由用户明确验收通过。
 - Other evidence: 样本趋势只按现有订单 `createdAt` 聚合；区域覆盖只使用合作商 `region` 字段，不伪造地图坐标；会员、积分、券与核销均直接消费 `@prototype/shared`。
+
+## Status history
+
+- 2026-08-31 `REVIEW → PASS`：用户明确确认前置任务均验收通过；T012 PR #9 已补齐 1024px / 1440px 浏览器质量证据。
 
 ## Review
 
 - Reviewer: Tomz
-- Result: REVIEW
-- Conclusion: 首轮 AI Review 判定返工；高置信角色切换 P2 与台账状态 P2 已处理。等待返工 Head 的最新 marked review 与 Verify，若无新的阻塞 finding 则可合入 `dev`；1440px / 1024px 视觉复核仍阻止任务自动提升为 PASS。
-- Follow-up: 只接受 metadata Head SHA 与当前 PR Head 一致的 `local-ai-review:v1` comment；旧 review 作为历史证据保留。
+- Result: PASS
+- Conclusion: 返工后的角色切换与台账问题已闭环；驾驶舱信息结构、模拟数据边界、CI / AI review 以及 1024px / 1440px 最终浏览器质量验收均通过。
+- Follow-up: 无；由 T013 负责跨端演示串联。
