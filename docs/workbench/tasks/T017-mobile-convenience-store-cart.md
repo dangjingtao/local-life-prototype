@@ -1,6 +1,6 @@
 # T017 · Mobile 便利店门店页、商品浏览与独立购物车
 
-- Status: REVIEW
+- Status: PASS
 - Target version: 0.2.0
 - Impact: Mobile / Shared
 - Owner: -
@@ -46,13 +46,14 @@ V0.2 要把便利店从概念商品页升级为成熟即时零售体验，并明
 
 ## Risks / Dependencies
 
-- 前置：T015、T016；两张前置 PR 已合入 `dev`，PR #12 已同步最新 `dev` 并 retarget 到 `dev` 完成最终评审。
+- 前置：T015、T016；两张前置 PR 已合入 `dev`，PR #12 已同步最新 `dev` 并完成最终评审与合并。
 - 不得为了模拟成熟零售而引入 PRD 未确认的生产规则。
 - T018 继续承接自提时段、短配地址 / 范围、权益结算和订单状态；T017 不提前固化这些规则。
 
 ## Implementation record
 
-- Commit / PR: `7ec0614`（主体施工）、`95013eb`（AI Review 修复）、`0d7fbc8`（review 回归测试）、`a70e581`（同步已验收前置） / PR #12
+- Commit / PR: `7ec0614`（主体施工）、`95013eb`（AI Review 修复）、`0d7fbc8`（review 回归测试）、`a70e581`（同步已验收前置）、`cf0b6e8`（最终 REVIEW 候选） / PR #12
+- Merge: `29d6232f8b36700383cd655b5751028c738f5b0f` → `dev`
 - Changed paths: `apps/mobile/src/StoreFlowScreen.tsx`；`tests/browser/t017-mobile-convenience-cart.spec.mjs`；`tests/browser/t016-mobile-home-search.spec.mjs`
 - Notes: 基于 T015 的门店 / 商品可售 / 独立购物车 fixtures；保留 V0.1 已验收自提码深流程作为 T012 回归入口；“去结算”只形成 T018 handoff，不提前固化配送、时段、费用或支付规则。
 - Review fixes: 购物车编辑通过 sessionStorage 在一级导航卸载 / 重挂后保留；购物车变更会使旧 checkout handoff 失效；“早八能量补给”仅在其配置门店云岭社区店展示。
@@ -60,14 +61,15 @@ V0.2 要把便利店从概念商品页升级为成熟即时零售体验，并明
 ## Verification evidence
 
 - Implementation head `a70e581`: Verify Prototype #178 success；T012 Browser Quality #35 success；Experimental OpenCode #56 success，verdict `NO_BLOCKING_FINDINGS`。
-- Bookkeeping head `753fcab`: Verify Prototype #182 success；T012 Browser Quality #39 success；OpenCode #60 明确未发现高置信代码缺陷，但因该 head 自行写入 PASS、同时引用上一 head 的 review 证据而给出 `HUMAN_CHECK_NEEDED`。
+- Bookkeeping head `753fcab`: Verify Prototype #182 success；T012 Browser Quality #39 success；OpenCode #60 明确未发现高置信代码缺陷，但正确指出 PASS 证据存在 head 时序自指问题，因此状态回退 REVIEW 后重新形成最终候选。
+- Final candidate head `cf0b6e8`: Verify Prototype #191 success；T012 Browser Quality #48 success；Experimental OpenCode #69 success，metadata 精确匹配当前 head，verdict `NO_BLOCKING_FINDINGS`。
 - Page / Route: Mobile `便利店` 一级页，`/?demoAuth=1`
 - Browser result: Playwright 390px 覆盖 3 店差异、门店独立购物车切换保留、跨一级导航购物车保留、商品详情门店价 / 会员价 / 售罄、门店活动作用域、购物车金额摘要、cart mutation 后 checkout handoff 失效与 T018 handoff；完整 browser suite success。
-- Other evidence: Codex 原 P1 / P2 / P2 三条 finding 均已修复、逐条回复并 resolve。
+- Other evidence: Codex 原 P1 / P2 / P2 三条 finding 均已修复、逐条回复并 resolve；PR #12 在无未解决阻塞 finding 的条件下合入 `dev`。
 
 ## Review
 
 - Reviewer: Codex + Experimental OpenCode PR Review
-- Result: REVIEW
-- Conclusion: 功能代码已修复并通过 browser / build / typecheck；当前只剩评审证据与任务状态的时序问题。为避免用“上一 head 的通过”自证“当前 PASS head”，本 PR 在合并前保持 REVIEW。
-- Follow-up: 本次 REVIEW 状态提交形成最终候选 head；要求该 head 的 Verify / Browser 全绿且 OpenCode metadata 精确匹配并给出 `NO_BLOCKING_FINDINGS`。满足后依据用户“review 接受后合并”的明确授权合入 `dev`；合并完成后再在 `dev` 记录 T017 PASS 与最终 merge 证据。
+- Result: PASS
+- Conclusion: 最终候选 head `cf0b6e8` 的 Verify #191、Browser #48、OpenCode #69 均通过，OpenCode 给出 head-matched `NO_BLOCKING_FINDINGS`；所有 Codex review thread 已解决。依据用户“无事发生就合并，否则修改”的明确授权，PR #12 已合入 `dev`，merge SHA `29d6232`。
+- Follow-up: T018 可基于已稳定的 T017 购物车上下文继续施工便利店结算、自提与约 3 公里短距配送。
