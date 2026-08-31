@@ -9,4 +9,5 @@ export interface PrototypeMeta {
 export * from "./domain";
 export * from "./fixtures";
 export * from "./pc-access";
+export * from "./search";
 export * from "./selectors";
