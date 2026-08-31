@@ -12,10 +12,19 @@ import {
 type SearchFilter = "all" | GlobalSearchDomain;
 type BusinessDomain = "store" | "mall" | "care";
 
+export interface SearchBusinessHandoff {
+  domain: BusinessDomain;
+  entityId: string;
+  entityType: GlobalSearchResult["entityType"];
+  title: string;
+  subtitle: string;
+  storeId?: string;
+}
+
 interface GlobalSearchScreenProps {
   initialQuery?: string;
   onBack: () => void;
-  onOpenDomain: (domain: BusinessDomain) => void;
+  onOpenBusiness: (handoff: SearchBusinessHandoff) => void;
   onOpenCampaign: (campaignId: string) => void;
 }
 
@@ -54,7 +63,18 @@ function ResultCard({ result, onOpen }: { result: GlobalSearchResult; onOpen: ()
   );
 }
 
-export function GlobalSearchScreen({ initialQuery = "", onBack, onOpenDomain, onOpenCampaign }: GlobalSearchScreenProps) {
+function toHandoff(result: GlobalSearchResult, storeId?: string): SearchBusinessHandoff {
+  return {
+    domain: result.domain === "campaign" ? "mall" : result.domain,
+    entityId: result.entityId,
+    entityType: result.entityType,
+    title: result.title,
+    subtitle: result.subtitle,
+    storeId,
+  };
+}
+
+export function GlobalSearchScreen({ initialQuery = "", onBack, onOpenBusiness, onOpenCampaign }: GlobalSearchScreenProps) {
   const [query, setQuery] = useState(initialQuery);
   const [filter, setFilter] = useState<SearchFilter>("all");
   const [pendingStoreProduct, setPendingStoreProduct] = useState<GlobalSearchResult | null>(null);
@@ -79,7 +99,7 @@ export function GlobalSearchScreen({ initialQuery = "", onBack, onOpenDomain, on
       onOpenCampaign(result.entityId);
       return;
     }
-    onOpenDomain(result.domain);
+    onOpenBusiness(toHandoff(result));
   };
 
   if (pendingStoreProduct) {
@@ -131,7 +151,7 @@ export function GlobalSearchScreen({ initialQuery = "", onBack, onOpenDomain, on
             <p className="text-xs font-semibold text-[var(--color-primary-pressed)]">已确认门店上下文</p>
             <p className="mt-2 font-semibold">{selectedStore.storeName} · {pendingStoreProduct.title}</p>
             <p className="mt-1 text-sm leading-6 text-[var(--color-text-secondary)]">后续浏览与交易必须继续使用这家门店的可售、价格和履约语义；T017 将承接独立购物车。</p>
-            <button type="button" onClick={() => onOpenDomain("store")} className="mt-4 flex min-h-11 w-full items-center justify-center rounded-[var(--radius-control)] bg-[var(--color-primary)] px-4 text-sm font-medium text-[var(--color-on-primary)]">
+            <button type="button" onClick={() => onOpenBusiness(toHandoff(pendingStoreProduct, selectedStore.storeId))} className="mt-4 flex min-h-11 w-full items-center justify-center rounded-[var(--radius-control)] bg-[var(--color-primary)] px-4 text-sm font-medium text-[var(--color-on-primary)]">
               进入便利店
             </button>
           </Card>
