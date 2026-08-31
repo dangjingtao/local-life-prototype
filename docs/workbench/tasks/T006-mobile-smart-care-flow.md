@@ -1,6 +1,6 @@
 # T006 · Mobile 智慧抗衰体验闭环
 
-- Status: REVIEW
+- Status: PASS
 - Target version: 0.1.0
 - Impact: Mobile / Shared
 - Owner: Mira
@@ -34,14 +34,14 @@
 - [x] 体验主流程从专区入口连续到基础报告。
 - [x] 体验券、门店、核销和报告关联同一用户。
 - [x] 每个敏感能力均有清晰非医疗/未接入说明。
-- [ ] 完成 390px 视觉与交互检查。
+- [x] 完成 390px 视觉与交互检查。
 - [x] `npm run build:mobile` 通过。
 
 ## Risks / Dependencies
 
 - 前置：T002、T003。
 - 风险：命名和设备能力变化可能影响信息架构与文案。
-- T012 质量审计仍 outstanding；代码 review / build 不替代 390px、状态恢复与可访问性验证。
+- T012 已完成统一质量审计并由用户验收通过。
 
 ## Implementation record
 
@@ -53,12 +53,16 @@
 
 - CI: Head `73cfd96` 的 Verify Prototype #97（run `33158549306`）success。
 - Page / Route: Mobile → 抗衰 → 项目 → 体验券 → 云岭社区店 → 核销 → 基础体验 → 报告 → 护理权益。
-- Screenshot / Browser result: 390px 实际浏览器证据尚未完成。
+- Screenshot / Browser result: 最终 390px 视觉、交互、体验券核销深层状态恢复及可访问性由 T012 PR #9 的真实 Chromium 审计统一覆盖，并由用户明确验收通过。
 - Other evidence: OpenCode #27 `NO_BLOCKING_FINDINGS`；Codex P2 指出 T006 已存在但 T006/T012/ledger 未同步质量范围，复核成立并已返工。
+
+## Status history
+
+- 2026-08-31 `REVIEW → PASS`：用户明确确认前置任务均验收通过；T012 PR #9 已补齐 390px、状态恢复、触控、焦点与对比度质量证据。
 
 ## Review
 
 - Reviewer: Tomz
-- Result: REVIEW
-- Conclusion: 业务主链、统一用户/门店关联与非医疗边界已通过 CI 和首轮代码 review；T006 已登记为 T012 质量审计 outstanding。
-- Follow-up: 以文档返工后的最新 Head 完成 Verify / OpenCode / Codex 复审；390px 与 T012 质量验收完成前不自动 PASS。
+- Result: PASS
+- Conclusion: 业务主链、统一用户/门店关联、非医疗边界、CI / AI review 与最终浏览器质量验收均通过。
+- Follow-up: 无；由 T013 负责跨端演示串联。
