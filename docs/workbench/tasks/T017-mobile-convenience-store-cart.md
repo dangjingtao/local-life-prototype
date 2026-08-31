@@ -1,6 +1,6 @@
 # T017 · Mobile 便利店门店页、商品浏览与独立购物车
 
-- Status: REVIEW
+- Status: PASS
 - Target version: 0.2.0
 - Impact: Mobile / Shared
 - Owner: -
@@ -46,26 +46,27 @@ V0.2 要把便利店从概念商品页升级为成熟即时零售体验，并明
 
 ## Risks / Dependencies
 
-- 前置：T015、T016。
+- 前置：T015、T016；两张前置 PR 已合入 `dev`，PR #12 已同步最新 `dev` 并 retarget 到 `dev` 完成最终评审。
 - 不得为了模拟成熟零售而引入 PRD 未确认的生产规则。
-- 当前为 stacked PR：T015 / T016 尚未合入 `dev`，因此 PR #12 暂以 `task/T016-mobile-home-search` 为 base；项目 Experimental OpenCode PR Review 仅监听 `dev` base，需待前置合入后 retarget 再完成最终 review。
+- T018 继续承接自提时段、短配地址 / 范围、权益结算和订单状态；T017 不提前固化这些规则。
 
 ## Implementation record
 
-- Commit / PR: `7ec0614` / PR #12
+- Commit / PR: `7ec0614`（主体施工）、`95013eb`（AI Review 修复）、`0d7fbc8`（review 回归测试）、`a70e581`（同步已验收前置） / PR #12
 - Changed paths: `apps/mobile/src/StoreFlowScreen.tsx`；`tests/browser/t017-mobile-convenience-cart.spec.mjs`；`tests/browser/t016-mobile-home-search.spec.mjs`
 - Notes: 基于 T015 的门店 / 商品可售 / 独立购物车 fixtures；保留 V0.1 已验收自提码深流程作为 T012 回归入口；“去结算”只形成 T018 handoff，不提前固化配送、时段、费用或支付规则。
+- Review fixes: 购物车编辑通过 sessionStorage 在一级导航卸载 / 重挂后保留；购物车变更会使旧 checkout handoff 失效；“早八能量补给”仅在其配置门店云岭社区店展示。
 
 ## Verification evidence
 
-- CI: Verify Prototype #168 success；T012 Browser Quality #27 success
+- CI: current-head Verify Prototype #178 success；T012 Browser Quality #35 success；Experimental OpenCode PR Review #56 success
 - Page / Route: Mobile `便利店` 一级页，`/?demoAuth=1`
-- Screenshot / Browser result: Playwright 390px 覆盖 3 店差异、门店独立购物车切换保留、商品详情门店价 / 会员价 / 售罄、购物车金额摘要与 T018 handoff；完整 browser suite success
-- Other evidence: `npm run typecheck`、`npm run build` 均由 Verify Prototype #168 实际执行并通过；T016 全局搜索门店 + 商品 handoff 回归同步通过
+- Screenshot / Browser result: Playwright 390px 覆盖 3 店差异、门店独立购物车切换保留、跨一级导航购物车保留、商品详情门店价 / 会员价 / 售罄、门店活动作用域、购物车金额摘要、cart mutation 后 checkout handoff 失效与 T018 handoff；完整 browser suite success
+- Other evidence: Codex 原 P1 / P2 / P2 三条 finding 均已修复、逐条回复并 resolve；OpenCode #56 在 head `a70e581c707710f827dfd413d83489111ad9002d` 给出 `NO_BLOCKING_FINDINGS`。
 
 ## Review
 
-- Reviewer: Pending dev-base AI Review / human acceptance
-- Result: REVIEW
-- Conclusion: 施工与当前 CI / 390px browser 验证完成；因 stacked 前置尚未合入，尚未进入最终 dev-base OpenCode review，不自行标记 PASS。
-- Follow-up: T015 / T016 合入 `dev` 后 retarget PR #12 → `dev`；读取最新 review findings，必要时修复并重新验证；获得接受结论后再 PASS / merge。
+- Reviewer: Codex + Experimental OpenCode PR Review
+- Result: PASS
+- Conclusion: Codex 提出的购物车跨一级导航丢失、checkout handoff 陈旧、门店活动作用域错误均已修复并新增回归测试；最新实现 head 的 Verify / Browser 全绿，OpenCode 给出 `NO_BLOCKING_FINDINGS`。依据用户对 T017“review 接受后合并”的明确授权，本卡通过验收。
+- Follow-up: 文档状态提交后仅再校验最终 head 的 CI 与 head-matched OpenCode；无新增阻塞 finding 即合入 `dev`，T018 可在 T017 合并后继续施工。
