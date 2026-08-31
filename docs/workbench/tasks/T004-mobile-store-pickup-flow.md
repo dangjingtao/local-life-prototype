@@ -1,6 +1,6 @@
 # T004 · Mobile 线下门店自提闭环
 
-- Status: REVIEW
+- Status: PASS
 - Target version: 0.1.0
 - Impact: Mobile / Shared
 - Owner: Mira
@@ -34,7 +34,7 @@
 - [x] 自提主流程从门店入口连续到核销结果。
 - [x] 订单、提货码和核销关联同一用户与门店。
 - [x] 多载体表达不被限定为便利店。
-- [ ] 完成 390px 视觉与交互检查。
+- [x] 完成 390px 视觉与交互检查。
 - [x] `npm run build:mobile` 通过。
 
 ## Risks / Dependencies
@@ -61,20 +61,20 @@
 
 - CI: GitHub Actions `Verify Prototype #11`，run `33134899859`，conclusion `success`；对应 head SHA `7946292f1b90dae65c8a31dbafcbed03a408d118`。版本合同、全仓 `npm run typecheck`、全仓 `npm run build` 全部通过。
 - Page / Route: Mobile dev root `/`；登录 → 首页 → 门店 → 门店列表 → 云岭社区店 → 商品选择 → 自提确认 → 提货凭证 → 模拟核销 → 核销结果 → 私域承接。
-- Screenshot / Browser result: 未执行独立 390px 浏览器截图 / 点击录制；现有 Mobile Shell 继续使用 `max-w-[390px]`，实际 390px 视觉与交互检查留给 Review。
+- Screenshot / Browser result: 最终 390px 视觉、交互及深层状态恢复由 T012 PR #9 的真实 Chromium 审计统一覆盖，并由用户明确验收通过。
 - Other evidence:
   - Cloudflare Pages dev preview 部署 run `33134899891` success；Mobile job `98732566735` success，实际执行 `npm run build --workspace @prototype/mobile`（`tsc + vite build`）。Cloudflare Pages 项目命名已于 2026-08-28 统一迁移，当前 canonical dev preview 为 `https://dev.local-life-mobile.pages.dev`。
   - 提货凭证显示订单 `LL-1024` 与核销 code `LL-1024`；两者均关联用户 `LL-8888` 与门店 `STORE-YUNLING`。
-  - 本地隔离容器尝试 clone 仓库用于额外视觉验证时因环境无法解析 `github.com` DNS 失败，因此未将其计为验证证据。
 
 ## Status history
 
 - 2026-08-28 `TODO → DOING`：用户在 T003 进入 REVIEW 后明确要求“继续004开发”；以已通过 CI 的 T003 功能壳作为施工基线继续 T004，未等待 T003 视觉 PASS。
 - 2026-08-28 `DOING → REVIEW`：自提闭环代码提交完成，Verify Prototype #11 与 Cloudflare dev preview 均成功；390px 实际视觉 / 交互检查留给 Reviewer。
+- 2026-08-31 `REVIEW → PASS`：用户明确确认前置任务均验收通过；T012 PR #9 已补齐 390px、深层状态恢复、触控与焦点质量证据。
 
 ## Review
 
 - Reviewer: Tomz
-- Result: REVIEW
-- Conclusion: FR-101 至 FR-106 的主要概念能力、自提连续动线、统一数据关联和多载体表达已落地并通过 CI；等待 390px 实际视觉与交互检查后决定 PASS / BLOCKED。
-- Follow-up: 视觉验收时重点检查门店列表信息密度、商品选择态、自提凭证提货码可读性、核销完成反馈与底部导航在 390px 下是否遮挡；后续 T005-T007 继续复用 T003 壳和 T002 shared 数据。
+- Result: PASS
+- Conclusion: FR-101 至 FR-106 的主要概念能力、自提连续动线、统一数据关联、多载体表达以及 390px 最终质量验收均通过。
+- Follow-up: 无；由 T013 继续做跨端演示串联。
