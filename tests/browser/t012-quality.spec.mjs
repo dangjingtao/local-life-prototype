@@ -134,7 +134,7 @@ test.describe("T012 · 390px Mobile", () => {
 
   test("T004 store deep step survives empty → ready", async ({ page }) => {
     await openMobile(page);
-    await mobileTab(page, "门店");
+    await mobileTab(page, "便利店");
     await page.locator("main button").filter({ hasText: "核心演示门店" }).first().click();
     await page.getByRole("button", { name: "选择此门店自提" }).click();
     await page.getByRole("button", { name: "提交演示订单" }).click();
@@ -167,7 +167,7 @@ test.describe("T012 · 390px Mobile", () => {
 
   test("T006 care voucher state survives empty → ready", async ({ page }) => {
     await openMobile(page);
-    await mobileTab(page, "抗衰");
+    await mobileTab(page, "智慧抗衰");
     await page.getByRole("button", { name: "开始体验流程" }).click();
     await page.getByRole("button", { name: "查看体验券" }).click();
     await page.getByRole("button", { name: "使用体验券并选择门店" }).click();
