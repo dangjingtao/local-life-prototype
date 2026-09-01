@@ -1,17 +1,27 @@
-import { ArrowLeft, CheckCircle2, CircleAlert, CircleHelp, Home, LayoutGrid, Menu, Plus, Search, Settings, UserRound, X, type LucideProps } from "lucide-react";
+import { ArrowLeft, Calendar, CheckCircle2, ChevronRight, CircleAlert, CircleHelp, Clock, FileText, Gift, Home, LayoutGrid, Menu, Plus, RefreshCw, Search, Settings, ShieldCheck, Sparkles, Ticket, TrendingUp, UserRound, X, type LucideProps } from "lucide-react";
 
 const registry = {
   add: Plus,
   back: ArrowLeft,
+  calendar: Calendar,
+  chevron: ChevronRight,
+  clock: Clock,
   close: X,
+  coupon: Ticket,
+  gift: Gift,
   home: Home,
   info: CircleHelp,
   menu: Menu,
   modules: LayoutGrid,
   profile: UserRound,
+  repeat: RefreshCw,
+  report: FileText,
   search: Search,
   settings: Settings,
+  shield: ShieldCheck,
+  sparkles: Sparkles,
   success: CheckCircle2,
+  trend: TrendingUp,
   warning: CircleAlert
 } as const;
 

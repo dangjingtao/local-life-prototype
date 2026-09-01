@@ -22,6 +22,7 @@ type CareEntryContext = {
 
 interface CareFlowScreenProps {
   entryContext?: CareEntryContext;
+  onOpenReport?: (reportId: string) => void;
 }
 
 const DEMO_NOW = "2026-09-01T08:45:00+08:00";
@@ -112,7 +113,7 @@ function RelationGrid({ projectId, storeId, slotId }: { projectId: string; store
   );
 }
 
-export function CareFlowScreen({ entryContext }: CareFlowScreenProps) {
+export function CareFlowScreen({ entryContext, onOpenReport }: CareFlowScreenProps) {
   const entryProjectId = resolveEntryProjectId(entryContext);
   const [step, setStep] = useState<CareStep>(() => entryProjectId ? "project" : "zone");
   const [selectedProjectId, setSelectedProjectId] = useState(() => entryProjectId ?? careProjects[0]?.id ?? "");
@@ -585,13 +586,14 @@ export function CareFlowScreen({ entryContext }: CareFlowScreenProps) {
         <span className="flex h-12 w-12 items-center justify-center rounded-full bg-white/15"><PrototypeIcon name="success" size={25} /></span>
         <p className="mt-5 text-sm font-medium opacity-75">检测完成</p>
         <h2 className="mt-1 text-2xl font-semibold">本次到店流程已完成</h2>
-        <p className="mt-3 text-sm leading-6 opacity-80">预约 → 二维码 → 核销 → 检测完成已经串联。检测报告、护理建议、专属券、套餐与历史对比明确交给 T021。</p>
+        <p className="mt-3 text-sm leading-6 opacity-80">预约 → 二维码 → 核销 → 检测完成已经串联。报告已基于本次检测生成，可进入报告详情查看结果、护理建议、专属权益与历史对比。</p>
       </section>
+      <Button className="w-full" onClick={() => onOpenReport?.(CORE_DEMO_IDS.report)}>查看检测报告</Button>
+      {selectedStore && selectedSlot && <RelationGrid projectId={selectedProject.id} storeId={selectedStore.id} slotId={selectedSlot.id} />}
       <Card className="p-4">
         <p className="font-semibold">T021 handoff</p>
-        <p className="mt-2 text-sm leading-6 text-[var(--color-text-secondary)]">下一张卡会使用同一 User / Appointment / Detection Record 关系生成报告与后续转化。本卡不提前展示报告结论。</p>
+        <p className="mt-2 text-sm leading-6 text-[var(--color-text-secondary)]">报告页复用同一 User / Appointment / Detection Record 关系；本次会话生成的是新预约，历史报告与对比从 T015 fixtures 读取。</p>
       </Card>
-      {selectedStore && selectedSlot && <RelationGrid projectId={selectedProject.id} storeId={selectedStore.id} slotId={selectedSlot.id} />}
       <Button className="w-full" onClick={resetToZone}>返回智慧抗衰首页</Button>
     </>
   );

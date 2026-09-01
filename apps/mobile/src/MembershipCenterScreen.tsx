@@ -65,7 +65,11 @@ function ReplayCard({ title, text, state, action, secondary = false }: { title: 
   );
 }
 
-export function MembershipCenterScreen() {
+interface MembershipCenterScreenProps {
+  onOpenReports?: () => void;
+}
+
+export function MembershipCenterScreen({ onOpenReports }: MembershipCenterScreenProps) {
   const [view, setView] = useState<MemberView>("overview");
   const [couponStatus, setCouponStatus] = useState<CouponStatus>("available");
   const [earnReplay, setEarnReplay] = useState<ReplayState>("ready");
@@ -96,7 +100,7 @@ export function MembershipCenterScreen() {
         <Entry icon="success" title="积分中心" note="流水 · 获取 · 兑换状态" onClick={() => go("points")} />
         <Entry icon="modules" title="我的券" note="优惠券 · 体验券 · 状态" onClick={() => go("coupons")} />
         <Entry icon="home" title="我的订单" note="统一账号订单入口" onClick={() => go("records")} />
-        <Entry icon="info" title="检测报告" note="基础报告与核销入口" onClick={() => go("records")} />
+        <Entry icon="report" title="我的检测" note="历次报告 · 历史对比" onClick={() => onOpenReports?.()} />
       </div></Section>
       <Card><div className="flex flex-wrap gap-2">{prototypeRules.membershipLevels.value.map((level) => <StatusTag key={level} tone={level === coreDemoUser.member.level ? "success" : "neutral"}>{membershipLevelLabels[level]}</StatusTag>)}</div><p className="mt-3 text-xs leading-5 text-[var(--color-text-tertiary)]">等级名称为候选结构；升级门槛、倍率、保级与专属折扣均未确认。</p></Card>
       <Card className="bg-[var(--color-surface-subtle)]"><p className="font-medium">主动任务 · 能力占位</p><p className="mt-2 text-sm leading-6 text-[var(--color-text-secondary)]">“任务”是已建模的积分来源，但任务内容、奖励额度、频率与触发规则没有 fixture，因此不伪造可领取任务。</p></Card>

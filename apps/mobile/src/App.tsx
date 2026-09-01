@@ -5,6 +5,7 @@ import { getPrototypeView, PrototypePanel, PrototypeState } from "@prototype/run
 import { careProjects, coreDemoUser, membershipLevelLabels } from "@prototype/shared";
 import { CampaignActivityScreen } from "./CampaignActivityScreen";
 import { CareFlowScreen } from "./CareFlowScreen";
+import { CareReportScreen } from "./CareReportScreen";
 import { GlobalSearchScreen, type SearchBusinessHandoff } from "./GlobalSearchScreen";
 import { MallFlowScreen, type StorefrontCartState } from "./MallFlowScreen";
 import { MembershipCenterScreen } from "./MembershipCenterScreen";
@@ -12,7 +13,12 @@ import { StoreFlowScreen } from "./StoreFlowScreen";
 import { V02HomeScreen } from "./V02HomeScreen";
 
 type Tab = "home" | "store" | "mall" | "care" | "me";
-type Screen = Tab | "search" | "activity";
+type Screen = Tab | "search" | "activity" | "reports";
+
+type ReportEntry = {
+  reportId?: string;
+  back: "care" | "me";
+};
 
 type TabItem = {
   id: Tab;
@@ -95,13 +101,20 @@ export function App() {
   const [selectedCampaignId, setSelectedCampaignId] = useState<string | null>(null);
   const [searchHandoff, setSearchHandoff] = useState<SearchBusinessHandoff | null>(null);
   const [mallCarts, setMallCarts] = useState<StorefrontCartState>({});
+  const [reportEntry, setReportEntry] = useState<ReportEntry | null>(null);
 
-  const activeTab: Tab = screen === "search" || screen === "activity" ? "home" : screen;
+  const activeTab: Tab = screen === "search" || screen === "activity"
+    ? "home"
+    : screen === "reports"
+      ? (reportEntry?.back === "me" ? "me" : "care")
+      : screen;
   const title = screen === "search"
     ? "全局搜索"
     : screen === "activity"
       ? "活动中心"
-      : tabs.find((item) => item.id === activeTab)?.label ?? "首页";
+      : screen === "reports"
+        ? "我的检测"
+        : tabs.find((item) => item.id === activeTab)?.label ?? "首页";
 
   const scrollTop = () => window.scrollTo({ top: 0, behavior: "smooth" });
 
@@ -135,6 +148,17 @@ export function App() {
     setSearchHandoff(null);
     setSelectedCampaignId(null);
     setScreen("activity");
+    scrollTop();
+  };
+
+  const openReportsFromMe = () => {
+    setReportEntry({ back: "me" });
+    go("reports");
+  };
+
+  const openReportFromCare = (reportId: string) => {
+    setReportEntry({ reportId, back: "care" });
+    setScreen("reports");
     scrollTop();
   };
 
@@ -210,10 +234,18 @@ export function App() {
               <CareFlowScreen
                 key={searchHandoff?.domain === "care" ? `${searchHandoff.entityType}:${searchHandoff.entityId}` : "care-default"}
                 entryContext={searchHandoff?.domain === "care" ? searchHandoff : undefined}
+                onOpenReport={openReportFromCare}
               />
             </>
           )}
-          {screen === "me" && <MembershipCenterScreen />}
+          {screen === "me" && <MembershipCenterScreen onOpenReports={openReportsFromMe} />}
+          {screen === "reports" && (
+            <CareReportScreen
+              key={`${reportEntry?.back ?? "me"}:${reportEntry?.reportId ?? "list"}`}
+              entryReportId={reportEntry?.reportId}
+              onBack={() => go(reportEntry?.back === "care" ? "care" : "me")}
+            />
+          )}
           {screen === "activity" && (
             <CampaignActivityScreen
               campaignId={selectedCampaignId}
