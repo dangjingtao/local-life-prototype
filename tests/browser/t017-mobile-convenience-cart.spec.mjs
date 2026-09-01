@@ -93,27 +93,27 @@ test.describe("T017 · Mobile convenience store browsing and independent cart", 
     await expect(page.getByRole("button", { name: "加入购物车：燕麦拿铁" })).toBeDisabled();
   });
 
-  test("cart summarizes the selected store and hands checkout to T018 without inventing settlement rules", async ({ page }) => {
+  test("cart opens the T018 checkout with fulfillment selection without mixing carts", async ({ page }) => {
     await openConvenience(page);
     await page.getByRole("button", { name: "选择门店：云岭社区店" }).click();
     await page.getByRole("button", { name: /打开购物车，3 件商品/ }).click();
     await expect(page.getByRole("heading", { name: "门店独立购物车" })).toBeVisible();
     await expect(page.getByText("商品合计")).toBeVisible();
     await page.getByRole("button", { name: "去结算" }).click();
-    await expect(page.getByRole("status")).toContainText("T018");
-    await expect(page.getByRole("status")).toContainText("云岭社区店");
+    await expect(page.getByRole("heading", { name: "选择履约方式并确认订单" })).toBeVisible();
+    await expect(page.getByRole("button", { name: /到店自提/ })).toBeVisible();
+    await expect(page.getByRole("button", { name: /约 3 km 短配/ })).toBeVisible();
     await expectNoHorizontalOverflow(page);
   });
 
-  test("checkout handoff is invalidated when the cart changes", async ({ page }) => {
+  test("checkout stays scoped to the selected store cart", async ({ page }) => {
     await openConvenience(page);
     await page.getByRole("button", { name: "选择门店：云岭社区店" }).click();
     await page.getByRole("button", { name: /打开购物车，3 件商品/ }).click();
     await page.getByRole("button", { name: "去结算" }).click();
-    await expect(page.getByRole("status")).toBeVisible();
-
-    await page.getByRole("button", { name: "增加燕麦拿铁" }).click();
-    await expect(page.getByRole("status")).toHaveCount(0);
-    await expect(page.getByText("商品件数").locator("xpath=following-sibling::*[1]")).toHaveText("4 件");
+    await expect(page.getByText(/云岭社区店 · 结算/)).toBeVisible();
+    await expect(page.getByText(/不跨店、不与商城混单/)).toBeVisible();
+    await expect(page.getByText(/线上商城/)).toHaveCount(0);
+    await expectNoHorizontalOverflow(page);
   });
 });

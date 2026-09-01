@@ -1,4 +1,4 @@
-import type { Appointment, Campaign, CareAppointmentSlot, CareProject, Channel, ConvenienceCart, Coupon, DetectionRecord, DetectionReport, OfflineStore, OnlineStorefront, Order, Partner, PointLedgerEntry, Product, ProductAvailability, PrototypeRule, RedemptionRecord, Service, User } from "./domain";
+import type { Appointment, Campaign, CareAppointmentSlot, CareProject, Channel, ConvenienceCart, Coupon, DetectionRecord, DetectionReport, OfflineStore, OnlineStorefront, Order, Partner, PointLedgerEntry, Product, ProductAvailability, PrototypeRule, RedemptionRecord, Service, StoreDeliveryAddress, User } from "./domain";
 
 export const CORE_DEMO_IDS = {
   user: "LL-8888", partner: "PARTNER-YUNLING", store: "STORE-YUNLING", pickupOrder: "LL-1024",
@@ -71,6 +71,17 @@ export const productAvailability: ProductAvailability[] = [
 export const convenienceCarts: ConvenienceCart[] = [
   { id: "CART-8888-YUNLING", userId: CORE_DEMO_IDS.user, storeId: CORE_DEMO_IDS.store, items: [{ productId: "PRODUCT-OAT-LATTE", quantity: 2 }, { productId: "PRODUCT-EGG-SANDWICH", quantity: 1 }], updatedAt: "2026-08-31T11:20:00+08:00" },
   { id: "CART-8888-NANAN", userId: CORE_DEMO_IDS.user, storeId: "STORE-NANAN", items: [{ productId: "PRODUCT-CLEAN-SET", quantity: 1 }], updatedAt: "2026-08-31T09:05:00+08:00" },
+];
+
+// T018 delivery addresses: each entry is relative to one store and carries an estimated
+// straight-line distance so the settlement page can express an in-range / out-of-range
+// demo state without a real map or routing service.
+export const storeDeliveryAddresses: StoreDeliveryAddress[] = [
+  { id: "ADDR-YUNLING-HOME", userId: CORE_DEMO_IDS.user, storeId: CORE_DEMO_IDS.store, label: "家", recipient: "林女士", phone: "138****8899", address: "广州市天河区云岭路 12 号 802 房", distanceKm: 1.2 },
+  { id: "ADDR-YUNLING-OFFICE", userId: CORE_DEMO_IDS.user, storeId: CORE_DEMO_IDS.store, label: "公司", recipient: "林女士", phone: "138****8899", address: "广州市天河区珠江新城华夏路 30 号", distanceKm: 2.9 },
+  { id: "ADDR-YUNLING-FAR", userId: CORE_DEMO_IDS.user, storeId: CORE_DEMO_IDS.store, label: "郊外地址", recipient: "林女士", phone: "138****8899", address: "广州市白云区太和镇远郊路 1 号", distanceKm: 4.5 },
+  { id: "ADDR-NANAN-HOME", userId: CORE_DEMO_IDS.user, storeId: "STORE-NANAN", label: "家", recipient: "林女士", phone: "138****8899", address: "广州市海珠区滨江东路 188 号", distanceKm: 1.7 },
+  { id: "ADDR-NANAN-FAR", userId: CORE_DEMO_IDS.user, storeId: "STORE-NANAN", label: "超范围示例", recipient: "林女士", phone: "138****8899", address: "广州市番禺区市桥街示例路 66 号", distanceKm: 5.2 },
 ];
 
 export const careServices: Service[] = [
@@ -160,4 +171,4 @@ export const campaigns: Campaign[] = [
 ];
 
 export const demoFixtures = { users, partners, stores, products, services, orders, coupons, pointLedger, reports, redemptions, rules: prototypeRules } as const;
-export const v02Fixtures = { users, partners: businessPartners, stores: offlineStores, products: catalogProducts, productAvailability, convenienceCarts, services: careServices, channels, storefronts, campaigns, careProjects, appointmentSlots, appointments, orders: v02Orders, coupons: v02Coupons, pointLedger, detectionRecords, reports: detectionReports, redemptions, rules: prototypeRules } as const;
+export const v02Fixtures = { users, partners: businessPartners, stores: offlineStores, products: catalogProducts, productAvailability, convenienceCarts, deliveryAddresses: storeDeliveryAddresses, services: careServices, channels, storefronts, campaigns, careProjects, appointmentSlots, appointments, orders: v02Orders, coupons: v02Coupons, pointLedger, detectionRecords, reports: detectionReports, redemptions, rules: prototypeRules } as const;

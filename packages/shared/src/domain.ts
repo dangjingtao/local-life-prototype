@@ -144,6 +144,18 @@ export interface ConvenienceCart {
   updatedAt: string;
 }
 
+export interface StoreDeliveryAddress {
+  id: string;
+  userId: string;
+  storeId: string;
+  label: string;
+  recipient: string;
+  phone: string;
+  address: string;
+  /** Estimated straight-line distance from the store; drives the in/out-of-range demo state. */
+  distanceKm: number;
+}
+
 export interface Service {
   id: string;
   name: string;

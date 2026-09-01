@@ -7,10 +7,13 @@ import {
   coreDemoStore,
   coreDemoUser,
   corePickupOrder,
+  coreUserV02Coupons,
   findById,
   getStoreAvailability,
+  getStoreDeliveryAddresses,
   getStoreProducts,
   getUserConvenienceCarts,
+  isStoreDeliveryAddressInRange,
   offlineStores,
   redemptions,
   type Product,
@@ -18,8 +21,33 @@ import {
 } from "@prototype/shared";
 import type { SearchBusinessHandoff } from "./GlobalSearchScreen";
 
-type StoreStep = "stores" | "browse" | "product" | "cart" | "legacyConfirm" | "legacyVoucher" | "legacySuccess";
+type StoreStep = "stores" | "browse" | "product" | "cart" | "checkout" | "pickupOrder" | "deliveryOrder" | "legacyConfirm" | "legacyVoucher" | "legacySuccess";
+type FulfillmentMode = "pickup" | "short_delivery";
+type PickupStatus = "preparing" | "ready_for_pickup" | "completed";
+type DeliveryStatus = "preparing" | "delivering" | "completed";
 type CartState = Record<string, Record<string, number>>;
+
+type StoreOrderSnapshot = {
+  id: string;
+  storeId: string;
+  storeName: string;
+  mode: FulfillmentMode;
+  itemCount: number;
+  subtotalOriginal: number;
+  memberSavings: number;
+  subtotalMember: number;
+  couponTitle?: string;
+  couponDiscount: number;
+  pointsUsed: number;
+  pointsDiscount: number;
+  fulfillmentFee: number;
+  payable: number;
+  pickupWindow?: string;
+  pickupCode?: string;
+  address?: string;
+  distanceKm?: number;
+  inRange: boolean;
+};
 
 const pickupRedemption = findById(redemptions, CORE_DEMO_IDS.pickupRedemption)!;
 const cartStorageKey = `local-life:${coreDemoUser.id}:convenience-carts`;
@@ -29,6 +57,40 @@ const availabilityStatusLabels: Record<ProductAvailability["status"], string> = 
   sold_out: "今日售罄",
   unavailable: "暂不可售",
 };
+
+// T018 traceable mock rules. Amounts stay marked as prototype samples: the coupon
+// mirrors the "门店 10 元优惠券" fixture title, points reuse the candidate
+// prototypeRules.pointsToCash (100 积分 = 1 元), and the delivery fee has no
+// confirmed algorithm yet.
+const shortDeliveryFeeYuan = 5;
+const storeCouponDiscountYuan = 10;
+const pointsUseAmount = 200;
+const pointsPerYuan = 100;
+const pickupCodePrefix = "PK";
+
+function formatSlotClock(date: Date) {
+  return `${date.getHours().toString().padStart(2, "0")}:${date.getMinutes().toString().padStart(2, "0")}`;
+}
+
+function buildPickupSlots(): string[] {
+  const now = new Date();
+  const start = new Date(now.getTime() + 15 * 60 * 1000);
+  const remainder = start.getMinutes() % 15;
+  if (remainder !== 0) start.setMinutes(start.getMinutes() + (15 - remainder), 0, 0);
+  else start.setMinutes(start.getMinutes(), 0, 0);
+  const slots: string[] = [];
+  for (let i = 0; i < 4; i += 1) {
+    const from = new Date(start.getTime() + i * 15 * 60 * 1000);
+    const to = new Date(from.getTime() + 15 * 60 * 1000);
+    const day = from.getDate() === now.getDate() ? "今天" : "明天";
+    slots.push(`${day} ${formatSlotClock(from)}-${formatSlotClock(to)}`);
+  }
+  return slots;
+}
+
+function buildPickupCode() {
+  return `${pickupCodePrefix}-${Math.floor(1000 + Math.random() * 9000)}`;
+}
 
 function buildInitialCarts(): CartState {
   return Object.fromEntries(
@@ -96,7 +158,14 @@ export function StoreFlowScreen({ openActivity, entryContext }: StoreFlowScreenP
   const [query, setQuery] = useState("");
   const [category, setCategory] = useState("全部");
   const [carts, setCarts] = useState<CartState>(loadPersistedCarts);
-  const [checkoutHandoffVisible, setCheckoutHandoffVisible] = useState(false);
+  const [fulfillmentMode, setFulfillmentMode] = useState<FulfillmentMode>("pickup");
+  const [pickupSlots] = useState<string[]>(buildPickupSlots);
+  const [selectedPickupWindow, setSelectedPickupWindow] = useState("");
+  const [selectedAddressId, setSelectedAddressId] = useState("");
+  const [usePoints, setUsePoints] = useState(false);
+  const [orderSnapshot, setOrderSnapshot] = useState<StoreOrderSnapshot | null>(null);
+  const [pickupStatus, setPickupStatus] = useState<PickupStatus>("preparing");
+  const [deliveryStatus, setDeliveryStatus] = useState<DeliveryStatus>("preparing");
 
   const selectedStore = selectedStoreId ? findById(offlineStores, selectedStoreId) : undefined;
   const storeAvailability = selectedStore ? getStoreAvailability(selectedStore.id) : [];
@@ -126,9 +195,28 @@ export function StoreFlowScreen({ openActivity, entryContext }: StoreFlowScreenP
     : [];
   const cartTotal = cartRows.reduce((sum, row) => sum + row.subtotal, 0);
 
+  const deliveryAddresses = selectedStore ? getStoreDeliveryAddresses(selectedStore.id) : [];
+  const defaultInRangeAddress = deliveryAddresses.find((address) => isStoreDeliveryAddressInRange(selectedStore, address));
+  const effectiveAddress = deliveryAddresses.find((address) => address.id === selectedAddressId) ?? defaultInRangeAddress;
+  const addressInRange = isStoreDeliveryAddressInRange(selectedStore, effectiveAddress);
+  const effectivePickupWindow = selectedPickupWindow || pickupSlots[0] || "";
+  const applicableCoupon = selectedStore
+    ? coreUserV02Coupons.find((coupon) => coupon.scene === "store" && coupon.status === "available" && coupon.applicableStoreIds.includes(selectedStore.id))
+    : undefined;
+  const couponDiscount = applicableCoupon ? storeCouponDiscountYuan : 0;
+  const pointsUsed = usePoints ? Math.min(pointsUseAmount, coreDemoUser.pointsBalance) : 0;
+  const pointsDiscount = pointsUsed / pointsPerYuan;
+  const subtotalOriginal = cartRows.reduce((sum, row) => sum + (row.availability?.priceYuan ?? row.product.priceYuan) * row.quantity, 0);
+  const subtotalMember = cartRows.reduce((sum, row) => sum + row.unitPrice * row.quantity, 0);
+  const memberSavings = Math.max(0, subtotalOriginal - subtotalMember);
+  const fulfillmentFee = fulfillmentMode === "short_delivery" ? (addressInRange ? shortDeliveryFeeYuan : 0) : 0;
+  const payable = Math.max(0, subtotalMember - couponDiscount - pointsDiscount + fulfillmentFee);
+  const canSubmitCheckout = cartRows.length > 0
+    && selectedStore?.status === "open"
+    && (fulfillmentMode === "pickup" ? Boolean(effectivePickupWindow) : Boolean(effectiveAddress) && addressInRange);
+
   const goStep = (next: StoreStep) => {
     setStep(next);
-    setCheckoutHandoffVisible(false);
     window.scrollTo({ top: 0, behavior: "smooth" });
   };
 
@@ -146,12 +234,56 @@ export function StoreFlowScreen({ openActivity, entryContext }: StoreFlowScreenP
   };
 
   const commitCarts = (updater: (current: CartState) => CartState) => {
-    setCheckoutHandoffVisible(false);
     setCarts((current) => {
       const next = updater(current);
       persistCarts(next);
       return next;
     });
+  };
+
+  const submitCheckout = () => {
+    if (!canSubmitCheckout || !selectedStore) return;
+    const orderId = `CONV-${selectedStore.id.replace("STORE-", "")}-${coreDemoUser.id.replace("LL-", "")}`;
+    const snapshot: StoreOrderSnapshot = {
+      id: orderId,
+      storeId: selectedStore.id,
+      storeName: selectedStore.name,
+      mode: fulfillmentMode,
+      itemCount: cartCount,
+      subtotalOriginal,
+      memberSavings,
+      subtotalMember,
+      ...(applicableCoupon ? { couponTitle: applicableCoupon.title } : {}),
+      couponDiscount,
+      pointsUsed,
+      pointsDiscount,
+      fulfillmentFee,
+      payable,
+      ...(fulfillmentMode === "pickup" ? { pickupWindow: effectivePickupWindow, pickupCode: buildPickupCode() } : {}),
+      ...(fulfillmentMode === "short_delivery" && effectiveAddress ? { address: `${effectiveAddress.label} · ${effectiveAddress.address}`, distanceKm: effectiveAddress.distanceKm } : {}),
+      inRange: fulfillmentMode === "short_delivery" ? addressInRange : true,
+    };
+    setOrderSnapshot(snapshot);
+    commitCarts((current) => {
+      const next = { ...current };
+      delete next[selectedStore.id];
+      return next;
+    });
+    if (fulfillmentMode === "pickup") {
+      setPickupStatus("preparing");
+      goStep("pickupOrder");
+    } else {
+      setDeliveryStatus("preparing");
+      goStep("deliveryOrder");
+    }
+  };
+
+  const advancePickupStatus = () => {
+    setPickupStatus((current) => current === "preparing" ? "ready_for_pickup" : "completed");
+  };
+
+  const advanceDeliveryStatus = () => {
+    setDeliveryStatus((current) => current === "preparing" ? "delivering" : "completed");
   };
 
   const updateQuantity = (productId: string, delta: number) => {
@@ -486,12 +618,294 @@ export function StoreFlowScreen({ openActivity, entryContext }: StoreFlowScreenP
           <p className="mt-3 text-xs leading-5 text-[var(--color-text-tertiary)]">当前仅汇总商品金额；优惠券、配送费、自提时段、地址与最终结算规则由 T018 承接。</p>
         </Card>
 
-        <Button className="w-full" disabled={cartRows.length === 0 || selectedStore.status !== "open"} onClick={() => setCheckoutHandoffVisible(true)}>去结算</Button>
-        {checkoutHandoffVisible && (
-          <Card className="border-[var(--color-primary)] bg-[var(--color-brand-subtle)] p-4" role="status">
-            <p className="text-sm font-semibold">结算上下文已准备好</p>
-            <p className="mt-2 text-sm leading-6 text-[var(--color-text-secondary)]">已锁定 {selectedStore.name} 与 {cartCount} 件商品。T018 将从这里继续选择自提 / 约 3 km 短配，并补齐地址、时段和订单状态。</p>
+        <Button className="w-full" disabled={cartRows.length === 0 || selectedStore.status !== "open"} onClick={() => goStep("checkout")}>去结算</Button>
+      </>
+    );
+  }
+
+  if (step === "checkout") {
+    return (
+      <>
+        <button type="button" onClick={() => goStep("cart")} className="inline-flex min-h-11 items-center gap-2 text-sm font-medium text-[var(--color-text-secondary)]">
+          <PrototypeIcon name="back" size={18} /> 返回购物车
+        </button>
+
+        <div>
+          <p className="text-sm text-[var(--color-text-secondary)]">{selectedStore.name} · 结算</p>
+          <h2 className="mt-1 text-2xl font-semibold">选择履约方式并确认订单</h2>
+          <p className="mt-2 text-sm leading-6 text-[var(--color-text-secondary)]">自提与约 3 km 短配共用当前门店购物车，仅在结算阶段切换；不跨店、不与商城混单。</p>
+        </div>
+
+        <Section title="履约方式">
+          <div className="grid grid-cols-2 gap-3">
+            <button
+              type="button"
+              aria-pressed={fulfillmentMode === "pickup"}
+              onClick={() => setFulfillmentMode("pickup")}
+              className={`min-h-[104px] rounded-[var(--radius-container)] border p-3 text-left ${fulfillmentMode === "pickup" ? "border-[var(--color-primary)] bg-[var(--color-brand-subtle)]" : "border-[var(--color-border)] bg-[var(--color-surface)]"}`}
+            >
+              <p className="font-semibold">到店自提</p>
+              <p className="mt-1 text-xs leading-5 text-[var(--color-text-tertiary)]">最早约 15 分钟后 · 15 分钟间隔时段</p>
+              <p className="mt-2 text-sm font-medium text-[var(--color-primary-pressed)]">自提费 ¥0</p>
+            </button>
+            <button
+              type="button"
+              aria-pressed={fulfillmentMode === "short_delivery"}
+              onClick={() => setFulfillmentMode("short_delivery")}
+              className={`min-h-[104px] rounded-[var(--radius-container)] border p-3 text-left ${fulfillmentMode === "short_delivery" ? "border-[var(--color-primary)] bg-[var(--color-brand-subtle)]" : "border-[var(--color-border)] bg-[var(--color-surface)]"}`}
+            >
+              <p className="font-semibold">约 3 km 短配</p>
+              <p className="mt-1 text-xs leading-5 text-[var(--color-text-tertiary)]">需确认地址在配送范围内</p>
+              <p className="mt-2 text-sm font-medium text-[var(--color-primary-pressed)]">配送费示例 ¥{shortDeliveryFeeYuan}</p>
+            </button>
+          </div>
+        </Section>
+
+        {fulfillmentMode === "pickup" ? (
+          <Section title="取货时段">
+            <div className="flex flex-wrap gap-2">
+              {pickupSlots.map((slot) => (
+                <button
+                  key={slot}
+                  type="button"
+                  aria-pressed={effectivePickupWindow === slot}
+                  onClick={() => setSelectedPickupWindow(slot)}
+                  className={`min-h-11 rounded-full px-4 text-sm font-medium ${effectivePickupWindow === slot ? "bg-[var(--color-primary)] text-[var(--color-on-primary)]" : "border border-[var(--color-border)] bg-[var(--color-surface)] text-[var(--color-text-secondary)]"}`}
+                >
+                  {slot}
+                </button>
+              ))}
+            </div>
+            <p className="text-xs leading-5 text-[var(--color-text-tertiary)]">取货时段按 15 分钟间隔表达，最早约 15 分钟后；不调用真实排队或门店接单系统。</p>
+          </Section>
+        ) : (
+          <Section title="配送地址与范围">
+            {deliveryAddresses.length === 0 ? (
+              <Card className="bg-[var(--color-surface-subtle)]">
+                <p className="font-semibold">当前门店暂未配置配送地址</p>
+                <p className="mt-1 text-sm leading-6 text-[var(--color-text-secondary)]">{selectedStore.name} 暂无短距配送示例地址，请改选到店自提。</p>
+              </Card>
+            ) : (
+              <div className="space-y-3">
+                {deliveryAddresses.map((address) => {
+                  const inRange = isStoreDeliveryAddressInRange(selectedStore, address);
+                  const selected = effectiveAddress?.id === address.id;
+                  return (
+                    <button
+                      key={address.id}
+                      type="button"
+                      aria-pressed={selected}
+                      disabled={!inRange}
+                      onClick={() => setSelectedAddressId(address.id)}
+                      className={`w-full min-h-[88px] rounded-[var(--radius-container)] border p-4 text-left disabled:cursor-not-allowed disabled:opacity-60 ${selected ? "border-[var(--color-primary)] bg-[var(--color-brand-subtle)]" : "border-[var(--color-border)] bg-[var(--color-surface)]"}`}
+                    >
+                      <div className="flex items-start justify-between gap-3">
+                        <div className="min-w-0">
+                          <div className="flex items-center gap-2">
+                            <p className="font-semibold">{address.label}</p>
+                            {inRange ? <StatusTag tone="success">可配送 · {address.distanceKm.toFixed(1)} km</StatusTag> : <StatusTag tone="warning">超出配送范围 · {address.distanceKm.toFixed(1)} km</StatusTag>}
+                          </div>
+                          <p className="mt-1 text-sm text-[var(--color-text-secondary)]">{address.recipient} · {address.phone}</p>
+                          <p className="mt-1 text-xs leading-5 text-[var(--color-text-tertiary)]">{address.address}</p>
+                        </div>
+                        {!inRange && <span className="pt-1 text-xs font-medium text-[var(--color-warning)]">不可选</span>}
+                      </div>
+                    </button>
+                  );
+                })}
+              </div>
+            )}
+            <p className="text-xs leading-5 text-[var(--color-text-tertiary)]">约 {selectedStore.deliveryRadiusKm ?? "--"} km 范围是 T018 可追踪 mock，不调用真实地图或定位。</p>
+          </Section>
+        )}
+
+        <Section title="结算明细">
+          <Card>
+            <div className="space-y-3 text-sm">
+              <div className="flex items-center justify-between gap-3"><span className="text-[var(--color-text-secondary)]">商品金额</span><span className="font-medium">¥{subtotalOriginal.toFixed(2)}</span></div>
+              {memberSavings > 0 && <div className="flex items-center justify-between gap-3"><span className="text-[var(--color-text-secondary)]">会员优惠（{cartCount} 件）</span><span className="font-medium text-[var(--color-success)]">-¥{memberSavings.toFixed(2)}</span></div>}
+              <div className="flex items-center justify-between gap-3 border-t border-[var(--color-border)] pt-3"><span className="text-[var(--color-text-secondary)]">商品实付小计</span><span className="font-semibold">¥{subtotalMember.toFixed(2)}</span></div>
+              <div className="flex items-center justify-between gap-3 border-t border-[var(--color-border)] pt-3">
+                <span className="text-[var(--color-text-secondary)]">优惠券</span>
+                {applicableCoupon ? <span className="max-w-[220px] text-right font-medium">{applicableCoupon.title} · 已使用 -¥{couponDiscount.toFixed(2)}</span> : <span className="text-[var(--color-text-tertiary)]">暂无可用优惠券</span>}
+              </div>
+              <div className="flex items-center justify-between gap-3 border-t border-[var(--color-border)] pt-3">
+                <span className="flex items-center gap-2 text-[var(--color-text-secondary)]">积分抵扣<StatusTag>候选示例</StatusTag></span>
+                <button type="button" aria-pressed={usePoints} onClick={() => setUsePoints((current) => !current)} className={`min-h-11 rounded-full px-3 text-sm font-medium ${usePoints ? "bg-[var(--color-primary)] text-[var(--color-on-primary)]" : "border border-[var(--color-border)] text-[var(--color-text-secondary)]"}`}>
+                  {usePoints ? `-¥${pointsDiscount.toFixed(2)}` : "使用积分"}
+                </button>
+              </div>
+              {usePoints && <p className="text-xs leading-5 text-[var(--color-text-tertiary)]">使用 {pointsUsed} 积分抵 ¥{pointsDiscount.toFixed(2)}（100 积分 = 1 元候选示例）；当前余额 {coreDemoUser.pointsBalance} 分。</p>}
+              <div className="flex items-center justify-between gap-3 border-t border-[var(--color-border)] pt-3">
+                <span className="text-[var(--color-text-secondary)]">履约费用</span>
+                <span className="font-medium">{fulfillmentMode === "pickup" ? "自提 ¥0" : fulfillmentFee > 0 ? `短配示例 ¥${fulfillmentFee.toFixed(2)}` : "需选择可配送地址"}</span>
+              </div>
+              <div className="flex items-center justify-between gap-3 border-t border-[var(--color-border)] pt-3">
+                <span className="font-semibold">应付金额</span>
+                <span className="text-lg font-semibold text-[var(--color-primary-pressed)]">¥{payable.toFixed(2)}</span>
+              </div>
+            </div>
           </Card>
+          <Card className="bg-[var(--color-surface-subtle)]">
+            <div className="flex items-start gap-3">
+              <PrototypeIcon name="info" size={19} className="mt-0.5 shrink-0 text-[var(--color-primary)]" />
+              <p className="text-sm leading-6 text-[var(--color-text-secondary)]">提交只生成当前会话内的 Mock 订单，不发起真实支付、库存锁定或骑手调度。券金额与配送费标注为示例规则，正式规则待确认。</p>
+            </div>
+          </Card>
+        </Section>
+
+        <Button className="w-full" disabled={!canSubmitCheckout} onClick={submitCheckout}>提交演示订单</Button>
+      </>
+    );
+  }
+
+  if (step === "pickupOrder") {
+    const snapshot = orderSnapshot;
+    if (!snapshot || snapshot.mode !== "pickup") {
+      return (
+        <Card>
+          <p className="font-semibold">自提订单上下文已失效</p>
+          <SecondaryButton className="mt-4 w-full" onClick={() => goStep("browse")}>返回便利店重新选购</SecondaryButton>
+        </Card>
+      );
+    }
+    return (
+      <>
+        <div>
+          <p className="text-sm text-[var(--color-text-secondary)]">自提订单详情</p>
+          <h2 className="mt-1 break-all text-2xl font-semibold">{snapshot.id}</h2>
+        </div>
+
+        <section className="rounded-[var(--radius-overlay)] bg-[var(--color-surface)] p-5">
+          <div className="flex items-center justify-between gap-3">
+            <StatusTag tone={pickupStatus === "completed" ? "success" : undefined}>
+              {pickupStatus === "preparing" ? "备货中" : pickupStatus === "ready_for_pickup" ? "待取货" : "核销完成"}
+            </StatusTag>
+            <span className="text-xs text-[var(--color-text-tertiary)]">Mock order · 支付成功</span>
+          </div>
+          <p className="mt-4 font-semibold">{snapshot.storeName}</p>
+          <p className="mt-1 text-sm text-[var(--color-text-secondary)]">自提 · {snapshot.itemCount} 件商品 · 应付 ¥{snapshot.payable.toFixed(2)}</p>
+          {snapshot.pickupWindow && <p className="mt-2 text-sm text-[var(--color-text-secondary)]">取货时段：{snapshot.pickupWindow}</p>}
+
+          {pickupStatus === "preparing" && (
+            <div className="mt-5 rounded-[var(--radius-container)] bg-[var(--color-brand-subtle)] p-4">
+              <p className="text-sm font-medium">门店正在备货</p>
+              <p className="mt-1 text-sm leading-6 text-[var(--color-text-secondary)]">商品打包完成后会进入待取货状态并生成取货码。</p>
+              <Button className="mt-4 w-full" onClick={advancePickupStatus}>模拟备货完成</Button>
+            </div>
+          )}
+
+          {pickupStatus === "ready_for_pickup" && (
+            <div className="mt-5 rounded-[var(--radius-overlay)] bg-[var(--color-primary)] p-5 text-[var(--color-on-primary)]">
+              <div className="flex items-center justify-between gap-3">
+                <StatusTag tone="success">待到店取货</StatusTag>
+                <span className="text-xs opacity-80">{snapshot.pickupWindow}</span>
+              </div>
+              <p className="mt-7 text-sm opacity-80">取货码</p>
+              <p className="mt-2 font-mono text-4xl font-semibold tracking-[0.16em]">{snapshot.pickupCode}</p>
+              <div className="mt-7 border-t border-white/20 pt-4 text-sm leading-6 opacity-80">
+                <p>{snapshot.storeName}</p>
+                <p className="mt-1">{selectedStore?.address}</p>
+              </div>
+            </div>
+          )}
+        </section>
+
+        {pickupStatus === "ready_for_pickup" && <Button className="w-full" onClick={advancePickupStatus}>模拟店员核销</Button>}
+        {pickupStatus === "preparing" && <SecondaryButton className="w-full" onClick={() => goStep("browse")}>返回便利店</SecondaryButton>}
+
+        {pickupStatus === "completed" && (
+          <>
+            <section className="rounded-[var(--radius-overlay)] bg-[var(--color-success-bg)] p-6 text-center">
+              <span className="mx-auto flex h-14 w-14 items-center justify-center rounded-full bg-[var(--color-surface)] text-[var(--color-success)]"><PrototypeIcon name="success" size={30} /></span>
+              <StatusTag tone="success">核销完成</StatusTag>
+              <h2 className="mt-4 text-2xl font-semibold">商品已完成自提</h2>
+              <p className="mt-2 text-sm leading-6 text-[var(--color-text-secondary)]">订单 {snapshot.id} · {snapshot.storeName}</p>
+            </section>
+            <Card>
+              <div className="space-y-3 text-sm">
+                <div className="flex justify-between gap-3"><span className="text-[var(--color-text-secondary)]">商品实付小计</span><span className="font-medium">¥{snapshot.subtotalMember.toFixed(2)}</span></div>
+                {snapshot.couponDiscount > 0 && <div className="flex justify-between gap-3"><span className="text-[var(--color-text-secondary)]">优惠券</span><span className="font-medium text-[var(--color-success)]">-¥{snapshot.couponDiscount.toFixed(2)}</span></div>}
+                {snapshot.pointsDiscount > 0 && <div className="flex justify-between gap-3"><span className="text-[var(--color-text-secondary)]">积分抵扣</span><span className="font-medium text-[var(--color-success)]">-¥{snapshot.pointsDiscount.toFixed(2)}</span></div>}
+                <div className="flex justify-between gap-3 border-t border-[var(--color-border)] pt-3"><span className="font-semibold">应付</span><span className="font-semibold">¥{snapshot.payable.toFixed(2)}</span></div>
+              </div>
+            </Card>
+            <Button className="w-full" onClick={() => goStep("browse")}>返回便利店继续选购</Button>
+          </>
+        )}
+      </>
+    );
+  }
+
+  if (step === "deliveryOrder") {
+    const snapshot = orderSnapshot;
+    if (!snapshot || snapshot.mode !== "short_delivery") {
+      return (
+        <Card>
+          <p className="font-semibold">配送订单上下文已失效</p>
+          <SecondaryButton className="mt-4 w-full" onClick={() => goStep("browse")}>返回便利店重新选购</SecondaryButton>
+        </Card>
+      );
+    }
+    return (
+      <>
+        <div>
+          <p className="text-sm text-[var(--color-text-secondary)]">配送订单详情</p>
+          <h2 className="mt-1 break-all text-2xl font-semibold">{snapshot.id}</h2>
+        </div>
+
+        <section className="rounded-[var(--radius-overlay)] bg-[var(--color-surface)] p-5">
+          <div className="flex items-center justify-between gap-3">
+            <StatusTag tone={deliveryStatus === "completed" ? "success" : undefined}>
+              {deliveryStatus === "preparing" ? "门店接单 / 备货中" : deliveryStatus === "delivering" ? "配送中" : "已送达"}
+            </StatusTag>
+            <span className="text-xs text-[var(--color-text-tertiary)]">Mock order · 支付成功</span>
+          </div>
+          <p className="mt-4 font-semibold">{snapshot.storeName}</p>
+          <p className="mt-1 text-sm text-[var(--color-text-secondary)]">约 3 km 短配 · {snapshot.itemCount} 件商品 · 应付 ¥{snapshot.payable.toFixed(2)}</p>
+          {snapshot.address && <p className="mt-2 text-sm leading-6 text-[var(--color-text-secondary)]">{snapshot.address}</p>}
+
+          {deliveryStatus === "preparing" && (
+            <div className="mt-5 rounded-[var(--radius-container)] bg-[var(--color-brand-subtle)] p-4">
+              <p className="text-sm font-medium">门店已接单，正在备货</p>
+              <p className="mt-1 text-sm leading-6 text-[var(--color-text-secondary)]">备货完成后骑手会取货并进入配送中。</p>
+              <Button className="mt-4 w-full" onClick={advanceDeliveryStatus}>模拟开始配送</Button>
+            </div>
+          )}
+
+          {deliveryStatus === "delivering" && (
+            <div className="mt-5 space-y-3">
+              <Card className="border-[var(--color-primary)] bg-[var(--color-brand-subtle)]">
+                <div className="flex items-center justify-between gap-3"><p className="font-semibold">配送中</p><StatusTag tone="success">约 {snapshot.distanceKm?.toFixed(1) ?? "--"} km</StatusTag></div>
+                <p className="mt-1 text-sm leading-6 text-[var(--color-text-secondary)]">配送范围示例：约 {selectedStore?.deliveryRadiusKm ?? 3} km 内可送达；本订单正在配送。</p>
+                <p className="mt-2 text-xs leading-5 text-[var(--color-text-tertiary)]">不连接真实地图或骑手调度，仅表达配送状态与进度反馈。</p>
+              </Card>
+            </div>
+          )}
+        </section>
+
+        {deliveryStatus === "preparing" && <SecondaryButton className="w-full" onClick={() => goStep("browse")}>返回便利店</SecondaryButton>}
+        {deliveryStatus === "delivering" && <Button className="w-full" onClick={advanceDeliveryStatus}>模拟送达</Button>}
+
+        {deliveryStatus === "completed" && (
+          <>
+            <section className="rounded-[var(--radius-overlay)] bg-[var(--color-success-bg)] p-6 text-center">
+              <span className="mx-auto flex h-14 w-14 items-center justify-center rounded-full bg-[var(--color-surface)] text-[var(--color-success)]"><PrototypeIcon name="success" size={30} /></span>
+              <StatusTag tone="success">已送达</StatusTag>
+              <h2 className="mt-4 text-2xl font-semibold">短距配送已完成</h2>
+              <p className="mt-2 text-sm leading-6 text-[var(--color-text-secondary)]">订单 {snapshot.id} · {snapshot.address}</p>
+            </section>
+            <Card>
+              <div className="space-y-3 text-sm">
+                <div className="flex justify-between gap-3"><span className="text-[var(--color-text-secondary)]">商品实付小计</span><span className="font-medium">¥{snapshot.subtotalMember.toFixed(2)}</span></div>
+                {snapshot.couponDiscount > 0 && <div className="flex justify-between gap-3"><span className="text-[var(--color-text-secondary)]">优惠券</span><span className="font-medium text-[var(--color-success)]">-¥{snapshot.couponDiscount.toFixed(2)}</span></div>}
+                {snapshot.pointsDiscount > 0 && <div className="flex justify-between gap-3"><span className="text-[var(--color-text-secondary)]">积分抵扣</span><span className="font-medium text-[var(--color-success)]">-¥{snapshot.pointsDiscount.toFixed(2)}</span></div>}
+                <div className="flex justify-between gap-3"><span className="text-[var(--color-text-secondary)]">配送费</span><span className="font-medium">¥{snapshot.fulfillmentFee.toFixed(2)}</span></div>
+                <div className="flex justify-between gap-3 border-t border-[var(--color-border)] pt-3"><span className="font-semibold">应付</span><span className="font-semibold">¥{snapshot.payable.toFixed(2)}</span></div>
+              </div>
+            </Card>
+            <Button className="w-full" onClick={() => goStep("browse")}>返回便利店继续选购</Button>
+          </>
         )}
       </>
     );

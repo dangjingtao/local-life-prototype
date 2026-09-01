@@ -21,12 +21,14 @@ import {
   redemptions,
   reports,
   services,
+  storeDeliveryAddresses,
   storefronts,
   stores,
   users,
   v02Coupons,
   v02Orders,
 } from "./fixtures";
+import type { OfflineStore, StoreDeliveryAddress } from "./domain";
 
 export function findById<T extends { id: string }>(items: readonly T[], id: string): T | undefined {
   return items.find((item) => item.id === id);
@@ -64,6 +66,15 @@ export function getStoreProducts(storeId: string) {
 
 export function getUserConvenienceCarts(userId: string) {
   return convenienceCarts.filter((cart) => cart.userId === userId);
+}
+
+export function getStoreDeliveryAddresses(storeId: string): StoreDeliveryAddress[] {
+  return storeDeliveryAddresses.filter((address) => address.storeId === storeId);
+}
+
+export function isStoreDeliveryAddressInRange(store: OfflineStore | undefined, address: StoreDeliveryAddress | undefined) {
+  if (!store || !address || !store.deliveryRadiusKm) return false;
+  return address.distanceKm <= store.deliveryRadiusKm;
 }
 
 export function getUserDetectionHistory(userId: string) {
@@ -119,6 +130,26 @@ export function validateDemoFixtureRelations(): string[] {
   for (const store of offlineStores) {
     if (!partnerIds.has(store.partnerId)) issues.push(`store:${store.id}:missing-partner:${store.partnerId}`);
     if (store.capabilities.includes("short_delivery") && !store.deliveryRadiusKm) issues.push(`store:${store.id}:short-delivery-missing-radius`);
+  }
+
+  const addressKeys = new Set<string>();
+  for (const address of storeDeliveryAddresses) {
+    if (!userIds.has(address.userId)) issues.push(`address:${address.id}:missing-user:${address.userId}`);
+    if (!storeIds.has(address.storeId)) issues.push(`address:${address.id}:missing-store:${address.storeId}`);
+    const key = `${address.userId}:${address.storeId}:${address.id}`;
+    if (addressKeys.has(key)) issues.push(`address:${address.id}:duplicate-key:${key}`);
+    addressKeys.add(key);
+    if (address.distanceKm < 0) issues.push(`address:${address.id}:negative-distance`);
+  }
+  for (const store of offlineStores) {
+    if (!store.capabilities.includes("short_delivery")) continue;
+    const addresses = storeDeliveryAddresses.filter((address) => address.storeId === store.id);
+    if (!addresses.some((address) => isStoreDeliveryAddressInRange(store, address))) {
+      issues.push(`address:${store.id}:missing-in-range-sample`);
+    }
+    if (!addresses.some((address) => address.distanceKm > (store.deliveryRadiusKm ?? 0))) {
+      issues.push(`address:${store.id}:missing-out-of-range-sample`);
+    }
   }
 
   const availabilityKeys = new Set<string>();
