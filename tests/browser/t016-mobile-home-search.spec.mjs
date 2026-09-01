@@ -69,25 +69,24 @@ test.describe("T016 · Mobile operations home and global search", () => {
     await expectNoHorizontalOverflow(page);
   });
 
-  test("convenience search carries the chosen store and product into the domain", async ({ page }) => {
+  test("convenience search chooses an orderable store and enters the product naturally", async ({ page }) => {
     await openMobile(page);
     await page.getByRole("button", { name: "打开全局搜索" }).first().click();
     await search(page, "燕麦");
     await page.getByRole("button", { name: /便利店结果：燕麦拿铁/ }).click();
 
-    await expect(page.getByRole("heading", { name: "先选择可履约门店" })).toBeVisible();
-    const yunling = page.getByRole("button", { name: /云岭社区店/ });
-    const nanan = page.getByRole("button", { name: /南岸生活馆/ });
+    await expect(page.getByRole("heading", { name: "选择购买门店" })).toBeVisible();
+    const yunling = page.getByRole("button", { name: "选择购买门店：云岭社区店" });
+    const nanan = page.getByRole("button", { name: "门店暂不可购买：南岸生活馆" });
     await expect(yunling).toBeEnabled();
     await expect(nanan).toBeDisabled();
+    await expect(page.getByText(/门店上下文|mock|fixture|T017/i)).toHaveCount(0);
 
     await yunling.click();
-    await expect(page.getByText("已确认门店上下文")).toBeVisible();
-    await expect(page.getByText(/云岭社区店 · 燕麦拿铁/)).toBeVisible();
-    await page.getByRole("button", { name: "进入便利店" }).click();
     await expect(page.getByRole("heading", { name: "燕麦拿铁" })).toBeVisible();
     await expect(page.getByText(/云岭社区店/).first()).toBeVisible();
     await expect(page.getByText("¥11.90")).toBeVisible();
+    await expect(page.getByText("已确认门店上下文", { exact: true })).toHaveCount(0);
     await expectNoHorizontalOverflow(page);
   });
 
