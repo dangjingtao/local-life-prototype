@@ -135,7 +135,7 @@ test.describe("T012 · 390px Mobile", () => {
   test("T004 store deep step survives empty → ready", async ({ page }) => {
     await openMobile(page);
     await mobileTab(page, "便利店");
-    await page.locator("main button").filter({ hasText: "核心演示门店" }).first().click();
+    await page.getByRole("button", { name: "选择门店：云岭社区店" }).click();
     await page.getByRole("button", { name: "选择此门店自提" }).click();
     await page.getByRole("button", { name: "提交演示订单" }).click();
     await expect(page.getByRole("heading", { name: "到店出示提货码" })).toBeVisible();
