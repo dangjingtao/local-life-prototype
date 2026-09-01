@@ -65,21 +65,21 @@ T017 已完成代码、CI 与功能性验收，但 2026-09-01 内部 UX 复审�
 
 ## Implementation record
 
-- Commit / PR: `0780781`（搜索选店 handoff）、`cdd60f4`（门店连续性与选店 UX）、`813f57b` / `6c10f42`（T016/T017 回归）、`87bb41b` / `c4ee174`（同步 T012/T018 历史回归） / PR #15。
+- Commit / PR: `0780781`（搜索选店 handoff）、`cdd60f4`（门店连续性与选店 UX）、`813f57b` / `6c10f42`（T016/T017 回归）、`87bb41b` / `c4ee174`（同步 T012/T018 历史回归） / PR #15；最终 head `ee7969bf697668635beb3cc6bf7f08e0e3fc8d67`，merge `fd1631c9b425ad68c0e54c8072e8dc1fd84dab87 → dev`。
 - Changed paths: `apps/mobile/src/StoreFlowScreen.tsx`、`apps/mobile/src/GlobalSearchScreen.tsx`、`tests/browser/t012-quality.spec.mjs`、`tests/browser/t016-mobile-home-search.spec.mjs`、`tests/browser/t017-mobile-convenience-cart.spec.mjs`、`tests/browser/t018-mobile-convenience-fulfillment.spec.mjs`。
 - Notes: 最近选中门店使用 demo-user scoped `sessionStorage` 持久化；全局搜索的显式 store handoff 优先于持久化门店，避免双真相源。关闭 / 不可购买门店不允许继续交易。T018 履约计算、地址范围、优惠、订单状态未改。
 
 ## Verification evidence
 
-- Implementation head: `c4ee174498bd18aaa281aaca2733a66b9010d95d`。
-- CI: Verify Prototype #214 success；T012 Browser Quality #57 success（45 项完整 suite）。
+- Implementation head: `c4ee174498bd18aaa281aaca2733a66b9010d95d`；final PR head: `ee7969bf697668635beb3cc6bf7f08e0e3fc8d67`。
+- CI: final head Verify Prototype #217 success；T012 Browser Quality #60 success；Experimental OpenCode PR Review #81 success / exact-head `NO_BLOCKING_FINDINGS`。实现 head 的 Verify #214、Browser #57、OpenCode #78 也均通过。
 - Page / Route: Mobile `便利店`，`/?demoAuth=1`。
 - Browser result: 390 × 844 覆盖首次选店、休息门店不可下单、跨一级导航恢复云岭门店与 4 件购物车、切店购物车隔离、搜索商品 → 选可购门店 → 直接商详、无横向溢出；T012 / T018 既有深流程同步回归通过。
-- Other evidence: 首轮 Codex P1 指出 T012 / T018 仍依赖旧 UX 文案，已在 `87bb41b` + `c4ee174` 修复、回复并 resolve；OpenCode #78 metadata 精确匹配 `c4ee174...`，verdict `NO_BLOCKING_FINDINGS`。其 review gaps 中 T018 traceable-mock 文案明确判定为本卡 scope 外，留给 T030 做最终消费者路径扫描；open-but-zero-orderable aria 与 disabled-store focus 为非阻塞 P3 / 潜在项。
+- Other evidence: 首轮 Codex P1 指出 T012 / T018 仍依赖旧 UX 文案，已在 `87bb41b` + `c4ee174` 修复、回复并 resolve；OpenCode #81 metadata 精确匹配 `ee7969b...`，verdict `NO_BLOCKING_FINDINGS`。其 review gaps 中 T018 traceable-mock 文案明确判定为本卡 scope 外，留给 T030 做最终消费者路径扫描；open-but-zero-orderable aria 与 disabled-store focus 为非阻塞 P3 / 潜在项。
 
 ## Review
 
 - Reviewer: Codex + Experimental OpenCode PR Review + full Playwright quality gate
 - Result: REVIEW
-- Conclusion: T027 施工范围已完成，当前门店连续性、关闭门店表达与全局搜索 handoff 已达到任务合同；实现 head 的 Verify / Browser / OpenCode 均通过，没有未解决 P0-P2。按项目规则保持 `REVIEW`，不提前替 T030 做最终 UX PASS。
-- Follow-up: PR #15 合入 `dev` 后进入 T028；T030 最终复审时显式检查保留的 T018 traceable-mock 标记与两个非阻塞可访问性 / 边界项。
+- Conclusion: T027 施工范围已完成并合入 `dev`，当前门店连续性、关闭门店表达与全局搜索 handoff 已达到任务合同；最终 PR head 的 Verify / Browser / OpenCode 均通过，没有未解决 P0-P2。按项目规则保持 `REVIEW`，不提前替 T030 做最终 UX PASS。
+- Follow-up: T028 可从最新 `dev` 接续；T030 最终复审时显式检查保留的 T018 traceable-mock 标记与两个非阻塞可访问性 / 边界项。
