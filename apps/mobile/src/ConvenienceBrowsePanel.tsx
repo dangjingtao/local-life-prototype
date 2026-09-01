@@ -240,7 +240,9 @@ export function ConvenienceBrowsePanel({
               <p className="mt-0.5 truncate text-sm font-semibold">{currentBanner.title}</p>
               <p className="mt-0.5 truncate text-[10px] text-[var(--color-text-secondary)]">{currentBanner.copy}</p>
             </div>
-            {currentBanner.action && <button type="button" onClick={onOpenActivity} className="min-h-11 shrink-0 px-1 text-[11px] font-medium text-[var(--color-primary)]">查看</button>}
+            {currentBanner.action && (
+              <button type="button" aria-label="查看便利店活动" onClick={onOpenActivity} className="min-h-11 min-w-11 shrink-0 px-2 text-[11px] font-medium text-[var(--color-primary)]">查看</button>
+            )}
           </div>
           {banners.length > 1 && (
             <div className="absolute bottom-1.5 right-2 flex gap-1" aria-label="活动轮播切换">
