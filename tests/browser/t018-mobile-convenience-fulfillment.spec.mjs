@@ -5,7 +5,7 @@ const MOBILE = "http://127.0.0.1:4173";
 async function openConvenience(page) {
   await page.goto(`${MOBILE}/?demoAuth=1`);
   await page.getByRole("navigation", { name: "一级导航" }).getByRole("button", { name: "便利店", exact: true }).click();
-  await expect(page.getByRole("heading", { name: "先选门店，再开始选购" })).toBeVisible();
+  await expect(page.getByRole("heading", { name: "选择购买门店" })).toBeVisible();
 }
 
 async function openCheckout(page) {
