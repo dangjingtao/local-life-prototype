@@ -27,7 +27,9 @@ body { background: var(--color-background); }
   display: none;
 }
 
+/* Make section offsetTop values share the same coordinate system as this scroll container. */
 [aria-label="商品列表"] {
+  position: relative;
   padding-bottom: 64px;
 }
 
