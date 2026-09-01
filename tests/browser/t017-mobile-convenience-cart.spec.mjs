@@ -76,12 +76,15 @@ test.describe("T017 · Mobile convenience store browsing and independent cart", 
   test("featured convenience campaign is scoped to the configured store", async ({ page }) => {
     await openConvenience(page);
     await page.getByRole("button", { name: "选择门店：云岭社区店" }).click();
-    await expect(page.getByRole("button", { name: "查看便利店活动" })).toContainText("早八能量补给");
-    await expect(page.getByRole("button", { name: "查看便利店活动" })).not.toContainText(/mock|fixture/i);
+    const yunlingCarousel = page.getByRole("region", { name: "门店活动轮播" });
+    await expect(yunlingCarousel).toContainText("早八能量补给");
+    await expect(yunlingCarousel).not.toContainText(/mock|fixture/i);
 
     await page.getByRole("button", { name: "切换门店" }).click();
     await page.getByRole("button", { name: "选择门店：南岸生活馆" }).click();
-    await expect(page.getByRole("button", { name: "查看便利店活动" })).toHaveCount(0);
+    const nananCarousel = page.getByRole("region", { name: "门店活动轮播" });
+    await expect(nananCarousel).toBeVisible();
+    await expect(nananCarousel).not.toContainText("早八能量补给");
   });
 
   test("retail browse uses product artwork, compact rows and a persistent cart bar", async ({ page }) => {
