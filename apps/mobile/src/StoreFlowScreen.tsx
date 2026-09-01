@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Button, Card, SecondaryButton, Section, StatusTag } from "@prototype/design-system";
 import { PrototypeIcon } from "@prototype/icons";
 import {
@@ -51,6 +51,7 @@ type StoreOrderSnapshot = {
 
 const pickupRedemption = findById(redemptions, CORE_DEMO_IDS.pickupRedemption)!;
 const cartStorageKey = `local-life:${coreDemoUser.id}:convenience-carts`;
+const selectedStoreStorageKey = `local-life:${coreDemoUser.id}:convenience-selected-store`;
 const availabilityStatusLabels: Record<ProductAvailability["status"], string> = {
   available: "现货",
   low_stock: "库存紧张",
@@ -124,12 +125,37 @@ function persistCarts(carts: CartState) {
   }
 }
 
+function loadPersistedStoreId() {
+  if (typeof window === "undefined") return "";
+  try {
+    const storeId = window.sessionStorage.getItem(selectedStoreStorageKey) ?? "";
+    return storeId && findById(offlineStores, storeId) ? storeId : "";
+  } catch {
+    return "";
+  }
+}
+
+function persistSelectedStoreId(storeId: string) {
+  if (typeof window === "undefined") return;
+  try {
+    window.sessionStorage.setItem(selectedStoreStorageKey, storeId);
+  } catch {
+    // Store continuity is best-effort; selection still works for the current mount.
+  }
+}
+
 function getEffectivePrice(product: Product, availability?: ProductAvailability) {
   return availability?.memberPriceYuan ?? availability?.priceYuan ?? product.memberPriceYuan ?? product.priceYuan;
 }
 
 function isOrderable(availability?: ProductAvailability) {
   return availability?.status === "available" || availability?.status === "low_stock";
+}
+
+function isStoreOrderable(storeId: string) {
+  const store = findById(offlineStores, storeId);
+  if (!store || store.status !== "open") return false;
+  return getStoreAvailability(storeId).some((item) => isOrderable(item));
 }
 
 function StoreCapabilityTags({ storeId }: { storeId: string }) {
@@ -150,7 +176,7 @@ interface StoreFlowScreenProps {
 }
 
 export function StoreFlowScreen({ openActivity, entryContext }: StoreFlowScreenProps) {
-  const initialStoreId = entryContext?.storeId ?? "";
+  const initialStoreId = entryContext?.storeId ?? loadPersistedStoreId();
   const initialProductId = entryContext?.entityType === "product" ? entryContext.entityId : "";
   const [step, setStep] = useState<StoreStep>(() => initialStoreId && initialProductId ? "product" : initialStoreId ? "browse" : "stores");
   const [selectedStoreId, setSelectedStoreId] = useState(initialStoreId);
@@ -166,6 +192,10 @@ export function StoreFlowScreen({ openActivity, entryContext }: StoreFlowScreenP
   const [orderSnapshot, setOrderSnapshot] = useState<StoreOrderSnapshot | null>(null);
   const [pickupStatus, setPickupStatus] = useState<PickupStatus>("preparing");
   const [deliveryStatus, setDeliveryStatus] = useState<DeliveryStatus>("preparing");
+
+  useEffect(() => {
+    if (entryContext?.storeId) persistSelectedStoreId(entryContext.storeId);
+  }, [entryContext?.storeId]);
 
   const selectedStore = selectedStoreId ? findById(offlineStores, selectedStoreId) : undefined;
   const storeAvailability = selectedStore ? getStoreAvailability(selectedStore.id) : [];
@@ -221,6 +251,8 @@ export function StoreFlowScreen({ openActivity, entryContext }: StoreFlowScreenP
   };
 
   const openStore = (storeId: string) => {
+    if (!isStoreOrderable(storeId)) return;
+    persistSelectedStoreId(storeId);
     setSelectedStoreId(storeId);
     setSelectedProductId("");
     setQuery("");
@@ -312,46 +344,44 @@ export function StoreFlowScreen({ openActivity, entryContext }: StoreFlowScreenP
     return (
       <>
         <div>
-          <p className="text-sm text-[var(--color-text-secondary)]">便利店 · 即时零售</p>
-          <h2 className="mt-1 text-2xl font-semibold">先选门店，再开始选购</h2>
-          <p className="mt-2 text-sm leading-6 text-[var(--color-text-secondary)]">价格、可售状态与履约能力都以具体门店为准。不同门店各自保留购物车，不会跨店混单。</p>
+          <p className="text-sm text-[var(--color-text-secondary)]">附近便利店</p>
+          <h2 className="mt-1 text-2xl font-semibold">选择购买门店</h2>
+          <p className="mt-2 text-sm leading-6 text-[var(--color-text-secondary)]">选择门店后可查看本店价格、库存与自提 / 配送方式。</p>
         </div>
 
         <div className="space-y-3">
           {offlineStores.map((store) => {
-            const availability = getStoreAvailability(store.id);
-            const orderableCount = availability.filter((item) => isOrderable(item)).length;
+            const canShop = isStoreOrderable(store.id);
             const seededCart = carts[store.id] ?? {};
             const seededCount = Object.values(seededCart).reduce((sum, quantity) => sum + quantity, 0);
-            const isCore = store.id === coreDemoStore.id;
             return (
-              <button key={store.id} type="button" onClick={() => openStore(store.id)} aria-label={`选择门店：${store.name}`} className="w-full text-left">
-                <Card className="p-4 transition active:bg-[var(--color-surface-subtle)]">
+              <button
+                key={store.id}
+                type="button"
+                disabled={!canShop}
+                onClick={() => openStore(store.id)}
+                aria-label={`${canShop ? "选择门店" : "门店休息中"}：${store.name}`}
+                className="w-full text-left disabled:cursor-not-allowed"
+              >
+                <Card className={`p-4 transition ${canShop ? "active:bg-[var(--color-surface-subtle)]" : "bg-[var(--color-surface-subtle)] opacity-75"}`}>
                   <div className="flex items-start justify-between gap-3">
                     <div className="min-w-0 flex-1">
                       <div className="flex flex-wrap items-center gap-2">
                         <h3 className="font-semibold">{store.name}</h3>
-                        {isCore && <StatusTag tone="success">核心演示门店</StatusTag>}
-                        {seededCount > 0 && <StatusTag>{seededCount} 件已在购物车</StatusTag>}
+                        {seededCount > 0 && <StatusTag>{seededCount} 件在购物车</StatusTag>}
                       </div>
-                      <p className="mt-2 text-sm leading-6 text-[var(--color-text-secondary)]">{store.address}</p>
-                      <p className="mt-1 text-xs text-[var(--color-text-tertiary)]">距你 {store.distanceKm?.toFixed(1) ?? "--"} km · {store.businessHours ?? "营业时间待配置"} · 当前 {orderableCount} 款可购</p>
+                      <p className="mt-2 text-xs font-medium text-[var(--color-text-secondary)]">距你 {store.distanceKm?.toFixed(1) ?? "--"} km · {store.businessHours ?? "营业时间待更新"}</p>
+                      <p className="mt-1 text-sm leading-6 text-[var(--color-text-secondary)]">{store.address}</p>
                       <div className="mt-3"><StoreCapabilityTags storeId={store.id} /></div>
+                      {!canShop && <p className="mt-3 text-sm font-medium text-[var(--color-warning)]">当前暂不可下单</p>}
                     </div>
-                    <span className="pt-1 text-[var(--color-text-tertiary)]" aria-hidden="true">›</span>
+                    {canShop && <span className="pt-1 text-[var(--color-text-tertiary)]" aria-hidden="true">›</span>}
                   </div>
                 </Card>
               </button>
             );
           })}
         </div>
-
-        <Card className="bg-[var(--color-surface-subtle)] p-4">
-          <div className="flex items-start gap-3">
-            <PrototypeIcon name="info" size={19} className="mt-0.5 shrink-0 text-[var(--color-primary)]" />
-            <p className="text-sm leading-6 text-[var(--color-text-secondary)]">距离与库存是可追踪 mock，用来验证门店上下文，不调用真实定位、地图或库存系统。</p>
-          </div>
-        </Card>
       </>
     );
   }
@@ -359,7 +389,7 @@ export function StoreFlowScreen({ openActivity, entryContext }: StoreFlowScreenP
   if (!selectedStore) {
     return (
       <Card>
-        <p className="font-semibold">门店上下文已失效</p>
+        <p className="font-semibold">门店信息暂不可用</p>
         <SecondaryButton className="mt-4 w-full" onClick={() => goStep("stores")}>重新选择门店</SecondaryButton>
       </Card>
     );
@@ -379,14 +409,6 @@ export function StoreFlowScreen({ openActivity, entryContext }: StoreFlowScreenP
           </div>
           <div className="mt-3"><StoreCapabilityTags storeId={selectedStore.id} /></div>
         </section>
-
-        {entryContext?.storeId === selectedStore.id && entryContext.entityId && (
-          <Card className="border-[var(--color-primary)] bg-[var(--color-brand-subtle)] p-4">
-            <p className="text-xs font-semibold text-[var(--color-primary-pressed)]">来自全局搜索</p>
-            <p className="mt-2 font-semibold">{entryContext.title}</p>
-            <p className="mt-1 text-sm leading-6 text-[var(--color-text-secondary)]">已沿用 {selectedStore.name} 的门店上下文，不再回退到全局库存假设。</p>
-          </Card>
-        )}
 
         <div className="relative">
           <span className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-[var(--color-text-tertiary)]"><PrototypeIcon name="search" size={18} /></span>
@@ -418,9 +440,9 @@ export function StoreFlowScreen({ openActivity, entryContext }: StoreFlowScreenP
             <Card className="border-[var(--color-primary)] bg-[var(--color-brand-subtle)] p-4">
               <div className="flex items-start justify-between gap-3">
                 <div>
-                  <p className="text-xs font-semibold text-[var(--color-primary-pressed)]">本店推荐 · mock 活动位</p>
+                  <p className="text-xs font-semibold text-[var(--color-primary-pressed)]">本店推荐</p>
                   <p className="mt-2 font-semibold">早八能量补给</p>
-                  <p className="mt-1 text-sm leading-6 text-[var(--color-text-secondary)]">咖啡、鲜食与气泡水放在同一条高频浏览动线上，具体优惠仍以 fixture 标签为准。</p>
+                  <p className="mt-1 text-sm leading-6 text-[var(--color-text-secondary)]">咖啡、鲜食与气泡水，适合早餐时段一起选购。</p>
                 </div>
                 <span className="text-[var(--color-primary)]" aria-hidden="true">›</span>
               </div>
@@ -538,7 +560,7 @@ export function StoreFlowScreen({ openActivity, entryContext }: StoreFlowScreenP
         <Card className="p-4">
           <div className="flex items-start justify-between gap-3">
             <div>
-              <p className="text-sm font-medium">门店可售上下文</p>
+              <p className="text-sm font-medium">当前门店</p>
               <p className="mt-1 text-sm leading-6 text-[var(--color-text-secondary)]">{selectedStore.name} · {selectedStore.address}</p>
             </div>
             <button type="button" onClick={() => goStep("stores")} className="min-h-11 shrink-0 px-2 text-sm font-medium text-[var(--color-primary)]">换店</button>
@@ -615,7 +637,7 @@ export function StoreFlowScreen({ openActivity, entryContext }: StoreFlowScreenP
             <span className="font-semibold">商品合计</span>
             <span className="text-2xl font-semibold text-[var(--color-primary-pressed)]">¥{cartTotal.toFixed(2)}</span>
           </div>
-          <p className="mt-3 text-xs leading-5 text-[var(--color-text-tertiary)]">当前仅汇总商品金额；优惠券、配送费、自提时段、地址与最终结算规则由 T018 承接。</p>
+          <p className="mt-3 text-xs leading-5 text-[var(--color-text-tertiary)]">结算时可继续选择优惠券、积分和自提 / 配送方式。</p>
         </Card>
 
         <Button className="w-full" disabled={cartRows.length === 0 || selectedStore.status !== "open"} onClick={() => goStep("checkout")}>去结算</Button>
@@ -652,7 +674,7 @@ export function StoreFlowScreen({ openActivity, entryContext }: StoreFlowScreenP
               type="button"
               aria-pressed={fulfillmentMode === "short_delivery"}
               onClick={() => setFulfillmentMode("short_delivery")}
-              className={`min-h-[104px] rounded-[var(--radius-container)] border p-3 text-left ${fulfillmentMode === "short_delivery" ? "border-[var(--color-primary)] bg-[var(--color-brand-subtle)]" : "border-[var(--color-border)] bg-[var(--color-surface)]"}`}
+              className={`min-h-[104px] rounded-[var(--radius-container)] border p-3 text-left ${fulfillmentMode === "short_delivery" ? "border-[var(--color-primary)] bg-[var(--color-brand-subtle)]" : "border border-[var(--color-border)] bg-[var(--color-surface)]"}`}
             >
               <p className="font-semibold">约 3 km 短配</p>
               <p className="mt-1 text-xs leading-5 text-[var(--color-text-tertiary)]">需确认地址在配送范围内</p>
