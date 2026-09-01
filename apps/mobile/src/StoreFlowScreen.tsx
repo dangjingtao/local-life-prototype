@@ -20,7 +20,7 @@ import {
   type ProductAvailability,
 } from "@prototype/shared";
 import type { SearchBusinessHandoff } from "./GlobalSearchScreen";
-import { ConvenienceProductArtwork } from "./ConvenienceProductArtwork";
+import { ConvenienceBrowsePanel } from "./ConvenienceBrowsePanel";
 
 type StoreStep = "stores" | "browse" | "product" | "cart" | "checkout" | "pickupOrder" | "deliveryOrder" | "legacyConfirm" | "legacyVoucher" | "legacySuccess";
 type FulfillmentMode = "pickup" | "short_delivery";
@@ -204,13 +204,6 @@ export function StoreFlowScreen({ openActivity, entryContext }: StoreFlowScreenP
   const selectedProduct = selectedProductId ? findById(catalogProducts, selectedProductId) : undefined;
   const selectedAvailability = selectedProduct ? availabilityByProductId.get(selectedProduct.id) : undefined;
   const storeProducts = selectedStore ? getStoreProducts(selectedStore.id) : [];
-  const categories = ["全部", ...Array.from(new Set(storeProducts.map((product) => product.category)))];
-  const normalizedQuery = query.trim().toLowerCase();
-  const visibleProducts = storeProducts.filter((product) => {
-    const matchesCategory = category === "全部" || product.category === category;
-    const matchesQuery = !normalizedQuery || `${product.name} ${product.category} ${product.spec ?? ""}`.toLowerCase().includes(normalizedQuery);
-    return matchesCategory && matchesQuery;
-  });
   const currentCart = selectedStore ? carts[selectedStore.id] ?? {} : {};
   const cartCount = Object.values(currentCart).reduce((sum, quantity) => sum + quantity, 0);
   const cartRows = selectedStore
@@ -397,145 +390,30 @@ export function StoreFlowScreen({ openActivity, entryContext }: StoreFlowScreenP
   }
 
   if (step === "browse") {
+    const couponTitles = coreUserV02Coupons
+      .filter((coupon) => coupon.scene === "store" && coupon.status === "available" && coupon.applicableStoreIds.includes(selectedStore.id))
+      .map((coupon) => coupon.title);
     return (
-      <>
-        <div className="space-y-4 pb-16">
-          <section className="rounded-[var(--radius-overlay)] bg-[var(--color-surface)] p-3">
-            <div className="flex items-start justify-between gap-3">
-              <div className="min-w-0">
-                <p className="text-[11px] font-semibold text-[var(--color-primary)]">当前门店</p>
-                <h2 className="mt-0.5 text-lg font-semibold">{selectedStore.name}</h2>
-                <p className="mt-1 text-xs leading-5 text-[var(--color-text-tertiary)]">距你 {selectedStore.distanceKm?.toFixed(1) ?? "--"} km · {selectedStore.businessHours}</p>
-              </div>
-              <button type="button" onClick={() => goStep("stores")} className="min-h-11 shrink-0 rounded-[var(--radius-control)] px-2 text-sm font-medium text-[var(--color-primary)]">切换门店</button>
-            </div>
-            <div className="mt-2"><StoreCapabilityTags storeId={selectedStore.id} /></div>
-          </section>
-
-          <div className="sticky top-[calc(3.5rem+env(safe-area-inset-top))] z-10 -mx-4 space-y-2 bg-[var(--color-background)]/95 px-4 py-2 backdrop-blur">
-            <div className="relative">
-              <span className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-[var(--color-text-tertiary)]"><PrototypeIcon name="search" size={18} /></span>
-              <input
-                value={query}
-                onChange={(event) => setQuery(event.target.value)}
-                aria-label="搜索当前门店商品"
-                placeholder="搜本店商品、分类或规格"
-                className="min-h-11 w-full rounded-[var(--radius-control)] border border-[var(--color-border)] bg-[var(--color-surface)] pl-10 pr-3 text-sm outline-none focus:border-[var(--color-primary)]"
-              />
-            </div>
-
-            <div className="-mx-4 flex gap-2 overflow-x-auto px-4 pb-0.5" aria-label="商品分类">
-              {categories.map((item) => (
-                <button
-                  key={item}
-                  type="button"
-                  aria-pressed={category === item}
-                  onClick={() => setCategory(item)}
-                  className={`min-h-11 shrink-0 rounded-full px-4 text-sm font-medium ${category === item ? "bg-[var(--color-primary)] text-[var(--color-on-primary)]" : "border border-[var(--color-border)] bg-[var(--color-surface)] text-[var(--color-text-secondary)]"}`}
-                >
-                  {item}
-                </button>
-              ))}
-            </div>
-          </div>
-
-          {selectedStore.id === coreDemoStore.id && (
-            <button type="button" onClick={openActivity} className="w-full text-left" aria-label="查看便利店活动">
-              <div className="flex min-h-[84px] items-center gap-3 rounded-[var(--radius-overlay)] bg-[var(--color-brand-subtle)] p-3">
-                <ConvenienceProductArtwork productId="PRODUCT-OAT-LATTE" name="燕麦拿铁" className="h-16 w-16 shrink-0 bg-[var(--color-surface)]" />
-                <div className="min-w-0 flex-1">
-                  <p className="text-[11px] font-semibold text-[var(--color-primary-pressed)]">早餐推荐</p>
-                  <p className="mt-1 font-semibold">早八能量补给</p>
-                  <p className="mt-1 text-xs leading-5 text-[var(--color-text-secondary)]">咖啡 + 鲜食，会员价更轻松</p>
-                </div>
-                <span className="shrink-0 text-[var(--color-primary)]" aria-hidden="true">›</span>
-              </div>
-            </button>
-          )}
-
-          <section aria-labelledby="store-products-title">
-            <div className="flex items-end justify-between gap-3">
-              <h3 id="store-products-title" className="text-base font-semibold">本店商品</h3>
-              <p className="text-xs text-[var(--color-text-tertiary)]">{visibleProducts.length} 件</p>
-            </div>
-
-            <div className="mt-2 overflow-hidden rounded-[var(--radius-overlay)] border border-[var(--color-border)] bg-[var(--color-surface)] divide-y divide-[var(--color-border)]">
-              {visibleProducts.length === 0 && (
-                <div className="p-5 text-center">
-                  <p className="font-semibold">本店没有匹配商品</p>
-                  <p className="mt-2 text-sm text-[var(--color-text-secondary)]">换个关键词或分类看看。</p>
-                </div>
-              )}
-              {visibleProducts.map((product) => {
-                const availability = availabilityByProductId.get(product.id);
-                const quantity = currentCart[product.id] ?? 0;
-                const orderable = selectedStore.status === "open" && isOrderable(availability);
-                const displayPrice = availability?.priceYuan ?? product.priceYuan;
-                const memberPrice = availability?.memberPriceYuan ?? product.memberPriceYuan;
-                const promotionLabel = availability?.promotionLabel;
-                const showStock = availability?.status === "low_stock" || !orderable;
-                return (
-                  <article key={product.id} className={`p-3 ${orderable ? "" : "bg-[var(--color-surface-subtle)]"}`}>
-                    <div className="flex gap-3">
-                      <button type="button" onClick={() => openProduct(product.id)} className="relative h-24 w-24 shrink-0 rounded-[var(--radius-container)] text-left" aria-label={`查看商品：${product.name}`}>
-                        <ConvenienceProductArtwork productId={product.id} name={product.name} className={`h-24 w-24 ${orderable ? "" : "opacity-55 grayscale"}`} />
-                        {!orderable && (
-                          <span className="absolute inset-x-2 bottom-2 rounded-full bg-[var(--color-text-primary)]/80 px-2 py-1 text-center text-[10px] font-medium text-[var(--color-surface)]">
-                            {availability?.stockLabel ?? "暂不可售"}
-                          </span>
-                        )}
-                      </button>
-
-                      <div className="min-w-0 flex-1">
-                        <button type="button" onClick={() => openProduct(product.id)} className="min-h-11 w-full text-left" aria-label={`查看商品信息：${product.name}`}>
-                          <p className="truncate font-semibold">{product.name}</p>
-                          <p className="mt-0.5 truncate text-xs text-[var(--color-text-tertiary)]">{product.spec ?? product.category}</p>
-                        </button>
-
-                        <div className="mt-1.5 min-h-5">
-                          {promotionLabel && <span className="mr-2 text-[11px] font-medium text-[var(--color-success)]">{promotionLabel}</span>}
-                          {showStock && <span className="text-[11px] font-medium text-[var(--color-warning)]">{availability?.stockLabel ?? availabilityStatusLabels[availability?.status ?? "unavailable"]}</span>}
-                        </div>
-
-                        <div className="mt-1 flex items-end justify-between gap-2">
-                          <div className="min-w-0">
-                            {memberPrice !== undefined && memberPrice !== displayPrice && <p className="text-[10px] text-[var(--color-text-tertiary)] line-through">¥{displayPrice.toFixed(2)}</p>}
-                            <p className="whitespace-nowrap text-base font-semibold text-[var(--color-primary-pressed)]">¥{(memberPrice ?? displayPrice).toFixed(2)} {memberPrice !== undefined && <span className="text-[10px] font-normal text-[var(--color-text-tertiary)]">会员价</span>}</p>
-                          </div>
-
-                          {quantity > 0 ? (
-                            <div className="flex shrink-0 items-center gap-0.5" aria-label={`${product.name} 数量`}>
-                              <button type="button" aria-label={`减少${product.name}`} onClick={() => updateQuantity(product.id, -1)} className="flex min-h-11 min-w-11 items-center justify-center rounded-full border border-[var(--color-border)] bg-[var(--color-surface)]">−</button>
-                              <span className="min-w-6 text-center text-sm font-semibold">{quantity}</span>
-                              <button type="button" aria-label={`增加${product.name}`} onClick={() => updateQuantity(product.id, 1)} disabled={!orderable} className="flex min-h-11 min-w-11 items-center justify-center rounded-full bg-[var(--color-primary)] text-[var(--color-on-primary)] disabled:opacity-40">+</button>
-                            </div>
-                          ) : (
-                            <button type="button" aria-label={`加入购物车：${product.name}`} onClick={() => updateQuantity(product.id, 1)} disabled={!orderable} className="flex min-h-11 min-w-11 shrink-0 items-center justify-center rounded-full bg-[var(--color-primary)] text-[var(--color-on-primary)] disabled:opacity-40">+</button>
-                          )}
-                        </div>
-                      </div>
-                    </div>
-                  </article>
-                );
-              })}
-            </div>
-          </section>
-
-          {selectedStore.id === coreDemoStore.id && (
-            <SecondaryButton className="w-full" onClick={() => goStep("legacyConfirm")}>选择此门店自提</SecondaryButton>
-          )}
-        </div>
-
-        <button
-          type="button"
-          onClick={() => goStep("cart")}
-          aria-label={`打开购物车，${cartCount} 件商品`}
-          className="fixed bottom-[calc(4rem+env(safe-area-inset-bottom))] left-1/2 z-20 flex min-h-14 w-[calc(100%-2rem)] max-w-[358px] -translate-x-1/2 items-center justify-between rounded-[var(--radius-container)] bg-[var(--color-primary)] px-4 text-[var(--color-on-primary)] shadow-lg"
-        >
-          <span className="font-semibold">购物车 {cartCount} 件</span>
-          <span className="text-sm">¥{cartTotal.toFixed(2)} · 查看 ›</span>
-        </button>
-      </>
+      <ConvenienceBrowsePanel
+        key={selectedStore.id}
+        store={selectedStore}
+        products={storeProducts}
+        availabilityByProductId={availabilityByProductId}
+        currentCart={currentCart}
+        cartCount={cartCount}
+        cartTotal={cartTotal}
+        query={query}
+        setQuery={setQuery}
+        category={category}
+        setCategory={setCategory}
+        couponTitles={couponTitles}
+        onSwitchStore={() => goStep("stores")}
+        onOpenActivity={openActivity}
+        onOpenProduct={openProduct}
+        onUpdateQuantity={updateQuantity}
+        onOpenCart={() => goStep("cart")}
+        onOpenLegacyPickup={selectedStore.id === coreDemoStore.id ? () => goStep("legacyConfirm") : undefined}
+      />
     );
   }
 
