@@ -46,13 +46,13 @@
 | T012 | 关键状态、可访问性与原型质量 | QA / Shared | PASS | 0.1.0 | T003-T011 | PR #9 merge `5ddd6c6`；Verify #119、Browser Quality #9、OpenCode #47 success |
 | T013 | 跨端演示串联与 V0.1 验收准备 | Review / Docs | CANCELLED | 0.1.0 | T002-T012 | 被 2026-08-31 用户直接总体验收取代；不属于失败或 V0.2 阻塞 |
 | T014 | 实验性 PR AI Review | CI / Review | REVIEW | 0.1.0 | GitHub Actions、`OPENCODE_API_KEY` | 独立实验性 Review，不阻塞产品版本 |
-| T015 | V0.2 共享领域模型与 Mock Fixtures | Shared | REVIEW | 0.2.0 | V0.2 PRD | PR #10 已合入 `dev`；其验收状态由对应任务卡 / 线程维护 |
-| T016 | Mobile 运营首页、一级 IA 与全局搜索 | Mobile | REVIEW | 0.2.0 | T015 | PR #11 已合入 `dev`；其验收状态由对应任务卡 / 线程维护 |
+| T015 | V0.2 共享领域模型与 Mock Fixtures | Shared | PASS | 0.2.0 | V0.2 PRD | PR #10 已合入 `dev`；Verify #151、Browser Quality #10、关系校验通过；2026-09-01 用户授权按台账证据验收 |
+| T016 | Mobile 运营首页、一级 IA 与全局搜索 | Mobile | PASS | 0.2.0 | T015 | PR #11 已合入 `dev`；Verify #172、Browser Quality #31、Codex 返工闭环；2026-09-01 用户授权按台账证据验收 |
 | T017 | Mobile 便利店门店页、商品浏览与独立购物车 | Mobile | PASS | 0.2.0 | T015、T016 | PR #12 merge `29d6232`；最终 head `cf0b6e8` 的 Verify #191、Browser #48、OpenCode #69 success / `NO_BLOCKING_FINDINGS`；Codex P1/P2/P2 全部修复并 resolve |
-| T018 | Mobile 便利店结算、自提与 3 公里短距配送 | Mobile | PASS | 0.2.0 | T017 | `8c9b8cb` + `d97eb53`（提交 `dev`，未 push）；`npm run verify` success；Playwright 390px 全量 41 项 success；`validateDemoFixtureRelations()` 返回 `[]`；用户授权验收通过 |
+| T018 | Mobile 便利店结算、自提与 3 公里短距配送 | Mobile | PASS | 0.2.0 | T017 | `8c9b8cb` + `d97eb53` 已进入 `dev`；`80d93a2` 记录验收；`npm run verify` success；Playwright 390px 全量 41 项 success；`validateDemoFixtureRelations()` 返回 `[]` |
 | T019 | Mobile 线上商城中高保真购买闭环 | Mobile | PASS | 0.2.0 | T015、T016 | PR #13 merge `c9aa08342e81199934feff95be5045d925c38ea6`；Verify #187、Browser Quality #44、OpenCode #65 success；Codex 最终重审无 major issues；2026-08-31 用户验收通过 |
-| T020 | Mobile 智慧抗衰项目、预约与二维码核销 | Mobile | **PASS** | 0.2.0 | T015、T016 | PR #14 merge `3297f1c`；`npm run verify` success；Playwright 390px 全量 45 项通过（T020 专项 4 项）；7 项验收标准全部满足；用户授权验收通过 |
-| T021 | Mobile 智慧抗衰检测报告、转化与历史对比 | Mobile | PASS | 0.2.0 | T015、T020 | 验收通过；8 项标准全部满足；假按钮与返回导航问题已修复回归；typecheck / build / 全量 40 浏览器用例通过 |
+| T020 | Mobile 智慧抗衰项目、预约与二维码核销 | Mobile | PASS | 0.2.0 | T015、T016 | PR #14 merge `3297f1c`；`a2f68b1` 记录验收；`npm run verify` success；Playwright 390px 全量 45 项通过（T020 专项 4 项）；7 项验收标准全部满足 |
+| T021 | Mobile 智慧抗衰检测报告、转化与历史对比 | Mobile | PASS | 0.2.0 | T015、T020 | `6adfc0d` 记录验收；8 项标准全部满足；假按钮与返回导航问题已修复回归；typecheck / build / 全量 40 浏览器用例通过 |
 | T022 | PC 便利店订单、履约与核销后台 | PC | TODO | 0.2.0 | T015、T018 | 自提 / 短配订单、核销、门店可售关系、履约配置 mock |
 | T023 | PC 智慧抗衰预约、核销与报告运营后台 | PC | TODO | 0.2.0 | T015、T020、T021 | 项目 / 时段 / 预约 / 核销 / 报告 / 转化配置 |
 | T024 | PC 商城渠道、活动与搜索运营后台 | PC | TODO | 0.2.0 | T015、T016、T019 | Storefront / Channel、商城订单、活动 / 推荐位、搜索关联 |
@@ -66,6 +66,14 @@
 - T013 原本只是 V0.1 总体验收前的准备卡。由于用户已直接完成总体验收，该卡记录为 `CANCELLED`，避免把未单独执行的准备工作伪装为已完成。
 - T014 继续作为实验性 PR AI Review 独立观察，不阻塞 V0.2。
 
+## V0.2 当前进度
+
+- Wave 0-2 已全部完成：T015-T021 均为 `PASS`。
+- 当前正式施工面为 Wave 3：T022、T023、T024。三张卡依赖均已满足，可以并行施工。
+- T022-T024 在对应施工线程真正开始前保持 `TODO`；不得仅因“已排入下一波”提前写成 `DOING`。
+- T025 必须等待 T022-T024 的 PC 业务语义稳定后施工。
+- T026 为 V0.2 最终跨端串联、质量对账和验收准备，不提前吸收未完成任务。
+
 ## V0.2 派卡原则
 
 本轮只派当前原型工程能够真实完成和验证的工作：
@@ -74,35 +82,31 @@
 - 不做：真实支付、真实库存、真实地图 / 骑手调度、真实物流、抖音等外部商城 API、真实检测硬件、真实 AI 检测 / 护理算法、生产级 BI / CMS / 搜索索引。
 - 业务未决规则只用可追踪 mock，不作为正式事实固化。
 
-## V0.2 推荐施工波次
+## V0.2 施工波次
 
-### Wave 0 · 地基
+### Wave 0 · 地基 — PASS
 
 1. T015 共享领域模型与 Mock Fixtures。
 2. T016 Mobile 一级 IA、运营首页与全局搜索。
 
-### Wave 1 · 三大 Mobile 业务域并行
+### Wave 1 · 三大 Mobile 业务域 — PASS
 
 - T017 便利店浏览 / 独立购物车。
 - T019 线上商城购买闭环。
 - T020 智慧抗衰预约 / 核销。
 
-T017、T019、T020 在 T015 / T016 稳定后可以并行。
-
-### Wave 2 · 深层流程
+### Wave 2 · 深层流程 — PASS
 
 - T018 便利店自提 / 短配。
 - T021 智慧抗衰报告 / 历史对比。
 
-T018 与 T021 可并行。
-
-### Wave 3 · PC 后台并行
+### Wave 3 · PC 后台并行 — NEXT
 
 - T022 便利店后台。
 - T023 智慧抗衰后台。
 - T024 商城渠道 / 活动 / 搜索运营后台。
 
-对应 Mobile 语义稳定后，三张 PC 卡可以并行。
+三张 PC 卡的 Mobile / Shared 前置均已验收，可并行启动。
 
 ### Wave 4 · 数据与总验收
 
@@ -117,6 +121,6 @@ T018 与 T021 可并行。
 
 ## 下一步
 
-1. T017 已 PASS 并合入 `dev`；T018 可直接承接便利店结算、自提与 3 公里短距配送。
-2. T019 已 PASS；T020 继续按 Wave 1 推进，后续对应 Mobile 业务语义稳定后再启动 PC 后台与总验收卡。
-3. T015 / T016 已合入 `dev`，其最终验收状态由各自任务线程继续维护，不反向阻塞已完成的 T017 / T019 代码基线。
+1. 并行启动 T022 / T023 / T024，对应便利店、智慧抗衰、商城三条 PC 后台；每张卡在实际施工线程开始时再从 `TODO → DOING`。
+2. 三张 PC 卡统一消费 T015 已验收 Shared facts，并分别与 T018、T020/T021、T016/T019 的 Mobile 语义对账，避免双端出现两套事实。
+3. T022-T024 稳定后进入 T025；T025 完成后再执行 T026 总体跨端验收准备。
