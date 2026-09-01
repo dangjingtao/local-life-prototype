@@ -243,6 +243,7 @@ export function App() {
             <CareReportScreen
               key={`${reportEntry?.back ?? "me"}:${reportEntry?.reportId ?? "list"}`}
               entryReportId={reportEntry?.reportId}
+              backLabel={reportEntry?.back === "care" ? "返回智慧抗衰" : "返回我的"}
               onBack={() => go(reportEntry?.back === "care" ? "care" : "me")}
             />
           )}

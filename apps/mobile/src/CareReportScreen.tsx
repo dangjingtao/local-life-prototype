@@ -20,6 +20,7 @@ type ReportView = "list" | "detail" | "compare";
 interface CareReportScreenProps {
   onBack: () => void;
   entryReportId?: string;
+  backLabel?: string;
 }
 
 const trendMeta: Record<NonNullable<DetectionMetric["trend"]>, { label: string; tone: "success" | "warning" | "neutral"; up: boolean }> = {
@@ -115,6 +116,7 @@ function ReportHero({ report, projectName, storeName }: { report: DetectionRepor
 
 function DetailView({ report, goCompare, goBack, backLabel }: { report: DetectionReport; goCompare: () => void; goBack: () => void; backLabel: string }) {
   const [couponClaimed, setCouponClaimed] = useState(false);
+  const [packageOpen, setPackageOpen] = useState(false);
   const store = offlineStores.find((item) => item.id === report.storeId);
   const project = careProjects.find((item) => item.id === report.careProjectId);
   const appointment: Appointment | undefined = report.appointmentId ? appointments.find((item) => item.id === report.appointmentId) : undefined;
@@ -205,7 +207,18 @@ function DetailView({ report, goCompare, goBack, backLabel }: { report: Detectio
                   <p className="text-lg font-semibold text-[var(--color-primary-pressed)]">¥{recommendedService.priceYuan}</p>
                 </div>
                 <p className="mt-3 text-sm leading-6 text-[var(--color-text-secondary)]">{recommendedService.note}</p>
-                <Button className="mt-4 w-full">查看套餐详情</Button>
+                <Button className="mt-4 w-full" onClick={() => setPackageOpen((value) => !value)}>{packageOpen ? "收起套餐详情" : "查看套餐详情"}</Button>
+                {packageOpen && (
+                  <div className="mt-4 rounded-[var(--radius-control)] bg-[var(--color-surface-subtle)] p-4">
+                    <div className="flex items-start gap-3">
+                      <span className="mt-0.5 flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-[var(--color-brand-subtle)] text-[var(--color-primary-pressed)]"><PrototypeIcon name="clock" size={16} /></span>
+                      <div>
+                        <p className="text-sm font-medium">套餐详情 · 原型承接</p>
+                        <p className="mt-2 text-sm leading-6 text-[var(--color-text-secondary)]">适用于 {recommendedService.storeIds.map((storeId) => offlineStores.find((item) => item.id === storeId)?.name ?? storeId).join("、")}，价格 ¥{recommendedService.priceYuan}。真实套餐购买、权益核销与转化配置由 T023 之后的流程承接，本页不伪装成已可下单。</p>
+                      </div>
+                    </div>
+                  </div>
+                )}
               </div>
             </div>
           </Card>
@@ -339,11 +352,11 @@ function CompareView({ report, goBack }: { report: DetectionReport; goBack: () =
   );
 }
 
-function ListView({ goDetail, goBack }: { goDetail: (reportId: string) => void; goBack: () => void }) {
+function ListView({ goDetail, goBack, backLabel }: { goDetail: (reportId: string) => void; goBack: () => void; backLabel: string }) {
   const history = getUserDetectionHistory(CORE_DEMO_IDS.user);
   return (
     <>
-      <BackButton onClick={goBack}>返回我的</BackButton>
+      <BackButton onClick={goBack}>{backLabel}</BackButton>
       <div>
         <p className="text-sm text-[var(--color-text-secondary)]">我的检测</p>
         <h2 className="mt-1 text-2xl font-semibold">历次检测报告</h2>
@@ -391,7 +404,7 @@ function ListView({ goDetail, goBack }: { goDetail: (reportId: string) => void; 
   );
 }
 
-export function CareReportScreen({ onBack, entryReportId }: CareReportScreenProps) {
+export function CareReportScreen({ onBack, entryReportId, backLabel = "返回" }: CareReportScreenProps) {
   const history = getUserDetectionHistory(CORE_DEMO_IDS.user);
   const [view, setView] = useState<ReportView>(() => (entryReportId ? "detail" : "list"));
   const [activeReportId, setActiveReportId] = useState(() => entryReportId ?? history[0]?.id ?? "");
@@ -421,7 +434,7 @@ export function CareReportScreen({ onBack, entryReportId }: CareReportScreenProp
   if (!activeReport) {
     return (
       <>
-        <BackButton onClick={onBack}>返回</BackButton>
+        <BackButton onClick={onBack}>{backLabel}</BackButton>
         <Card className="bg-[var(--color-surface-subtle)] p-5 text-center">
           <p className="font-semibold">还没有检测报告</p>
           <p className="mt-2 text-sm leading-6 text-[var(--color-text-secondary)]">完成智慧抗衰检测后，报告会沉淀在这里。</p>
@@ -434,7 +447,7 @@ export function CareReportScreen({ onBack, entryReportId }: CareReportScreenProp
     return <CompareView report={activeReport} goBack={backFromDetail} />;
   }
   if (view === "detail") {
-    return <DetailView report={activeReport} goCompare={goCompare} goBack={backFromDetail} backLabel="返回我的检测" />;
+    return <DetailView report={activeReport} goCompare={goCompare} goBack={backFromDetail} backLabel="返回" />;
   }
-  return <ListView goDetail={goDetail} goBack={onBack} />;
+  return <ListView goDetail={goDetail} goBack={onBack} backLabel={backLabel} />;
 }

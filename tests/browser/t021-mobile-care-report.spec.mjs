@@ -47,6 +47,8 @@ test.describe("T021 · Mobile 智慧抗衰检测报告、转化与历史对比",
     await expect(page.getByText("检测后专属护理 30 元券")).toBeVisible();
     await expect(page.getByText("基础护理套餐")).toBeVisible();
     await expect(page.getByRole("heading", { name: "复测提醒" })).toBeVisible();
+    await page.getByRole("button", { name: "查看套餐详情" }).click();
+    await expect(page.getByText("套餐详情 · 原型承接")).toBeVisible();
     await expect(page.getByRole("button", { name: "查看历史对比" })).toBeVisible();
     await expect(page.getByText("非医疗诊断边界")).toBeVisible();
     await expectNoHorizontalOverflow(page);
