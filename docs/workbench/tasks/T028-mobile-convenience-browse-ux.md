@@ -1,6 +1,6 @@
 # T028 · Mobile 便利店商品浏览与零售密度 UX 返工
 
-- Status: TODO
+- Status: DOING
 - Target version: 0.2.0
 - Impact: Mobile / UX / Assets
 - Owner: -
@@ -66,8 +66,9 @@ T017 功能性实现能正确展示门店商品、价格、会员价与库存状
 ## Dispatch Context
 
 - Repo: `dangjingtao/local-life-prototype`
-- Base when dispatched: `dev @ 624991a32a6228a4b969825165177fbd7df2c658`，实际施工前必须 rebase / fast-forward 到已合入 T027 的最新 `dev`
-- Suggested branch: `task/T028-convenience-browse-ux`
+- Base when dispatched: `dev @ 624991a32a6228a4b969825165177fbd7df2c658`。
+- Actual implementation baseline: `dev @ 7fcedb2fcabce5f40ac229f702a4fe3c9b9d16e4`（已含 T027 merge + 台账证据）。
+- Branch: `task/T028-convenience-browse-ux`
 - Must Read: `AGENTS.md`、`docs/workbench/00-work-ledger.md`、T017、T027、T018、`docs/product/01-v0.2-prd.md`
 - Execution entry points: `apps/mobile/src/StoreFlowScreen.tsx`、`packages/shared/src/fixtures.ts`（仅在需要补 demo asset 引用时）、Mobile assets、`tests/browser/t017-mobile-convenience-cart.spec.mjs`
 - Hard constraints: 不改变门店价格 / 库存 / 促销关系；不复制 7-ELEVEN 等品牌视觉；不引入外部在线依赖；不修改 T018 履约规则。
@@ -75,20 +76,20 @@ T017 功能性实现能正确展示门店商品、价格、会员价与库存状
 
 ## Implementation record
 
-- Commit / PR:
-- Changed paths:
-- Notes:
+- Commit / PR: implementation in progress on `task/T028-convenience-browse-ux`。
+- Changed paths: `apps/mobile/src/ConvenienceProductArtwork.tsx`、`apps/mobile/src/StoreFlowScreen.tsx`、`tests/browser/t017-mobile-convenience-cart.spec.mjs`。
+- Notes: 使用仓库内自制非品牌 SVG/React 包装插画，不引入外部图片依赖；浏览列表保持现有 Shared 价格 / 库存 / 促销真相源。
 
 ## Verification evidence
 
-- CI:
+- CI: pending PR gates。
 - Page / Route: Mobile `便利店` → 具体门店商品浏览
-- Screenshot / Browser result:
-- Other evidence:
+- Screenshot / Browser result: pending 390 × 844 browser gate。
+- Other evidence: 新回归覆盖商品主图、紧凑 `article` 列表、固定购物栏、滚动后搜索可达、底部栏与一级导航不重叠、加购后件数 / 金额实时更新。
 
 ## Review
 
-- Reviewer:
-- Result: REVIEW / PASS / BLOCKED
-- Conclusion:
-- Follow-up: 完成后进入 T029。
+- Reviewer: pending
+- Result: DOING
+- Conclusion: 实现已进入验证阶段，尚未完成 PR / AI review。
+- Follow-up: 门禁和 review 无阻塞后合入 `dev`，再进入 T029。
