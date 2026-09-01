@@ -1,9 +1,9 @@
 # T021 · Mobile 智慧抗衰检测报告、转化与历史对比
 
-- Status: TODO
+- Status: REVIEW
 - Target version: 0.2.0
 - Impact: Mobile / Shared
-- Owner: -
+- Owner: Mira
 
 ## Background
 
@@ -36,14 +36,14 @@ V0.2 已确认检测报告升级为结果数据 + 个性化护理建议 + 专属
 
 ## Acceptance
 
-- [ ] 检测完成后可进入完整报告页。
-- [ ] 报告至少有 3 类可读指标 / 数据表达，并附非医疗语义说明。
-- [ ] 护理建议、专属券、套餐、复测提醒均可见且有合理交互承接。
-- [ ] “我的检测”能查看至少 2 次历史记录。
-- [ ] 历史报告对比能直观辨认时间、门店 / 项目和指标差异。
-- [ ] 视觉达到中高保真科技 / 专业 / 高端服务感，不做空洞赛博装饰。
-- [ ] 390px Mobile 真实浏览器验证通过。
-- [ ] `npm run typecheck`、`npm run build` 通过。
+- [x] 检测完成后可进入完整报告页。
+- [x] 报告至少有 3 类可读指标 / 数据表达，并附非医疗语义说明。
+- [x] 护理建议、专属券、套餐、复测提醒均可见且有合理交互承接。
+- [x] “我的检测”能查看至少 2 次历史记录。
+- [x] 历史报告对比能直观辨认时间、门店 / 项目和指标差异。
+- [x] 视觉达到中高保真科技 / 专业 / 高端服务感，不做空洞赛博装饰。
+- [x] 390px Mobile 真实浏览器验证通过。
+- [x] `npm run typecheck`、`npm run build` 通过。
 
 ## Risks / Dependencies
 
@@ -52,16 +52,32 @@ V0.2 已确认检测报告升级为结果数据 + 个性化护理建议 + 专属
 
 ## Implementation record
 
-- Commit / PR:
+- Commit / PR: `c47b647`（dev，未 push）
 - Changed paths:
+  - `apps/mobile/src/CareReportScreen.tsx`（新增）
+  - `apps/mobile/src/App.tsx`
+  - `apps/mobile/src/CareFlowScreen.tsx`
+  - `apps/mobile/src/MembershipCenterScreen.tsx`
+  - `packages/icons/src/index.tsx`
+  - `tests/browser/t021-mobile-care-report.spec.mjs`（新增）
 - Notes:
+  - 新增 Mobile 报告域：我的检测列表、报告详情、历史报告对比三个视图，全部复用 T015 `detectionReports` / `detectionRecords` / `appointments` / `coupons` / `careServices` 关系。
+  - 报告详情包含：检测上下文关系网格（User / Care Project / Store / Appointment / Detection Record）、结果指标（score 进度条 + trend 方向 + note）、个性化护理建议、检测后专属券（可领取到券包）、护理套餐 CTA、复测提醒、非医疗边界声明。
+  - 历史对比按同一 Care Project 并排对照两次报告的指标 value / score 与状态分差异，并明确“不包含 AI 趋势分析或医疗判断”。
+  - 入口：MembershipCenter“我的检测”进入列表；CareFlow 检测完成步骤“查看检测报告”直接进入报告详情。
+  - icons 新增 `report / trend / coupon / calendar / sparkles / shield / gift / chevron / clock / repeat` 语义图标，不在业务代码散落自定义 SVG。
+  - 本次会话生成的新预约不写回 fixtures；历史报告与对比来自 T015 既有数据。
 
 ## Verification evidence
 
-- CI:
-- Page / Route:
-- Screenshot / Browser result:
-- Other evidence:
+- CI: 本地 `npm run typecheck`、`npm run build` 通过（dev 分支）。
+- Page / Route: Mobile `我的检测`（列表 / 报告详情 / 历史对比）；CareFlow 检测完成 → 报告。
+- Screenshot / Browser result: `npx playwright test` 全量 40 用例通过（390×844，含新增 T021 4 用例：列表→详情、历史对比、检测完成进入报告、返回导航）。
+- Other evidence: 无横向溢出检查通过；回归未破坏 T020 预约 / 核销流程。
+
+## Status history
+
+- 2026-09-01 `TODO → REVIEW`：完成报告详情、转化模块、我的检测列表与历史对比施工；typecheck / build / 全量浏览器测试通过；等待用户 / 独立评审验收，不自行标记 PASS。
 
 ## Review
 
