@@ -1,12 +1,9 @@
 # T021 · Mobile 智慧抗衰检测报告、转化与历史对比
 
-* Status: REVIEW
-
-* Target version: 0.2.0
-
-* Impact: Mobile / Shared
-
-* Owner: Mira
+- Status: PASS
+- Target version: 0.2.0
+- Impact: Mobile / Shared
+- Owner: Mira
 
 ## Background
 
@@ -118,10 +115,12 @@ V0.2 已确认检测报告升级为结果数据 + 个性化护理建议 + 专属
 
 * 2026-09-01 验收修复：用户要求验收，发现 2 处问题并修复——「查看套餐详情」原为无交互假按钮（违反 AGENTS 原则 5），改为可展开套餐详情 / 适用门店 / 原型承接说明；报告返回导航文案与链路按来源区分（智慧抗衰 / 我的），避免误导。修复后 typecheck / 全量 40 浏览器用例通过。
 
+* 2026-09-01 `REVIEW → PASS`：用户授权验收通过。
+
 ## Review
 
-* Reviewer: Tomz / 验收评审（2026-09-01）
-* Result: REVIEW / PASS / BLOCKED
-* Conclusion:
-* Follow-up:
+* Reviewer: Tomz
+* Result: PASS
+* Conclusion: 8 项验收标准全部通过；验收期间发现的假按钮与返回导航问题已修复并回归验证。
+* Follow-up: 无。T023 之后由 PC 后台承接真实套餐购买与转化配置，本任务不越界。
 
