@@ -1,6 +1,6 @@
 # T015 · V0.2 共享领域模型与 Mock Fixtures
 
-- Status: REVIEW
+- Status: PASS
 - Target version: 0.2.0
 - Impact: Shared / Mobile / PC
 - Owner: Mira
@@ -82,10 +82,11 @@ V0.2 新增门店独立购物车、短距配送、线上 Storefront / Channel、
 
 - 2026-08-31 `TODO → DOING`：用户明确要求阅读项目约定并完成 T015；按项目规则创建短生命周期任务分支开始施工。
 - 2026-08-31 `DOING → REVIEW`：共享模型与 V0.2 fixtures 已完成，PR #10 已创建，Verify Prototype #151 与 T012 Browser Quality #10 均通过；等待用户 / 独立评审验收，不自行标记 PASS。
+- 2026-09-01 `REVIEW → PASS`：用户明确授权“按照台账证据验收”；现有 Acceptance、CI、浏览器回归与关系校验证据足以支持验收，正式确认 T015 为 V0.2 共享事实基线。
 
 ## Review
 
-- Reviewer: Tomz / independent review pending
-- Result: REVIEW
-- Conclusion: T015 施工和自动验证已完成，当前处于人工验收前 REVIEW；CI 绿不自动等于 PASS。
-- Follow-up: 验收通过后可将 T015 标记 PASS，并以 `v02Fixtures` 作为 T016-T025 的共享事实基线逐步迁移页面。
+- Reviewer: Tomz
+- Result: PASS
+- Conclusion: T015 按已记录证据验收通过。共享领域模型、Mock Fixtures、关系校验和兼容性验证已闭环，可作为 V0.2 Mobile / PC 后续任务统一事实源。
+- Follow-up: `v02Fixtures` 作为 T016-T025 的已验收共享事实基线继续使用；后续新增业务事实必须保持跨 Mobile / PC 关系一致，并继续遵守未决规则不固化原则。
