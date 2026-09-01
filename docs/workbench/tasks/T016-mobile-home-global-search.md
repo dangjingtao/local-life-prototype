@@ -1,6 +1,6 @@
 # T016 · Mobile 运营首页、一级 IA 与全局搜索
 
-- Status: REVIEW
+- Status: PASS
 - Target version: 0.2.0
 - Impact: Mobile / Shared
 - Owner: Mira
@@ -46,10 +46,10 @@ V0.1 首页与底部导航表达重复，缺少运营承载和产品级搜索。
 
 ## Risks / Dependencies
 
-- 前置：T015。
+- 前置：T015，现已验收为 PASS。
 - 一级导航视觉形态允许在不破坏业务 IA 的前提下调整，不强制五个业务层级全部以固定 Tab 形式出现。
-- T015 PR #10 已于 2026-08-31 合入 `dev`（merge `762363e`）；T015 的产品验收状态仍独立遵循台账规则，不因为代码合并自动改为 PASS。
-- PR #11 已从 stacked base retarget 到 `dev`，最终合并前按 `dev` base 重新执行 CI / AI review 门禁。
+- T015 PR #10 已于 2026-08-31 合入 `dev`（merge `762363e`），并于 2026-09-01 按台账证据验收为 PASS。
+- PR #11 已合入 `dev`；T016 的代码合并、浏览器验证、review 返工与产品验收现已全部闭环。
 
 ## Implementation record
 
@@ -92,10 +92,11 @@ V0.1 首页与底部导航表达重复，缺少运营承载和产品级搜索。
 - 2026-08-31 `DOING → REVIEW`：运营首页、一级 IA、全局搜索、便利店门店上下文与专项浏览器回归完成，进入人工评审，不自行标记 PASS。
 - 2026-08-31 REVIEW 返工：Codex 首轮 2×P1 + 1×P2 与二轮 1×P1 均完成修复、回归和 thread resolve；最终代码 head `af9d053` 的 Verify #172、Browser Quality #31 success。
 - 2026-08-31 合并准备：用户明确授权“合并”；T015 PR #10 作为 stacked 前置已合入 `dev`，PR #11 已 retarget 到 `dev`。代码合并授权不自动改写本卡产品验收状态。
+- 2026-09-01 `REVIEW → PASS`：用户明确授权“按照台账证据验收”；Acceptance、CI、390px 浏览器、跨域搜索 handoff 与 reviewer 返工证据均已闭环，正式验收通过。
 
 ## Review
 
 - Reviewer: Tomz / Codex / dev-base AI review
-- Result: REVIEW
-- Conclusion: T016 施工、review 返工与自动验证已完成；已获用户代码合并授权。按项目规则，代码合并不自动等于产品 PASS。
-- Follow-up: `dev` base 的最终 CI / AI review 无阻塞 finding 后合并 PR #11；后续如用户明确产品验收通过，再单独将 T016 改为 PASS。
+- Result: PASS
+- Conclusion: T016 按现有台账证据验收通过。Mobile 一级 IA、运营首页、全局搜索及四域 handoff 已完成施工、返工、自动验证与产品验收。
+- Follow-up: T016 作为已验收 Mobile 发现层基线继续支撑 T017-T024；后续 PC 搜索 / 活动运营必须保持与当前 Shared 搜索语义及 Mobile handoff 一致。
