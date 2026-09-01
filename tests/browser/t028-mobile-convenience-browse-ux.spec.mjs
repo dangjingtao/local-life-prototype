@@ -81,6 +81,9 @@ test.describe("T028 · expanded convenience browse UX", () => {
 
     const carousel = page.getByRole("region", { name: "门店活动轮播" });
     await expect(carousel).toContainText("早八能量补给");
+    const campaignAction = page.getByRole("button", { name: "查看便利店活动" });
+    await expect(campaignAction).toBeVisible();
+    await expectAtLeast44Px(campaignAction);
     const slide2 = page.getByRole("button", { name: "切换到活动 2" });
     await expectAtLeast44Px(slide2);
     await slide2.click();
