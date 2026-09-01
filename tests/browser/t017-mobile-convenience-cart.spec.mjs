@@ -5,7 +5,7 @@ const MOBILE = "http://127.0.0.1:4173";
 async function openConvenience(page) {
   await page.goto(`${MOBILE}/?demoAuth=1`);
   await page.getByRole("navigation", { name: "一级导航" }).getByRole("button", { name: "便利店", exact: true }).click();
-  await expect(page.getByRole("heading", { name: "先选门店，再开始选购" })).toBeVisible();
+  await expect(page.getByRole("heading", { name: "选择购买门店" })).toBeVisible();
 }
 
 async function expectNoHorizontalOverflow(page) {
@@ -20,12 +20,19 @@ async function expectNoHorizontalOverflow(page) {
 test.describe("T017 · Mobile convenience store browsing and independent cart", () => {
   test.use({ viewport: { width: 390, height: 844 } });
 
-  test("store selection exposes availability and fulfillment differences before shopping", async ({ page }) => {
+  test("store selection exposes clear fulfillment and closed-store states without internal copy", async ({ page }) => {
     await openConvenience(page);
     await expect(page.getByRole("button", { name: "选择门店：云岭社区店" })).toContainText("约 3 km 短配");
     await expect(page.getByRole("button", { name: "选择门店：南岸生活馆" })).toContainText("约 3 km 短配");
-    await expect(page.getByRole("button", { name: "选择门店：星河社区店" })).toContainText("当前休息");
-    await expect(page.getByRole("button", { name: "选择门店：星河社区店" })).toContainText("当前 0 款可购");
+
+    const closedStore = page.getByRole("button", { name: "门店休息中：星河社区店" });
+    await expect(closedStore).toBeDisabled();
+    await expect(closedStore).toContainText("当前休息");
+    await expect(closedStore).toContainText("当前暂不可下单");
+
+    for (const internalTerm of ["核心演示门店", "当前 0 款可购", "mock", "fixture", "门店上下文"]) {
+      await expect(page.getByText(internalTerm, { exact: false })).toHaveCount(0);
+    }
     await expectNoHorizontalOverflow(page);
   });
 
@@ -50,7 +57,7 @@ test.describe("T017 · Mobile convenience store browsing and independent cart", 
     await expectNoHorizontalOverflow(page);
   });
 
-  test("cart edits survive leaving the store tab and returning", async ({ page }) => {
+  test("store and cart continuity survive leaving the convenience tab and returning", async ({ page }) => {
     await openConvenience(page);
     await page.getByRole("button", { name: "选择门店：云岭社区店" }).click();
     await page.getByRole("button", { name: "加入购物车：青柠气泡水" }).click();
@@ -60,16 +67,17 @@ test.describe("T017 · Mobile convenience store browsing and independent cart", 
     await navigation.getByRole("button", { name: "首页", exact: true }).click();
     await navigation.getByRole("button", { name: "便利店", exact: true }).click();
 
-    const yunling = page.getByRole("button", { name: "选择门店：云岭社区店" });
-    await expect(yunling).toContainText("4 件已在购物车");
-    await yunling.click();
+    await expect(page.getByRole("heading", { name: "云岭社区店" })).toBeVisible();
     await expect(page.getByRole("button", { name: /打开购物车，4 件商品/ })).toBeVisible();
+    await expect(page.getByRole("heading", { name: "选择购买门店" })).toHaveCount(0);
+    await expectNoHorizontalOverflow(page);
   });
 
   test("featured convenience campaign is scoped to the configured store", async ({ page }) => {
     await openConvenience(page);
     await page.getByRole("button", { name: "选择门店：云岭社区店" }).click();
     await expect(page.getByRole("button", { name: "查看便利店活动" })).toContainText("早八能量补给");
+    await expect(page.getByRole("button", { name: "查看便利店活动" })).not.toContainText(/mock|fixture/i);
 
     await page.getByRole("button", { name: "切换门店" }).click();
     await page.getByRole("button", { name: "选择门店：南岸生活馆" }).click();
@@ -84,6 +92,8 @@ test.describe("T017 · Mobile convenience store browsing and independent cart", 
     await expect(page.getByText("¥11.90")).toBeVisible();
     await expect(page.getByText("会员价", { exact: true })).toBeVisible();
     await expect(page.getByText("第二件 8 折")).toBeVisible();
+    await expect(page.getByText("门店可售上下文", { exact: true })).toHaveCount(0);
+    await expect(page.getByText("当前门店", { exact: true })).toBeVisible();
 
     await page.getByRole("button", { name: "换店" }).click();
     await page.getByRole("button", { name: "选择门店：南岸生活馆" }).click();

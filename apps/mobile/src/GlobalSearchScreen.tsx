@@ -51,7 +51,7 @@ function ResultCard({ result, onOpen }: { result: GlobalSearchResult; onOpen: ()
             </div>
             <p className="mt-3 font-semibold">{result.title}</p>
             <p className="mt-1 text-sm leading-6 text-[var(--color-text-secondary)]">{result.subtitle}</p>
-            {result.domain === "store" && <p className="mt-2 text-xs font-medium text-[var(--color-primary)]">先选门店，再确认价格 / 库存 / 履约</p>}
+            {result.domain === "store" && <p className="mt-2 text-xs font-medium text-[var(--color-primary)]">查看附近门店价格与库存</p>}
           </div>
           <div className="shrink-0 text-right">
             {result.priceYuan !== undefined && <p className="font-semibold text-[var(--color-primary-pressed)]">¥{result.priceYuan}</p>}
@@ -78,7 +78,6 @@ export function GlobalSearchScreen({ initialQuery = "", onBack, onOpenBusiness, 
   const [query, setQuery] = useState(initialQuery);
   const [filter, setFilter] = useState<SearchFilter>("all");
   const [pendingStoreProduct, setPendingStoreProduct] = useState<GlobalSearchResult | null>(null);
-  const [selectedStoreId, setSelectedStoreId] = useState<string | null>(null);
 
   const results = useMemo(() => searchGlobalCatalog(query), [query]);
   const visibleResults = filter === "all" ? results : results.filter((result) => result.domain === filter);
@@ -86,12 +85,10 @@ export function GlobalSearchScreen({ initialQuery = "", onBack, onOpenBusiness, 
     .map((domain) => ({ domain, items: visibleResults.filter((result) => result.domain === domain) }))
     .filter((group) => group.items.length > 0);
   const storeOptions = pendingStoreProduct ? getConvenienceProductStoreOptions(pendingStoreProduct.entityId) : [];
-  const selectedStore = storeOptions.find((item) => item.storeId === selectedStoreId);
 
   const openResult = (result: GlobalSearchResult) => {
     if (result.domain === "store") {
       setPendingStoreProduct(result);
-      setSelectedStoreId(null);
       window.scrollTo({ top: 0, behavior: "smooth" });
       return;
     }
@@ -110,54 +107,43 @@ export function GlobalSearchScreen({ initialQuery = "", onBack, onOpenBusiness, 
         </button>
 
         <div>
-          <p className="text-sm text-[var(--color-text-secondary)]">便利店商品 · 门店上下文</p>
-          <h2 className="mt-1 text-2xl font-semibold">先选择可履约门店</h2>
-          <p className="mt-2 text-sm leading-6 text-[var(--color-text-secondary)]">“{pendingStoreProduct.title}”的价格、库存与短配能力按门店存在差异；全局搜索不把它伪装成统一库存。</p>
+          <p className="text-sm text-[var(--color-text-secondary)]">便利店商品</p>
+          <h2 className="mt-1 text-2xl font-semibold">选择购买门店</h2>
+          <p className="mt-2 text-sm leading-6 text-[var(--color-text-secondary)]">“{pendingStoreProduct.title}”在不同门店的价格和库存可能不同，选择一家当前可购买的门店继续。</p>
         </div>
 
         <div className="space-y-3">
-          {storeOptions.map((option) => {
-            const selected = option.storeId === selectedStoreId;
-            return (
-              <button
-                key={option.storeId}
-                type="button"
-                disabled={!option.orderable}
-                aria-pressed={selected}
-                onClick={() => setSelectedStoreId(option.storeId)}
-                className={`min-h-11 w-full rounded-[var(--radius-container)] border p-4 text-left transition disabled:cursor-not-allowed disabled:opacity-55 ${selected ? "border-[var(--color-primary)] bg-[var(--color-brand-subtle)]" : "border-[var(--color-border)] bg-[var(--color-surface)] active:bg-[var(--color-surface-subtle)]"}`}
-              >
-                <div className="flex items-start justify-between gap-3">
-                  <div className="min-w-0">
-                    <div className="flex flex-wrap items-center gap-2">
-                      <p className="font-semibold">{option.storeName}</p>
-                      <StatusTag tone={option.orderable ? "success" : "warning"}>{option.orderable ? "可下单" : option.stockLabel ?? "暂不可售"}</StatusTag>
-                    </div>
-                    <p className="mt-2 text-sm text-[var(--color-text-secondary)]">{option.address}</p>
-                    <p className="mt-1 text-xs text-[var(--color-text-tertiary)]">距你 {option.distanceKm?.toFixed(1) ?? "--"} km · {option.stockLabel ?? option.availabilityStatus}</p>
+          {storeOptions.map((option) => (
+            <button
+              key={option.storeId}
+              type="button"
+              disabled={!option.orderable}
+              onClick={() => onOpenBusiness(toHandoff(pendingStoreProduct, option.storeId))}
+              aria-label={`${option.orderable ? "选择购买门店" : "门店暂不可购买"}：${option.storeName}`}
+              className="min-h-11 w-full rounded-[var(--radius-container)] border border-[var(--color-border)] bg-[var(--color-surface)] p-4 text-left transition active:bg-[var(--color-surface-subtle)] disabled:cursor-not-allowed disabled:bg-[var(--color-surface-subtle)] disabled:opacity-65"
+            >
+              <div className="flex items-start justify-between gap-3">
+                <div className="min-w-0">
+                  <div className="flex flex-wrap items-center gap-2">
+                    <p className="font-semibold">{option.storeName}</p>
+                    <StatusTag tone={option.orderable ? "success" : "warning"}>{option.orderable ? "可购买" : option.stockLabel ?? "暂不可售"}</StatusTag>
                   </div>
-                  <div className="shrink-0 text-right">
-                    <p className="font-semibold text-[var(--color-primary-pressed)]">¥{option.memberPriceYuan ?? option.priceYuan}</p>
-                    {option.memberPriceYuan && <p className="mt-1 text-xs text-[var(--color-text-tertiary)]">会员价</p>}
-                  </div>
+                  <p className="mt-2 text-sm text-[var(--color-text-secondary)]">距你 {option.distanceKm?.toFixed(1) ?? "--"} km · {option.address}</p>
+                  <p className="mt-1 text-xs text-[var(--color-text-tertiary)]">{option.stockLabel ?? option.availabilityStatus}</p>
                 </div>
-              </button>
-            );
-          })}
+                <div className="shrink-0 text-right">
+                  <p className="font-semibold text-[var(--color-primary-pressed)]">¥{option.memberPriceYuan ?? option.priceYuan}</p>
+                  {option.memberPriceYuan && <p className="mt-1 text-xs text-[var(--color-text-tertiary)]">会员价</p>}
+                </div>
+              </div>
+            </button>
+          ))}
         </div>
 
-        {selectedStore ? (
-          <Card className="border-[var(--color-primary)] bg-[var(--color-brand-subtle)] p-4">
-            <p className="text-xs font-semibold text-[var(--color-primary-pressed)]">已确认门店上下文</p>
-            <p className="mt-2 font-semibold">{selectedStore.storeName} · {pendingStoreProduct.title}</p>
-            <p className="mt-1 text-sm leading-6 text-[var(--color-text-secondary)]">后续浏览与交易必须继续使用这家门店的可售、价格和履约语义；T017 将承接独立购物车。</p>
-            <button type="button" onClick={() => onOpenBusiness(toHandoff(pendingStoreProduct, selectedStore.storeId))} className="mt-4 flex min-h-11 w-full items-center justify-center rounded-[var(--radius-control)] bg-[var(--color-primary)] px-4 text-sm font-medium text-[var(--color-on-primary)]">
-              进入便利店
-            </button>
-          </Card>
-        ) : (
-          <Card className="bg-[var(--color-surface-subtle)] p-4">
-            <p className="text-sm leading-6 text-[var(--color-text-secondary)]">请选择一个当前可下单门店。售罄、休息中或不可售门店仅展示真实 mock 状态，不允许继续交易。</p>
+        {storeOptions.every((option) => !option.orderable) && (
+          <Card className="bg-[var(--color-surface-subtle)] p-4" role="status">
+            <p className="font-semibold">附近门店暂时无法购买</p>
+            <p className="mt-1 text-sm leading-6 text-[var(--color-text-secondary)]">可以返回搜索结果看看其他商品，或稍后再试。</p>
           </Card>
         )}
       </>

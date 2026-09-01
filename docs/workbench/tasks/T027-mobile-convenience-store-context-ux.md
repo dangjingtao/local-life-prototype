@@ -1,6 +1,6 @@
 # T027 · Mobile 便利店选店与门店上下文 UX 返工
 
-- Status: TODO
+- Status: REVIEW
 - Target version: 0.2.0
 - Impact: Mobile / UX
 - Owner: -
@@ -38,14 +38,14 @@ T017 已完成代码、CI 与功能性验收，但 2026-09-01 内部 UX 复审�
 
 ## Acceptance
 
-- [ ] 首次进入便利店且无已选门店时，选店页能在 390px 下快速判断可购买门店，不依赖工程术语。
-- [ ] 离开便利店一级页再返回时，仍回到上次选中的门店，而不是无条件回到选店页。
-- [ ] 切换门店后，各门店购物车继续独立保留。
-- [ ] 关闭 / 不可购买门店状态清晰，不会误导为可正常下单。
-- [ ] 正常消费者路径不出现 `mock`、`fixture`、`核心演示门店`、`门店上下文` 等内部术语。
-- [ ] 全局搜索到便利店商品后自然落到对应门店 / 商品，不出现系统解释型 handoff 卡片。
-- [ ] 390 × 844 Chromium 截图 / 浏览器走查通过，无横向溢出。
-- [ ] `npm run typecheck`、`npm run build` 与相关 Playwright 回归通过。
+- [x] 首次进入便利店且无已选门店时，选店页能在 390px 下快速判断可购买门店，不依赖工程术语。
+- [x] 离开便利店一级页再返回时，仍回到上次选中的门店，而不是无条件回到选店页。
+- [x] 切换门店后，各门店购物车继续独立保留。
+- [x] 关闭 / 不可购买门店状态清晰，不会误导为可正常下单。
+- [x] 正常消费者路径不出现 `mock`、`fixture`、`核心演示门店`、`门店上下文` 等内部术语。
+- [x] 全局搜索到便利店商品后自然落到对应门店 / 商品，不出现系统解释型 handoff 卡片。
+- [x] 390 × 844 Chromium 浏览器走查通过，无横向溢出。
+- [x] `npm run typecheck`、`npm run build` 与相关 Playwright 回归通过。
 
 ## Risks / Dependencies
 
@@ -56,8 +56,8 @@ T017 已完成代码、CI 与功能性验收，但 2026-09-01 内部 UX 复审�
 ## Dispatch Context
 
 - Repo: `dangjingtao/local-life-prototype`
-- Base when dispatched: `dev @ 624991a32a6228a4b969825165177fbd7df2c658`
-- Suggested branch: `task/T027-store-context-ux`
+- Dispatch baseline reconciled to: `dev @ 2fc89e842f20cd270d2f2f8e8ef30d962d85183d`
+- Branch: `task/T027-store-context-ux`
 - Must Read: `AGENTS.md`、`docs/workbench/00-work-ledger.md`、T017、T018、`docs/product/01-v0.2-prd.md`
 - Execution entry points: `apps/mobile/src/App.tsx`、`apps/mobile/src/StoreFlowScreen.tsx`、`apps/mobile/src/GlobalSearchScreen.tsx`、`tests/browser/t017-mobile-convenience-cart.spec.mjs`
 - Hard constraints: 不改变门店 / 商品 / 履约业务事实；不删除独立购物车；不顺手重构商城 / 智慧抗衰。
@@ -65,20 +65,21 @@ T017 已完成代码、CI 与功能性验收，但 2026-09-01 内部 UX 复审�
 
 ## Implementation record
 
-- Commit / PR:
-- Changed paths:
-- Notes:
+- Commit / PR: `0780781`（搜索选店 handoff）、`cdd60f4`（门店连续性与选店 UX）、`813f57b` / `6c10f42`（T016/T017 回归）、`87bb41b` / `c4ee174`（同步 T012/T018 历史回归） / PR #15。
+- Changed paths: `apps/mobile/src/StoreFlowScreen.tsx`、`apps/mobile/src/GlobalSearchScreen.tsx`、`tests/browser/t012-quality.spec.mjs`、`tests/browser/t016-mobile-home-search.spec.mjs`、`tests/browser/t017-mobile-convenience-cart.spec.mjs`、`tests/browser/t018-mobile-convenience-fulfillment.spec.mjs`。
+- Notes: 最近选中门店使用 demo-user scoped `sessionStorage` 持久化；全局搜索的显式 store handoff 优先于持久化门店，避免双真相源。关闭 / 不可购买门店不允许继续交易。T018 履约计算、地址范围、优惠、订单状态未改。
 
 ## Verification evidence
 
-- CI:
-- Page / Route: Mobile `便利店`，`/?demoAuth=1`
-- Screenshot / Browser result:
-- Other evidence:
+- Implementation head: `c4ee174498bd18aaa281aaca2733a66b9010d95d`。
+- CI: Verify Prototype #214 success；T012 Browser Quality #57 success（45 项完整 suite）。
+- Page / Route: Mobile `便利店`，`/?demoAuth=1`。
+- Browser result: 390 × 844 覆盖首次选店、休息门店不可下单、跨一级导航恢复云岭门店与 4 件购物车、切店购物车隔离、搜索商品 → 选可购门店 → 直接商详、无横向溢出；T012 / T018 既有深流程同步回归通过。
+- Other evidence: 首轮 Codex P1 指出 T012 / T018 仍依赖旧 UX 文案，已在 `87bb41b` + `c4ee174` 修复、回复并 resolve；OpenCode #78 metadata 精确匹配 `c4ee174...`，verdict `NO_BLOCKING_FINDINGS`。其 review gaps 中 T018 traceable-mock 文案明确判定为本卡 scope 外，留给 T030 做最终消费者路径扫描；open-but-zero-orderable aria 与 disabled-store focus 为非阻塞 P3 / 潜在项。
 
 ## Review
 
-- Reviewer:
-- Result: REVIEW / PASS / BLOCKED
-- Conclusion:
-- Follow-up: 完成后进入 T028；若 T028 已从共同基线施工，合入前必须重新对账 `StoreFlowScreen` 冲突与门店状态语义。
+- Reviewer: Codex + Experimental OpenCode PR Review + full Playwright quality gate
+- Result: REVIEW
+- Conclusion: T027 施工范围已完成，当前门店连续性、关闭门店表达与全局搜索 handoff 已达到任务合同；实现 head 的 Verify / Browser / OpenCode 均通过，没有未解决 P0-P2。按项目规则保持 `REVIEW`，不提前替 T030 做最终 UX PASS。
+- Follow-up: PR #15 合入 `dev` 后进入 T028；T030 最终复审时显式检查保留的 T018 traceable-mock 标记与两个非阻塞可访问性 / 边界项。
