@@ -48,8 +48,8 @@
 | T014 | 实验性 PR AI Review | CI / Review | REVIEW | 0.1.0 | GitHub Actions、`OPENCODE_API_KEY` | 独立实验性 Review，不阻塞产品版本 |
 | T015 | V0.2 共享领域模型与 Mock Fixtures | Shared | PASS | 0.2.0 | V0.2 PRD | PR #10 已合入 `dev`；Verify #151、Browser Quality #10、关系校验通过；2026-09-01 用户授权按台账证据验收 |
 | T016 | Mobile 运营首页、一级 IA 与全局搜索 | Mobile | PASS | 0.2.0 | T015 | PR #11 已合入 `dev`；Verify #172、Browser Quality #31、Codex 返工闭环；2026-09-01 用户授权按台账证据验收 |
-| T017 | Mobile 便利店门店页、商品浏览与独立购物车 | Mobile | PASS | 0.2.0 | T015、T016 | PR #12 merge `29d6232`；最终 head `cf0b6e8` 的 Verify #191、Browser #48、OpenCode #69 success / `NO_BLOCKING_FINDINGS`；Codex P1/P2/P2 全部修复并 resolve |
-| T018 | Mobile 便利店结算、自提与 3 公里短距配送 | Mobile | PASS | 0.2.0 | T017 | `8c9b8cb` + `d97eb53` 已进入 `dev`；`80d93a2` 记录验收；`npm run verify` success；Playwright 390px 全量 41 项 success；`validateDemoFixtureRelations()` 返回 `[]` |
+| T017 | Mobile 便利店门店页、商品浏览与独立购物车 | Mobile | REVIEW | 0.2.0 | T015、T016 | 原 PR #12 / CI / AI Review 功能证据保留；2026-09-01 内部 UX 复审 `CHANGES_NEEDED`，拆 T027-T030 返工后再恢复 PASS |
+| T018 | Mobile 便利店结算、自提与 3 公里短距配送 | Mobile | PASS | 0.2.0 | T017（业务语义） | `8c9b8cb` + `d97eb53` 已进入 `dev`；`80d93a2` 记录验收；`npm run verify` success；Playwright 390px 全量 41 项 success；本轮仅消费侧 UX 返工，不回滚 T018 业务语义 |
 | T019 | Mobile 线上商城中高保真购买闭环 | Mobile | PASS | 0.2.0 | T015、T016 | PR #13 merge `c9aa08342e81199934feff95be5045d925c38ea6`；Verify #187、Browser Quality #44、OpenCode #65 success；Codex 最终重审无 major issues；2026-08-31 用户验收通过 |
 | T020 | Mobile 智慧抗衰项目、预约与二维码核销 | Mobile | PASS | 0.2.0 | T015、T016 | PR #14 merge `3297f1c`；`a2f68b1` 记录验收；`npm run verify` success；Playwright 390px 全量 45 项通过（T020 专项 4 项）；7 项验收标准全部满足 |
 | T021 | Mobile 智慧抗衰检测报告、转化与历史对比 | Mobile | PASS | 0.2.0 | T015、T020 | `6adfc0d` 记录验收；8 项标准全部满足；假按钮与返回导航问题已修复回归；typecheck / build / 全量 40 浏览器用例通过 |
@@ -57,7 +57,11 @@
 | T023 | PC 智慧抗衰预约、核销与报告运营后台 | PC | TODO | 0.2.0 | T015、T020、T021 | 项目 / 时段 / 预约 / 核销 / 报告 / 转化配置 |
 | T024 | PC 商城渠道、活动与搜索运营后台 | PC | TODO | 0.2.0 | T015、T016、T019 | Storefront / Channel、商城订单、活动 / 推荐位、搜索关联 |
 | T025 | PC V0.2 数据驾驶舱升级 | PC / Data | TODO | 0.2.0 | T015、T022-T024 | 自提 / 短配 / 商城 / 预约 / 核销 / 转化的增量数据视角 |
-| T026 | V0.2 跨端串联、中高保真质量与验收准备 | QA / Shared | TODO | 0.2.0 | T016-T025 | 三主流程跨端对账、390/1024/1440 浏览器质量、PRD AC 对账 |
+| T026 | V0.2 跨端串联、中高保真质量与验收准备 | QA / Shared | TODO | 0.2.0 | T016-T025、T030 | 三主流程跨端对账、390/1024/1440 浏览器质量、PRD AC 对账；便利店中高保真必须引用 T030 UX PASS |
+| T027 | Mobile 便利店选店与门店上下文 UX 返工 | Mobile / UX | TODO | 0.2.0 | T017、T018 业务语义 | 选店降噪、关闭门店表达、当前门店跨一级导航保留、去工程化 handoff 文案 |
+| T028 | Mobile 便利店商品浏览与零售密度 UX 返工 | Mobile / UX | TODO | 0.2.0 | T027 | 商品主图 / 包装图、紧凑商品列表、消费者活动位、持续可达底部购物栏 |
+| T029 | Mobile 便利店商详、购物车与链路收口 UX 返工 | Mobile / UX | TODO | 0.2.0 | T027、T028 | 商详信息层级、购物车收口、唯一购买主链、legacy 自提兼容入口迁出正常路径 |
+| T030 | Mobile 便利店 UX 复审与验收 | UX / QA | TODO | 0.2.0 | T027-T029 | 390×844 实屏复审、内部术语扫描、门店连续性 / 购物栏 / 唯一购买主链、T012/T017/T018 回归；UX PASS 后恢复 T017 PASS |
 
 ## V0.1 收口记录
 
@@ -68,11 +72,12 @@
 
 ## V0.2 当前进度
 
-- Wave 0-2 已全部完成：T015-T021 均为 `PASS`。
-- 当前正式施工面为 Wave 3：T022、T023、T024。三张卡依赖均已满足，可以并行施工。
-- T022-T024 在对应施工线程真正开始前保持 `TODO`；不得仅因“已排入下一波”提前写成 `DOING`。
+- Wave 0-2 的业务 / 功能施工已完成；T015、T016、T018-T021 保持 `PASS`。
+- T017 因 2026-09-01 内部 UX 复审 `CHANGES_NEEDED` 重开为 `REVIEW`；新增 T027-T030 作为消费侧 UX 返工与独立复审链。
+- T027 → T028 → T029 → T030 默认串行。原因不是流程偏好，而是当前便利店选店、浏览、商详、购物车与 T018 入口集中在 `StoreFlowScreen.tsx`，无法证明多施工线程同时修改时无语义 / 文件竞态。
+- Wave 3 PC 后台 T022、T023、T024 的业务前置仍已满足，可与便利店 UX 返工 lane 并行施工；UX 返工不得改变 T018 / Shared 已确认业务语义。
 - T025 必须等待 T022-T024 的 PC 业务语义稳定后施工。
-- T026 为 V0.2 最终跨端串联、质量对账和验收准备，不提前吸收未完成任务。
+- T026 除原前置外新增 T030 UX gate；T030 未 PASS 时，不得把 V0.2 便利店中高保真视觉视为完成。
 
 ## V0.2 派卡原则
 
@@ -89,16 +94,23 @@
 1. T015 共享领域模型与 Mock Fixtures。
 2. T016 Mobile 一级 IA、运营首页与全局搜索。
 
-### Wave 1 · 三大 Mobile 业务域 — PASS
+### Wave 1 · 三大 Mobile 业务域
 
-- T017 便利店浏览 / 独立购物车。
-- T019 线上商城购买闭环。
-- T020 智慧抗衰预约 / 核销。
+- T017 便利店浏览 / 独立购物车 — `REVIEW`（UX reopen）。
+- T019 线上商城购买闭环 — `PASS`。
+- T020 智慧抗衰预约 / 核销 — `PASS`。
 
 ### Wave 2 · 深层流程 — PASS
 
 - T018 便利店自提 / 短配。
 - T021 智慧抗衰报告 / 历史对比。
+
+### Wave 2.5 · 便利店 UX 返工 — NEXT
+
+1. T027 选店与门店上下文。
+2. T028 商品浏览与零售密度。
+3. T029 商详、购物车与购买链路收口。
+4. T030 独立 UX 复审；通过后恢复 T017 PASS。
 
 ### Wave 3 · PC 后台并行 — NEXT
 
@@ -106,12 +118,12 @@
 - T023 智慧抗衰后台。
 - T024 商城渠道 / 活动 / 搜索运营后台。
 
-三张 PC 卡的 Mobile / Shared 前置均已验收，可并行启动。
+三张 PC 卡与 Wave 2.5 可作为不同 lane 并行；必须继续消费已确认的 Shared / T018 业务语义。
 
 ### Wave 4 · 数据与总验收
 
 1. T025 数据驾驶舱增量。
-2. T026 跨端串联、中高保真质量与 V0.2 验收准备。
+2. T026 跨端串联、中高保真质量与 V0.2 验收准备；前置包含 T030 UX PASS。
 
 ## 历史记录
 
@@ -121,6 +133,6 @@
 
 ## 下一步
 
-1. 并行启动 T022 / T023 / T024，对应便利店、智慧抗衰、商城三条 PC 后台；每张卡在实际施工线程开始时再从 `TODO → DOING`。
-2. 三张 PC 卡统一消费 T015 已验收 Shared facts，并分别与 T018、T020/T021、T016/T019 的 Mobile 语义对账，避免双端出现两套事实。
-3. T022-T024 稳定后进入 T025；T025 完成后再执行 T026 总体跨端验收准备。
+1. 便利店 UX lane 按 T027 → T028 → T029 → T030 串行施工 / 复审；每张卡在真实施工线程开始时再从 `TODO → DOING`。
+2. T022 / T023 / T024 仍可与该 UX lane 并行推进；不得因为 T017 UX reopen 回滚已经确认的 T018 / Shared 业务事实。
+3. T022-T024 稳定后进入 T025；T025 与 T030 都完成后再执行 T026 总体跨端验收准备。
