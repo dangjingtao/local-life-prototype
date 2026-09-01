@@ -84,6 +84,35 @@ test.describe("T017 · Mobile convenience store browsing and independent cart", 
     await expect(page.getByRole("button", { name: "查看便利店活动" })).toHaveCount(0);
   });
 
+  test("retail browse uses product artwork, compact rows and a persistent cart bar", async ({ page }) => {
+    await openConvenience(page);
+    await page.getByRole("button", { name: "选择门店：云岭社区店" }).click();
+
+    const artwork = page.getByRole("img", { name: /商品主图/ });
+    expect(await artwork.count()).toBeGreaterThanOrEqual(5);
+    expect(await page.locator("article").count()).toBeGreaterThanOrEqual(5);
+
+    const cartBar = page.getByRole("button", { name: /打开购物车，3 件商品/ });
+    await expect(cartBar).toBeVisible();
+    await expect(cartBar).toHaveCSS("position", "fixed");
+
+    const nav = page.getByRole("navigation", { name: "一级导航" });
+    const [cartBox, navBox] = await Promise.all([cartBar.boundingBox(), nav.boundingBox()]);
+    expect(cartBox).not.toBeNull();
+    expect(navBox).not.toBeNull();
+    expect(cartBox.y + cartBox.height).toBeLessThanOrEqual(navBox.y + 1);
+
+    await page.evaluate(() => window.scrollTo(0, document.body.scrollHeight));
+    await expect(cartBar).toBeVisible();
+    await expect(page.getByRole("textbox", { name: "搜索当前门店商品" })).toBeVisible();
+
+    await page.getByRole("button", { name: "加入购物车：青柠气泡水" }).click();
+    const updatedBar = page.getByRole("button", { name: /打开购物车，4 件商品/ });
+    await expect(updatedBar).toBeVisible();
+    await expect(updatedBar).toContainText("¥43.10");
+    await expectNoHorizontalOverflow(page);
+  });
+
   test("product detail uses the selected store price, member price and sellable state", async ({ page }) => {
     await openConvenience(page);
     await page.getByRole("button", { name: "选择门店：云岭社区店" }).click();
@@ -99,7 +128,7 @@ test.describe("T017 · Mobile convenience store browsing and independent cart", 
     await page.getByRole("button", { name: "选择门店：南岸生活馆" }).click();
     const oat = page.getByRole("button", { name: "查看商品：燕麦拿铁" });
     await expect(oat).toBeVisible();
-    await expect(page.getByText("今日售罄")).toBeVisible();
+    await expect(page.getByText("今日售罄").first()).toBeVisible();
     await expect(page.getByRole("button", { name: "加入购物车：燕麦拿铁" })).toBeDisabled();
   });
 
