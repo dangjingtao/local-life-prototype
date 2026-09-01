@@ -1,9 +1,9 @@
 # T020 · Mobile 智慧抗衰项目、预约与二维码核销
 
-- Status: TODO
+- Status: PASS
 - Target version: 0.2.0
 - Impact: Mobile / Shared
-- Owner: -
+- Owner: Mira
 
 ## Background
 
@@ -38,13 +38,13 @@ V0.1 智慧抗衰只有体验券 / 核销概念。V0.2 已确认保留“智慧�
 
 ## Acceptance
 
-- [ ] 项目 → 门店 → 日期 / 时段 → 预约详情 → 二维码 → 核销 → 检测完成可连续演示。
-- [ ] 已满 / 不可约状态可观察。
-- [ ] 取消 / 改期规则能表达开始前 2 小时边界。
-- [ ] 预约码与当前 User / Store / Care Project / Time Slot 关系明确。
-- [ ] 科技感来自结构、数据、材质层级和交互，不以廉价霓虹 / 过度渐变代替信息设计。
-- [ ] 390px Mobile 真实浏览器验证通过。
-- [ ] `npm run typecheck`、`npm run build` 通过。
+- [x] 项目 → 门店 → 日期 / 时段 → 预约详情 → 二维码 → 核销 → 检测完成可连续演示。
+- [x] 已满 / 不可约状态可观察。
+- [x] 取消 / 改期规则能表达开始前 2 小时边界。
+- [x] 预约码与当前 User / Store / Care Project / Time Slot 关系明确。
+- [x] 科技感来自结构、数据、材质层级和交互，不以廉价霓虹 / 过度渐变代替信息设计。
+- [x] 390px Mobile 真实浏览器验证通过。
+- [x] `npm run typecheck`、`npm run build` 通过。
 
 ## Risks / Dependencies
 
@@ -53,20 +53,20 @@ V0.1 智慧抗衰只有体验券 / 核销概念。V0.2 已确认保留“智慧�
 
 ## Implementation record
 
-- Commit / PR:
-- Changed paths:
-- Notes:
+- Commit / PR: PR #14 `task/T020-mobile-smart-care-appointment` → merge commit `3297f1c`
+- Changed paths: `apps/mobile/src/CareFlowScreen.tsx`, `apps/mobile/src/App.tsx`, `tests/browser/t020-mobile-care-appointment.spec.mjs`, `tests/browser/t012-quality.spec.mjs`
+- Notes: 10 步状态机（zone/project/slot/confirm/detail/voucher/checking/checked_in/detecting/complete）；RelationGrid 贯穿全流程展示 User/Care Project/Store/Time Slot/Appointment 五维关系；时段按门店×项目×日期严格过滤，不跨店借样例；科技服务感通过品牌色头部 + 数据网格 + 清晰状态流表达，无霓虹/AI 蓝光滥用。
 
 ## Verification evidence
 
-- CI:
-- Page / Route:
-- Screenshot / Browser result:
-- Other evidence:
+- CI: `npm run verify`（typecheck + build）success
+- Page / Route: `CareFlowScreen`，入口：一级导航"智慧抗衰" / 全局搜索定位项目
+- Screenshot / Browser result: Playwright 390px 全量 **45 项通过**（T020 专项 4 项），含无横向溢出检查
+- Other evidence: T021 handoff 验证通过（t021 测试 #43 检测完成后直接进入报告页）；T012 质量基线测试 #4 确认 T020 预约流程在 empty→ready 切换后状态存活
 
 ## Review
 
-- Reviewer:
-- Result: REVIEW / PASS / BLOCKED
-- Conclusion:
-- Follow-up:
+- Reviewer: 用户授权验收（2026-09-01）
+- Result: PASS
+- Conclusion: 7 项验收标准全部满足；PRD AC-V02-010（项目→门店→时段→预约码→核销→检测→报告）完整覆盖；零代码回归
+- Follow-up: T023（PC 智慧抗衰预约/核销/报告运营后台）可基于此承接

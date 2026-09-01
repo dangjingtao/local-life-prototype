@@ -51,7 +51,7 @@
 | T017 | Mobile 便利店门店页、商品浏览与独立购物车 | Mobile | PASS | 0.2.0 | T015、T016 | PR #12 merge `29d6232`；最终 head `cf0b6e8` 的 Verify #191、Browser #48、OpenCode #69 success / `NO_BLOCKING_FINDINGS`；Codex P1/P2/P2 全部修复并 resolve |
 | T018 | Mobile 便利店结算、自提与 3 公里短距配送 | Mobile | PASS | 0.2.0 | T017 | `8c9b8cb` + `d97eb53`（提交 `dev`，未 push）；`npm run verify` success；Playwright 390px 全量 41 项 success；`validateDemoFixtureRelations()` 返回 `[]`；用户授权验收通过 |
 | T019 | Mobile 线上商城中高保真购买闭环 | Mobile | PASS | 0.2.0 | T015、T016 | PR #13 merge `c9aa08342e81199934feff95be5045d925c38ea6`；Verify #187、Browser Quality #44、OpenCode #65 success；Codex 最终重审无 major issues；2026-08-31 用户验收通过 |
-| T020 | Mobile 智慧抗衰项目、预约与二维码核销 | Mobile | TODO | 0.2.0 | T015、T016 | 项目 → 门店 → 时段 → 预约码 → 核销 → 检测完成 |
+| T020 | Mobile 智慧抗衰项目、预约与二维码核销 | Mobile | **PASS** | 0.2.0 | T015、T016 | PR #14 merge `3297f1c`；`npm run verify` success；Playwright 390px 全量 45 项通过（T020 专项 4 项）；7 项验收标准全部满足；用户授权验收通过 |
 | T021 | Mobile 智慧抗衰检测报告、转化与历史对比 | Mobile | PASS | 0.2.0 | T015、T020 | 验收通过；8 项标准全部满足；假按钮与返回导航问题已修复回归；typecheck / build / 全量 40 浏览器用例通过 |
 | T022 | PC 便利店订单、履约与核销后台 | PC | TODO | 0.2.0 | T015、T018 | 自提 / 短配订单、核销、门店可售关系、履约配置 mock |
 | T023 | PC 智慧抗衰预约、核销与报告运营后台 | PC | TODO | 0.2.0 | T015、T020、T021 | 项目 / 时段 / 预约 / 核销 / 报告 / 转化配置 |
