@@ -22,6 +22,7 @@ interface ConvenienceBrowsePanelProps {
   onOpenProduct: (productId: string) => void;
   onUpdateQuantity: (productId: string, delta: number) => void;
   onOpenCart: () => void;
+  onOpenLegacyPickup?: () => void;
 }
 
 const bundleProductIds = new Set([
@@ -118,6 +119,7 @@ export function ConvenienceBrowsePanel({
   onOpenProduct,
   onUpdateQuantity,
   onOpenCart,
+  onOpenLegacyPickup,
 }: ConvenienceBrowsePanelProps) {
   const [mode, setMode] = useState<BrowseMode>("single");
   const [bannerIndex, setBannerIndex] = useState(0);
@@ -347,6 +349,10 @@ export function ConvenienceBrowsePanel({
               </div>
             )}
           </section>
+        )}
+
+        {store.id === coreDemoStore.id && onOpenLegacyPickup && (
+          <button type="button" onClick={onOpenLegacyPickup} className="min-h-11 w-full rounded-[var(--radius-control)] border border-[var(--color-border)] bg-[var(--color-surface)] px-4 text-sm font-medium text-[var(--color-text-secondary)]">选择此门店自提</button>
         )}
       </div>
 
