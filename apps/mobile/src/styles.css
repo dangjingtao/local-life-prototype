@@ -10,3 +10,50 @@ body { background: var(--color-background); }
     outline-offset: 2px;
   }
 }
+
+/* T028 browse acceptance: keep touch targets at 44px while preserving compact retail visuals. */
+[aria-label="商品展示模式"] > button {
+  min-width: 44px !important;
+  min-height: 44px !important;
+}
+
+[aria-label="单品双栏浏览"],
+[aria-label="套餐商品浏览"] {
+  height: 412px !important;
+}
+
+/* The left rail already carries category context; duplicate right-side group headers only waste retail density. */
+[aria-label="商品列表"] > div > div:first-child {
+  display: none;
+}
+
+/* Make section offsetTop values share the same coordinate system as this scroll container. */
+[aria-label="商品列表"] {
+  position: relative;
+  padding-bottom: 64px;
+}
+
+[aria-label="活动轮播切换"] > button {
+  position: relative;
+  width: 44px !important;
+  min-width: 44px !important;
+  height: 44px !important;
+  min-height: 44px !important;
+  background: transparent !important;
+}
+
+[aria-label="活动轮播切换"] > button::after {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 8px;
+  height: 8px;
+  content: "";
+  transform: translate(-50%, -50%);
+  border-radius: 9999px;
+  background: var(--color-border);
+}
+
+[aria-label="活动轮播切换"] > button[aria-pressed="true"]::after {
+  background: var(--color-primary);
+}
