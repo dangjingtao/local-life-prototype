@@ -1,10 +1,12 @@
+import type { ReactNode } from "react";
+
 interface ConvenienceProductArtworkProps {
   productId: string;
   name: string;
   className?: string;
 }
 
-function PackageBase({ children }: { children: React.ReactNode }) {
+function PackageBase({ children }: { children: ReactNode }) {
   return (
     <svg viewBox="0 0 120 120" aria-hidden="true" className="h-full w-full">
       <rect width="120" height="120" rx="22" fill="var(--color-surface-subtle)" />
@@ -16,7 +18,7 @@ function PackageBase({ children }: { children: React.ReactNode }) {
 }
 
 export function ConvenienceProductArtwork({ productId, name, className = "" }: ConvenienceProductArtworkProps) {
-  let artwork: React.ReactNode;
+  let artwork: ReactNode;
 
   switch (productId) {
     case "PRODUCT-OAT-LATTE":
