@@ -472,7 +472,7 @@ export function StoreFlowScreen({ openActivity, entryContext }: StoreFlowScreenP
                 const orderable = selectedStore.status === "open" && isOrderable(availability);
                 const displayPrice = availability?.priceYuan ?? product.priceYuan;
                 const memberPrice = availability?.memberPriceYuan ?? product.memberPriceYuan;
-                const promotionLabel = availability?.promotionLabel ?? product.promotionLabel;
+                const promotionLabel = availability?.promotionLabel;
                 const showStock = availability?.status === "low_stock" || !orderable;
                 return (
                   <article key={product.id} className={`p-3 ${orderable ? "" : "bg-[var(--color-surface-subtle)]"}`}>
