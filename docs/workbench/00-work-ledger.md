@@ -58,7 +58,7 @@
 | T024 | PC 商城渠道、活动与搜索运营后台 | PC | TODO | 0.2.0 | T015、T016、T019 | Storefront / Channel、商城订单、活动 / 推荐位、搜索关联 |
 | T025 | PC V0.2 数据驾驶舱升级 | PC / Data | TODO | 0.2.0 | T015、T022-T024 | 自提 / 短配 / 商城 / 预约 / 核销 / 转化的增量数据视角 |
 | T026 | V0.2 跨端串联、中高保真质量与验收准备 | QA / Shared | TODO | 0.2.0 | T016-T025、T030 | 三主流程跨端对账、390/1024/1440 浏览器质量、PRD AC 对账；便利店中高保真必须引用 T030 UX PASS |
-| T027 | Mobile 便利店选店与门店上下文 UX 返工 | Mobile / UX | REVIEW | 0.2.0 | T017、T018 业务语义 | PR #15；实现 head `c4ee174`：Verify #214、Browser #57 success，OpenCode #78 `NO_BLOCKING_FINDINGS`；Codex stale-selector P1 已修复并 resolve；待合入 `dev` |
+| T027 | Mobile 便利店选店与门店上下文 UX 返工 | Mobile / UX | REVIEW | 0.2.0 | T017、T018 业务语义 | PR #15 merge `fd1631c9b425ad68c0e54c8072e8dc1fd84dab87`；final head `ee7969b`：Verify #217、Browser #60、OpenCode #81 success / `NO_BLOCKING_FINDINGS`；Codex P1 已修复并 resolve；T028 可接续 |
 | T028 | Mobile 便利店商品浏览与零售密度 UX 返工 | Mobile / UX | TODO | 0.2.0 | T027 | 商品主图 / 包装图、紧凑商品列表、消费者活动位、持续可达底部购物栏 |
 | T029 | Mobile 便利店商详、购物车与链路收口 UX 返工 | Mobile / UX | TODO | 0.2.0 | T027、T028 | 商详信息层级、购物车收口、唯一购买主链、legacy 自提兼容入口迁出正常路径 |
 | T030 | Mobile 便利店 UX 复审与验收 | UX / QA | TODO | 0.2.0 | T027-T029 | 390×844 实屏复审、内部术语扫描、门店连续性 / 购物栏 / 唯一购买主链、T012/T017/T018 回归；UX PASS 后恢复 T017 PASS |
@@ -74,7 +74,7 @@
 
 - Wave 0-2 的业务 / 功能施工已完成；T015、T016、T018-T021 保持 `PASS`。
 - T017 因 2026-09-01 内部 UX 复审 `CHANGES_NEEDED` 重开为 `REVIEW`；新增 T027-T030 作为消费侧 UX 返工与独立复审链。
-- T027 已完成施工并进入 `REVIEW`；T028 在 T027 合入 `dev` 后接续。T028 → T029 → T030 继续串行，避免当前单体 `StoreFlowScreen.tsx` 产生语义 / 文件竞态。
+- T027 已完成施工、review gate 并合入 `dev`；T028 可从最新 `dev` 接续。T028 → T029 → T030 继续串行，避免当前单体 `StoreFlowScreen.tsx` 产生语义 / 文件竞态。
 - Wave 3 PC 后台 T022、T023、T024 的业务前置仍已满足，可与便利店 UX 返工 lane 并行施工；UX 返工不得改变 T018 / Shared 已确认业务语义。
 - T025 必须等待 T022-T024 的 PC 业务语义稳定后施工。
 - T026 除原前置外新增 T030 UX gate；T030 未 PASS 时，不得把 V0.2 便利店中高保真视觉视为完成。
@@ -107,8 +107,8 @@
 
 ### Wave 2.5 · 便利店 UX 返工 — IN PROGRESS
 
-1. T027 选店与门店上下文 — `REVIEW`，PR #15 待合入。
-2. T028 商品浏览与零售密度 — `TODO`。
+1. T027 选店与门店上下文 — `REVIEW`，PR #15 已合入 `dev`。
+2. T028 商品浏览与零售密度 — `TODO`，可接续。
 3. T029 商详、购物车与购买链路收口 — `TODO`。
 4. T030 独立 UX 复审 — `TODO`；通过后恢复 T017 PASS。
 
@@ -133,6 +133,6 @@
 
 ## 下一步
 
-1. PR #15 通过最终 head 门禁后合入 `dev`；随后 T028 从最新 `dev` 开始商品浏览与零售密度 UX 返工。
+1. T028 从最新 `dev` 开始商品浏览与零售密度 UX 返工；后续按 T028 → T029 → T030 串行。
 2. T022 / T023 / T024 仍可与该 UX lane 并行推进；不得因为 T017 UX reopen 回滚已经确认的 T018 / Shared 业务事实。
 3. T022-T024 稳定后进入 T025；T025 与 T030 都完成后再执行 T026 总体跨端验收准备。
