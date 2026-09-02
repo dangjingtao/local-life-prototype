@@ -163,7 +163,7 @@ test.describe("T012 · 390px Mobile", () => {
     await page.getByRole("button", { name: "重新加载演示" }).click();
     await expect(page.getByRole("heading", { name: "确认收货与订单" })).toBeVisible();
     await expect(page.getByTestId("mall-checkout-item").first()).toContainText("×2");
-    await expect(page.getByText("全国快递", { exact: true }).first()).toBeVisible();
+    await expect(page.getByTestId("mall-checkout-fulfillment")).toContainText("全国快递 · 送货上门");
     await expectNoHorizontalOverflow(page);
     await expectMobileTouchTargets(page);
   });
