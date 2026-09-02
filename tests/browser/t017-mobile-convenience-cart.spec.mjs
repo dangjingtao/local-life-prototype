@@ -142,7 +142,8 @@ test.describe("T017 · Mobile convenience store browsing and independent cart", 
     await expect(page.getByText("会员价", { exact: true })).toBeVisible();
     await expect(page.getByText("第二件 8 折")).toBeVisible();
     await expect(page.getByText("门店可售上下文", { exact: true })).toHaveCount(0);
-    await expect(page.getByText("当前门店", { exact: true })).toBeVisible();
+    // 商详页底部有门店信息（弱化展示），换店按钮存在
+    await expect(page.getByRole("button", { name: "换店" })).toBeVisible();
 
     await page.getByRole("button", { name: "换店" }).click();
     await page.getByRole("button", { name: "选择门店：南岸生活馆" }).click();
@@ -160,7 +161,8 @@ test.describe("T017 · Mobile convenience store browsing and independent cart", 
     await expect(page.getByText("购物车").first()).toBeVisible();
     // 抽屉内点去结算
     await page.getByRole("button", { name: "去结算" }).click();
-    await expect(page.getByRole("heading", { name: "选择履约方式并确认订单" })).toBeVisible();
+    // 结算页标题改为门店名，取餐方式卡片存在
+    await expect(page.getByRole("heading", { name: "云岭社区店" })).toBeVisible();
     await expect(page.getByRole("button", { name: /到店自提/ })).toBeVisible();
     await expect(page.getByRole("button", { name: /约 3 km 短配/ })).toBeVisible();
     await expectNoHorizontalOverflow(page);
@@ -171,8 +173,9 @@ test.describe("T017 · Mobile convenience store browsing and independent cart", 
     await page.getByRole("button", { name: "选择门店：云岭社区店" }).click();
     await page.getByRole("button", { name: /打开购物车，3 件商品/ }).click();
     await page.getByRole("button", { name: "去结算" }).click();
-    await expect(page.getByText(/云岭社区店 · 结算/)).toBeVisible();
-    await expect(page.getByText(/不跨店、不与商城混单/)).toBeVisible();
+    // 结算页卡片式结构：自提点信息 + 取餐方式 + 商品清单
+    await expect(page.getByText("确认订单")).toBeVisible();
+    await expect(page.getByText("商品清单")).toBeVisible();
     await expect(page.getByText(/线上商城/)).toHaveCount(0);
     await expectNoHorizontalOverflow(page);
   });

@@ -192,6 +192,8 @@ export function StoreFlowScreen({ openActivity, entryContext }: StoreFlowScreenP
   const [selectedPickupWindow, setSelectedPickupWindow] = useState("");
   const [selectedAddressId, setSelectedAddressId] = useState("");
   const [usePoints, setUsePoints] = useState(false);
+  const [needBag, setNeedBag] = useState(true);
+  const [orderRemark, setOrderRemark] = useState("");
   const [orderSnapshot, setOrderSnapshot] = useState<StoreOrderSnapshot | null>(null);
   const [pickupStatus, setPickupStatus] = useState<PickupStatus>("preparing");
   const [deliveryStatus, setDeliveryStatus] = useState<DeliveryStatus>("preparing");
@@ -574,14 +576,32 @@ export function StoreFlowScreen({ openActivity, entryContext }: StoreFlowScreenP
                   <p className="text-sm font-semibold">购物车</p>
                   <p className="text-xs text-[var(--color-text-tertiary)]">{selectedStore.name} · {cartCount} 件商品</p>
                 </div>
-                <button
-                  type="button"
-                  onClick={() => setCartSheetOpen(false)}
-                  aria-label="关闭购物车"
-                  className="flex h-8 w-8 items-center justify-center rounded-full text-[var(--color-text-tertiary)]"
-                >
-                  <PrototypeIcon name="close" size={18} />
-                </button>
+                <div className="flex items-center gap-1">
+                  <button
+                    type="button"
+                    onClick={() => {
+                      if (!selectedStore) return;
+                      commitCarts((current) => {
+                        const next = { ...current };
+                        delete next[selectedStore.id];
+                        return next;
+                      });
+                      setCartSheetOpen(false);
+                    }}
+                    aria-label="清空购物车"
+                    className="rounded-full px-3 py-1 text-xs font-medium text-[var(--color-text-secondary)]"
+                  >
+                    清空
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setCartSheetOpen(false)}
+                    aria-label="关闭购物车"
+                    className="flex h-8 w-8 items-center justify-center rounded-full text-[var(--color-text-tertiary)]"
+                  >
+                    <PrototypeIcon name="close" size={18} />
+                  </button>
+                </div>
               </div>
 
               {/* 抽屉商品列表 - 最大高度约为视口 40% */}
@@ -590,6 +610,7 @@ export function StoreFlowScreen({ openActivity, entryContext }: StoreFlowScreenP
                   {cartRows.map(({ product, quantity, unitPrice }) => {
                     const availability = availabilityByProductId.get(product.id);
                     const orderable = selectedStore.status === "open" && isOrderable(availability);
+                    const isLowStock = availability?.status === "low_stock";
                     return (
                       <div key={product.id} className="flex gap-3 py-3">
                         <button
@@ -607,7 +628,14 @@ export function StoreFlowScreen({ openActivity, entryContext }: StoreFlowScreenP
                           </div>
                           <div className="flex min-w-0 flex-1 flex-col justify-between">
                             <div className="min-w-0">
-                              <p className="truncate text-sm font-medium">{product.name}</p>
+                              <div className="flex items-center gap-1.5">
+                                <p className="truncate text-sm font-medium">{product.name}</p>
+                                {isLowStock && (
+                                  <span className="shrink-0 rounded bg-[var(--color-danger-bg)] px-1.5 py-0.5 text-[10px] font-medium text-[var(--color-danger)]">
+                                    库存紧张
+                                  </span>
+                                )}
+                              </div>
                               <p className="mt-0.5 truncate text-xs text-[var(--color-text-tertiary)]">{product.spec ?? product.category}</p>
                             </div>
                             <p className="text-sm font-semibold text-[var(--color-primary-pressed)]">¥{unitPrice.toFixed(2)}</p>
@@ -680,16 +708,18 @@ export function StoreFlowScreen({ openActivity, entryContext }: StoreFlowScreenP
           </div>
         )}
 
-        {/* 底部悬浮购物栏 - fixed 定位，独立悬浮胶囊，与底部导航留有空隙 */}
-        <button
-          type="button"
-          onClick={() => cartCount > 0 && setCartSheetOpen((current) => !current)}
-          aria-label={`${cartSheetOpen ? "收起" : "打开"}购物车，${cartCount} 件商品`}
-          aria-expanded={cartSheetOpen}
-          disabled={cartCount === 0}
-          className="fixed bottom-[calc(4.5rem+env(safe-area-inset-bottom))] left-1/2 z-50 flex min-h-14 w-[calc(100%-2rem)] max-w-[358px] -translate-x-1/2 items-center justify-between gap-3 rounded-[var(--radius-container)] bg-[var(--color-primary)] px-4 text-white shadow-lg disabled:opacity-50"
+        {/* 底部悬浮购物栏 - fixed 定位，独立悬浮胶囊，左侧打开抽屉，右侧直接去结算 */}
+        <div
+          className="fixed bottom-[calc(4.5rem+env(safe-area-inset-bottom))] left-1/2 z-50 flex min-h-14 w-[calc(100%-2rem)] max-w-[358px] -translate-x-1/2 items-center justify-between gap-3 rounded-[var(--radius-container)] bg-[var(--color-primary)] px-4 text-white shadow-lg"
         >
-          <div className="flex items-center gap-2">
+          <button
+            type="button"
+            onClick={() => cartCount > 0 && setCartSheetOpen((current) => !current)}
+            aria-label={`${cartSheetOpen ? "收起" : "打开"}购物车，${cartCount} 件商品，合计 ¥${cartTotal.toFixed(2)}`}
+            aria-expanded={cartSheetOpen}
+            disabled={cartCount === 0}
+            className="flex flex-1 items-center gap-2 disabled:opacity-50"
+          >
             <div className="relative">
               <PrototypeIcon name="cart" size={20} />
               {cartCount > 0 && (
@@ -702,11 +732,21 @@ export function StoreFlowScreen({ openActivity, entryContext }: StoreFlowScreenP
               <p className="text-xs opacity-80">合计</p>
               <p className="text-base font-bold leading-tight">¥{cartTotal.toFixed(2)}</p>
             </div>
-          </div>
-          <span className="rounded-full bg-white/20 px-4 py-1.5 text-sm font-semibold">
-            {cartSheetOpen ? "收起" : "去结算"}
-          </span>
-        </button>
+          </button>
+          <button
+            type="button"
+            onClick={() => {
+              if (cartCount === 0 || selectedStore?.status !== "open") return;
+              setCartSheetOpen(false);
+              goStep("checkout");
+            }}
+            disabled={cartCount === 0 || selectedStore?.status !== "open"}
+            aria-label="去结算"
+            className="shrink-0 rounded-full bg-white/20 px-4 py-1.5 text-sm font-semibold disabled:opacity-50"
+          >
+            去结算
+          </button>
+        </div>
       </>
     );
   }
@@ -730,49 +770,105 @@ export function StoreFlowScreen({ openActivity, entryContext }: StoreFlowScreenP
           <PrototypeIcon name="back" size={18} /> 返回 {selectedStore.name}
         </button>
 
-        <div className="flex aspect-[4/3] items-center justify-center rounded-[var(--radius-overlay)] bg-[var(--color-surface-subtle)] text-center">
-          <div>
-            <p className="text-xs font-semibold tracking-[0.12em] text-[var(--color-primary)]">CONVENIENCE</p>
-            <p className="mt-2 text-lg font-semibold">{selectedProduct.category}</p>
+        {/* 主图 - 最大视觉权重 */}
+        <div className="relative -mx-4 flex aspect-square items-center justify-center bg-[var(--color-surface-subtle)]">
+          <ConvenienceProductArtwork productId={selectedProduct.id} name={selectedProduct.name} className="h-48 w-48" />
+          <div className="absolute left-4 top-4">
+            <StatusTag>{selectedProduct.category}</StatusTag>
           </div>
         </div>
 
-        <div>
+        {/* 品名/规格/价格 - 第二层级 */}
+        <div className="pt-4">
           <div className="flex flex-wrap items-center gap-2">
             {selectedAvailability?.promotionLabel && <StatusTag tone="success">{selectedAvailability.promotionLabel}</StatusTag>}
             <StatusTag tone={orderable ? undefined : "warning"}>{selectedAvailability?.stockLabel ?? availabilityStatusLabels[selectedAvailability?.status ?? "unavailable"]}</StatusTag>
           </div>
-          <h2 className="mt-3 text-2xl font-semibold">{selectedProduct.name}</h2>
-          <p className="mt-2 text-sm leading-6 text-[var(--color-text-secondary)]">{selectedProduct.spec ?? selectedProduct.category}</p>
-          <div className="mt-4 flex items-end gap-3">
-            <p className="text-2xl font-semibold text-[var(--color-primary-pressed)]">¥{(memberPrice ?? displayPrice).toFixed(2)}</p>
-            {memberPrice !== undefined && memberPrice !== displayPrice && <p className="pb-1 text-sm text-[var(--color-text-tertiary)] line-through">¥{displayPrice.toFixed(2)}</p>}
+          <h2 className="mt-3 text-xl font-semibold leading-7">{selectedProduct.name}</h2>
+          <p className="mt-1 text-sm text-[var(--color-text-secondary)]">{selectedProduct.spec ?? selectedProduct.category}</p>
+          <div className="mt-3 flex items-end gap-2">
+            <p className="text-3xl font-bold text-[var(--color-primary-pressed)]">¥{(memberPrice ?? displayPrice).toFixed(2)}</p>
+            {memberPrice !== undefined && memberPrice !== displayPrice && (
+              <p className="pb-1 text-sm text-[var(--color-text-tertiary)] line-through">¥{displayPrice.toFixed(2)}</p>
+            )}
             {memberPrice !== undefined && <StatusTag>会员价</StatusTag>}
           </div>
         </div>
 
-        <Card className="p-4">
-          <div className="flex items-start justify-between gap-3">
-            <div>
-              <p className="text-sm font-medium">当前门店</p>
-              <p className="mt-1 text-sm leading-6 text-[var(--color-text-secondary)]">{selectedStore.name} · {selectedStore.address}</p>
-            </div>
-            <button type="button" onClick={() => goStep("stores")} className="min-h-11 shrink-0 px-2 text-sm font-medium text-[var(--color-primary)]">换店</button>
-          </div>
-          <div className="mt-3"><StoreCapabilityTags storeId={selectedStore.id} /></div>
-        </Card>
+        {/* 商品描述 - 第三层级 */}
+        <div className="border-t border-[var(--color-border)] pt-4">
+          <p className="text-sm font-semibold">商品描述</p>
+          <p className="mt-2 text-sm leading-6 text-[var(--color-text-secondary)]">
+            {selectedProduct.description ?? `${selectedStore.name} 在售 ${selectedProduct.category} 类商品，新鲜直达，品质保证。具体规格与成分以门店实物为准。`}
+          </p>
+        </div>
 
-        <div className="flex items-center gap-3">
-          {quantity > 0 ? (
-            <div className="flex flex-1 items-center justify-between rounded-[var(--radius-control)] border border-[var(--color-border)] px-2">
-              <button type="button" aria-label={`减少${selectedProduct.name}`} onClick={() => updateQuantity(selectedProduct.id, -1)} className="flex min-h-12 min-w-12 items-center justify-center">−</button>
-              <span className="font-semibold">已选 {quantity} 件</span>
-              <button type="button" aria-label={`增加${selectedProduct.name}`} onClick={() => updateQuantity(selectedProduct.id, 1)} disabled={!orderable} className="flex min-h-12 min-w-12 items-center justify-center disabled:opacity-40">+</button>
+        {/* 门店信息 - 辅助层级，弱化展示 */}
+        <div className="border-t border-[var(--color-border)] pt-4">
+          <div className="flex items-start justify-between gap-3">
+            <div className="flex items-center gap-2">
+              <PrototypeIcon name="store" size={16} className="text-[var(--color-text-tertiary)]" />
+              <p className="text-xs text-[var(--color-text-tertiary)]">{selectedStore.name} · {selectedStore.address}</p>
             </div>
-          ) : (
-            <Button className="flex-1" disabled={!orderable} onClick={() => updateQuantity(selectedProduct.id, 1)}>加入购物车</Button>
-          )}
-          <button type="button" onClick={() => goStep("cart")} aria-label={`打开购物车，${cartCount} 件商品`} className="flex min-h-12 min-w-20 items-center justify-center rounded-[var(--radius-control)] border border-[var(--color-border)] px-3 text-sm font-medium">购物车 {cartCount}</button>
+            <button type="button" onClick={() => goStep("stores")} className="shrink-0 text-xs font-medium text-[var(--color-primary)]">换店</button>
+          </div>
+        </div>
+
+        {/* 底部占位，给固定操作栏留空间 */}
+        <div className="h-24" />
+
+        {/* 底部固定操作栏：数量控件 + 加入购物车 + 立即购买 */}
+        <div className="fixed inset-x-0 bottom-0 z-40 mx-auto max-w-[390px] border-t border-[var(--color-border)] bg-[var(--color-surface)] pb-[env(safe-area-inset-bottom)]">
+          <div className="flex items-center gap-3 px-4 py-3">
+            {quantity > 0 ? (
+              <div className="flex items-center gap-1 rounded-full border border-[var(--color-border)] bg-[var(--color-background)]" aria-label={`${selectedProduct.name} 数量`}>
+                <button
+                  type="button"
+                  aria-label={`减少${selectedProduct.name}`}
+                  onClick={() => updateQuantity(selectedProduct.id, -1)}
+                  className="flex h-9 w-9 items-center justify-center text-base text-[var(--color-text-secondary)]"
+                >
+                  −
+                </button>
+                <span className="min-w-6 text-center text-sm font-semibold">{quantity}</span>
+                <button
+                  type="button"
+                  aria-label={`增加${selectedProduct.name}`}
+                  onClick={() => updateQuantity(selectedProduct.id, 1)}
+                  disabled={!orderable}
+                  className="flex h-9 w-9 items-center justify-center text-base text-[var(--color-primary)] disabled:opacity-40"
+                >
+                  +
+                </button>
+              </div>
+            ) : null}
+            {quantity > 0 ? (
+              <SecondaryButton
+                className="flex-1"
+                onClick={() => { setCartSheetOpen(true); goStep("browse"); }}
+              >
+                查看购物车
+              </SecondaryButton>
+            ) : (
+              <Button
+                className="flex-1"
+                disabled={!orderable}
+                onClick={() => updateQuantity(selectedProduct.id, 1)}
+              >
+                加入购物车
+              </Button>
+            )}
+            <Button
+              className="flex-1"
+              disabled={!orderable}
+              onClick={() => {
+                if (quantity === 0) updateQuantity(selectedProduct.id, 1);
+                goStep("checkout");
+              }}
+            >
+              立即购买
+            </Button>
+          </div>
         </div>
       </>
     );
@@ -840,6 +936,8 @@ export function StoreFlowScreen({ openActivity, entryContext }: StoreFlowScreenP
   }
 
   if (step === "checkout") {
+    const bagFee = needBag ? 0.5 : 0;
+    const checkoutTotal = payable + bagFee;
     return (
       <>
         <button type="button" onClick={() => { setCartSheetOpen(true); goStep("browse"); }} className="inline-flex min-h-11 items-center gap-2 text-sm font-medium text-[var(--color-text-secondary)]">
@@ -847,130 +945,239 @@ export function StoreFlowScreen({ openActivity, entryContext }: StoreFlowScreenP
         </button>
 
         <div>
-          <p className="text-sm text-[var(--color-text-secondary)]">{selectedStore.name} · 结算</p>
-          <h2 className="mt-1 text-2xl font-semibold">选择履约方式并确认订单</h2>
-          <p className="mt-2 text-sm leading-6 text-[var(--color-text-secondary)]">自提与约 3 km 短配共用当前门店购物车，仅在结算阶段切换；不跨店、不与商城混单。</p>
+          <p className="text-sm text-[var(--color-text-secondary)]">确认订单</p>
+          <h2 className="mt-1 text-2xl font-semibold">{selectedStore.name}</h2>
         </div>
 
-        <Section title="履约方式">
-          <div className="grid grid-cols-2 gap-3">
+        {/* 卡片1：自提点/门店信息 */}
+        <div className="rounded-[var(--radius-container)] border border-[var(--color-border)] bg-[var(--color-surface)] p-4">
+          <div className="flex items-start gap-3">
+            <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-[var(--color-brand-subtle)]">
+              <PrototypeIcon name="store" size={18} className="text-[var(--color-primary)]" />
+            </div>
+            <div className="min-w-0 flex-1">
+              <p className="text-sm font-semibold">{selectedStore.name}</p>
+              <p className="mt-0.5 truncate text-xs text-[var(--color-text-tertiary)]">{selectedStore.address}</p>
+            </div>
+            <StatusTag tone={selectedStore.status === "open" ? "success" : "warning"}>
+              {selectedStore.status === "open" ? "营业中" : "休息中"}
+            </StatusTag>
+          </div>
+        </div>
+
+        {/* 卡片2：取餐方式大按钮二选一 */}
+        <div className="rounded-[var(--radius-container)] border border-[var(--color-border)] bg-[var(--color-surface)] p-4">
+          <p className="text-sm font-semibold">取餐方式</p>
+          <div className="mt-3 grid grid-cols-2 gap-3">
             <button
               type="button"
               aria-pressed={fulfillmentMode === "pickup"}
               onClick={() => setFulfillmentMode("pickup")}
-              className={`min-h-[104px] rounded-[var(--radius-container)] border p-3 text-left ${fulfillmentMode === "pickup" ? "border-[var(--color-primary)] bg-[var(--color-brand-subtle)]" : "border-[var(--color-border)] bg-[var(--color-surface)]"}`}
+              className={`relative min-h-[104px] rounded-[var(--radius-control)] border-2 p-3 text-left transition-colors ${fulfillmentMode === "pickup" ? "border-[var(--color-primary)] bg-[var(--color-brand-subtle)]" : "border-[var(--color-border)] bg-[var(--color-background)]"}`}
             >
-              <p className="font-semibold">到店自提</p>
-              <p className="mt-1 text-xs leading-5 text-[var(--color-text-tertiary)]">最早约 15 分钟后 · 15 分钟间隔时段</p>
-              <p className="mt-2 text-sm font-medium text-[var(--color-primary-pressed)]">自提费 ¥0</p>
+              {fulfillmentMode === "pickup" && (
+                <span className="absolute right-2 top-2 flex h-5 w-5 items-center justify-center rounded-full bg-[var(--color-primary)] text-white">
+                  <PrototypeIcon name="check" size={14} />
+                </span>
+              )}
+              <p className="text-sm font-semibold">到店自提</p>
+              <p className="mt-1 text-xs leading-5 text-[var(--color-text-tertiary)]">最早约 15 分钟后可取</p>
+              <p className="mt-2 text-sm font-semibold text-[var(--color-primary-pressed)]">自提费 ¥0</p>
             </button>
             <button
               type="button"
               aria-pressed={fulfillmentMode === "short_delivery"}
               onClick={() => setFulfillmentMode("short_delivery")}
-              className={`min-h-[104px] rounded-[var(--radius-container)] border p-3 text-left ${fulfillmentMode === "short_delivery" ? "border-[var(--color-primary)] bg-[var(--color-brand-subtle)]" : "border border-[var(--color-border)] bg-[var(--color-surface)]"}`}
+              className={`relative min-h-[104px] rounded-[var(--radius-control)] border-2 p-3 text-left transition-colors ${fulfillmentMode === "short_delivery" ? "border-[var(--color-primary)] bg-[var(--color-brand-subtle)]" : "border-[var(--color-border)] bg-[var(--color-background)]"}`}
             >
-              <p className="font-semibold">约 3 km 短配</p>
-              <p className="mt-1 text-xs leading-5 text-[var(--color-text-tertiary)]">需确认地址在配送范围内</p>
-              <p className="mt-2 text-sm font-medium text-[var(--color-primary-pressed)]">配送费示例 ¥{shortDeliveryFeeYuan}</p>
+              {fulfillmentMode === "short_delivery" && (
+                <span className="absolute right-2 top-2 flex h-5 w-5 items-center justify-center rounded-full bg-[var(--color-primary)] text-white">
+                  <PrototypeIcon name="check" size={14} />
+                </span>
+              )}
+              <p className="text-sm font-semibold">约 3 km 短配</p>
+              <p className="mt-1 text-xs leading-5 text-[var(--color-text-tertiary)]">配送到家，需在范围内</p>
+              <p className="mt-2 text-sm font-semibold text-[var(--color-primary-pressed)]">配送费 ¥{shortDeliveryFeeYuan}</p>
             </button>
           </div>
-        </Section>
 
-        {fulfillmentMode === "pickup" ? (
-          <Section title="取货时段">
-            <div className="flex flex-wrap gap-2">
-              {pickupSlots.map((slot) => (
-                <button
-                  key={slot}
-                  type="button"
-                  aria-pressed={effectivePickupWindow === slot}
-                  onClick={() => setSelectedPickupWindow(slot)}
-                  className={`min-h-11 rounded-full px-4 text-sm font-medium ${effectivePickupWindow === slot ? "bg-[var(--color-primary)] text-[var(--color-on-primary)]" : "border border-[var(--color-border)] bg-[var(--color-surface)] text-[var(--color-text-secondary)]"}`}
-                >
-                  {slot}
-                </button>
-              ))}
-            </div>
-            <p className="text-xs leading-5 text-[var(--color-text-tertiary)]">取货时段按 15 分钟间隔表达，最早约 15 分钟后；不调用真实排队或门店接单系统。</p>
-          </Section>
-        ) : (
-          <Section title="配送地址与范围">
-            {deliveryAddresses.length === 0 ? (
-              <Card className="bg-[var(--color-surface-subtle)]">
-                <p className="font-semibold">当前门店暂未配置配送地址</p>
-                <p className="mt-1 text-sm leading-6 text-[var(--color-text-secondary)]">{selectedStore.name} 暂无短距配送示例地址，请改选到店自提。</p>
-              </Card>
-            ) : (
-              <div className="space-y-3">
-                {deliveryAddresses.map((address) => {
-                  const inRange = isStoreDeliveryAddressInRange(selectedStore, address);
-                  const selected = effectiveAddress?.id === address.id;
-                  return (
+          {/* 履约方式内的明细：取货时段 / 配送地址 */}
+          <div className="mt-4 border-t border-[var(--color-border)] pt-4">
+            {fulfillmentMode === "pickup" ? (
+              <div>
+                <p className="text-xs font-medium text-[var(--color-text-secondary)]">取货时段</p>
+                <div className="mt-2 flex flex-wrap gap-2">
+                  {pickupSlots.map((slot) => (
                     <button
-                      key={address.id}
+                      key={slot}
                       type="button"
-                      aria-pressed={selected}
-                      disabled={!inRange}
-                      onClick={() => setSelectedAddressId(address.id)}
-                      className={`w-full min-h-[88px] rounded-[var(--radius-container)] border p-4 text-left disabled:cursor-not-allowed disabled:opacity-60 ${selected ? "border-[var(--color-primary)] bg-[var(--color-brand-subtle)]" : "border-[var(--color-border)] bg-[var(--color-surface)]"}`}
+                      aria-pressed={effectivePickupWindow === slot}
+                      onClick={() => setSelectedPickupWindow(slot)}
+                      className={`min-h-9 rounded-full px-3 text-xs font-medium ${effectivePickupWindow === slot ? "bg-[var(--color-primary)] text-[var(--color-on-primary)]" : "border border-[var(--color-border)] bg-[var(--color-surface)] text-[var(--color-text-secondary)]"}`}
                     >
-                      <div className="flex items-start justify-between gap-3">
-                        <div className="min-w-0">
-                          <div className="flex items-center gap-2">
-                            <p className="font-semibold">{address.label}</p>
-                            {inRange ? <StatusTag tone="success">可配送 · {address.distanceKm.toFixed(1)} km</StatusTag> : <StatusTag tone="warning">超出配送范围 · {address.distanceKm.toFixed(1)} km</StatusTag>}
-                          </div>
-                          <p className="mt-1 text-sm text-[var(--color-text-secondary)]">{address.recipient} · {address.phone}</p>
-                          <p className="mt-1 text-xs leading-5 text-[var(--color-text-tertiary)]">{address.address}</p>
-                        </div>
-                        {!inRange && <span className="pt-1 text-xs font-medium text-[var(--color-warning)]">不可选</span>}
-                      </div>
+                      {slot}
                     </button>
-                  );
-                })}
+                  ))}
+                </div>
+              </div>
+            ) : (
+              <div>
+                <p className="text-xs font-medium text-[var(--color-text-secondary)]">配送地址</p>
+                {deliveryAddresses.length === 0 ? (
+                  <p className="mt-2 text-xs text-[var(--color-text-tertiary)]">暂无配送地址，请改选自提。</p>
+                ) : (
+                  <div className="mt-2 space-y-2">
+                    {deliveryAddresses.map((address) => {
+                      const inRange = isStoreDeliveryAddressInRange(selectedStore, address);
+                      const selected = effectiveAddress?.id === address.id;
+                      return (
+                        <button
+                          key={address.id}
+                          type="button"
+                          aria-pressed={selected}
+                          disabled={!inRange}
+                          onClick={() => setSelectedAddressId(address.id)}
+                          className={`flex w-full items-start gap-2 rounded-[var(--radius-control)] border p-3 text-left disabled:cursor-not-allowed disabled:opacity-60 ${selected ? "border-[var(--color-primary)] bg-[var(--color-brand-subtle)]" : "border-[var(--color-border)] bg-[var(--color-surface)]"}`}
+                        >
+                          <div className="min-w-0 flex-1">
+                            <div className="flex items-center gap-2">
+                              <p className="text-sm font-medium">{address.label}</p>
+                              {inRange ? (
+                                <StatusTag tone="success">可配送 · {address.distanceKm.toFixed(1)} km</StatusTag>
+                              ) : (
+                                <StatusTag tone="warning">超出范围</StatusTag>
+                              )}
+                            </div>
+                            <p className="mt-0.5 text-xs text-[var(--color-text-secondary)]">{address.recipient} · {address.phone}</p>
+                            <p className="mt-0.5 truncate text-xs text-[var(--color-text-tertiary)]">{address.address}</p>
+                          </div>
+                          {selected && <PrototypeIcon name="check" size={16} className="mt-0.5 shrink-0 text-[var(--color-primary)]" />}
+                        </button>
+                      );
+                    })}
+                  </div>
+                )}
               </div>
             )}
-            <p className="text-xs leading-5 text-[var(--color-text-tertiary)]">约 {selectedStore.deliveryRadiusKm ?? "--"} km 范围是 T018 可追踪 mock，不调用真实地图或定位。</p>
-          </Section>
-        )}
+          </div>
+        </div>
 
-        <Section title="结算明细">
-          <Card>
-            <div className="space-y-3 text-sm">
-              <div className="flex items-center justify-between gap-3"><span className="text-[var(--color-text-secondary)]">商品金额</span><span className="font-medium">¥{subtotalOriginal.toFixed(2)}</span></div>
-              {memberSavings > 0 && <div className="flex items-center justify-between gap-3"><span className="text-[var(--color-text-secondary)]">会员优惠（{cartCount} 件）</span><span className="font-medium text-[var(--color-success)]">-¥{memberSavings.toFixed(2)}</span></div>}
-              <div className="flex items-center justify-between gap-3 border-t border-[var(--color-border)] pt-3"><span className="text-[var(--color-text-secondary)]">商品实付小计</span><span className="font-semibold">¥{subtotalMember.toFixed(2)}</span></div>
-              <div className="flex items-center justify-between gap-3 border-t border-[var(--color-border)] pt-3">
+        {/* 卡片3：商品清单 */}
+        <div className="rounded-[var(--radius-container)] border border-[var(--color-border)] bg-[var(--color-surface)] p-4">
+          <div className="flex items-center justify-between">
+            <p className="text-sm font-semibold">商品清单</p>
+            <p className="text-xs text-[var(--color-text-tertiary)]">共 {cartCount} 件</p>
+          </div>
+          <div className="mt-3 divide-y divide-[var(--color-border)]">
+            {cartRows.slice(0, 3).map(({ product, quantity, unitPrice }) => (
+              <div key={product.id} className="flex items-center gap-3 py-2.5">
+                <ConvenienceProductArtwork productId={product.id} name={product.name} className="h-10 w-10 shrink-0 rounded-[var(--radius-sm)] bg-[var(--color-surface-subtle)]" />
+                <div className="min-w-0 flex-1">
+                  <p className="truncate text-sm font-medium">{product.name}</p>
+                  <p className="truncate text-xs text-[var(--color-text-tertiary)]">{product.spec ?? product.category}</p>
+                </div>
+                <div className="shrink-0 text-right">
+                  <p className="text-sm font-medium">¥{unitPrice.toFixed(2)}</p>
+                  <p className="text-xs text-[var(--color-text-tertiary)]">×{quantity}</p>
+                </div>
+              </div>
+            ))}
+            {cartRows.length > 3 && (
+              <div className="py-2 text-center text-xs text-[var(--color-text-tertiary)]">
+                还有 {cartRows.length - 3} 件商品
+              </div>
+            )}
+          </div>
+        </div>
+
+        {/* 卡片4：辅助选项（购物袋 + 备注） */}
+        <div className="rounded-[var(--radius-container)] border border-[var(--color-border)] bg-[var(--color-surface)] p-4">
+          <p className="text-sm font-semibold">更多选项</p>
+          <div className="mt-3 space-y-3">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-2">
+                <PrototypeIcon name="bag" size={16} className="text-[var(--color-text-tertiary)]" />
+                <span className="text-sm text-[var(--color-text-primary)]">需要购物袋</span>
+              </div>
+              <button
+                type="button"
+                role="switch"
+                aria-label="需要购物袋"
+                aria-checked={needBag}
+                onClick={() => setNeedBag((current) => !current)}
+                className={`relative h-6 w-11 rounded-full transition-colors ${needBag ? "bg-[var(--color-primary)]" : "bg-[var(--color-border)]"}`}
+              >
+                <span className={`absolute top-0.5 h-5 w-5 rounded-full bg-white shadow-sm transition-transform ${needBag ? "translate-x-[22px]" : "translate-x-0.5"}`} />
+              </button>
+            </div>
+            <div>
+              <label className="flex items-center gap-2 text-sm text-[var(--color-text-secondary)]">
+                <PrototypeIcon name="edit" size={14} className="text-[var(--color-text-tertiary)]" />
+                订单备注
+              </label>
+              <textarea
+                value={orderRemark}
+                onChange={(e) => setOrderRemark(e.target.value)}
+                placeholder="选填，如有特殊需求请告知门店"
+                rows={2}
+                className="mt-2 w-full resize-none rounded-[var(--radius-control)] border border-[var(--color-border)] bg-[var(--color-background)] px-3 py-2 text-sm text-[var(--color-text-primary)] placeholder:text-[var(--color-text-tertiary)] focus:border-[var(--color-primary)] focus:outline-none"
+              />
+            </div>
+          </div>
+        </div>
+
+        {/* 卡片5：金额明细 */}
+        <div className="rounded-[var(--radius-container)] border border-[var(--color-border)] bg-[var(--color-surface)] p-4">
+          <p className="text-sm font-semibold">金额明细</p>
+          <div className="mt-3 space-y-2.5 text-sm">
+            <div className="flex items-center justify-between">
+              <span className="text-[var(--color-text-secondary)]">商品金额</span>
+              <span className="font-medium">¥{subtotalOriginal.toFixed(2)}</span>
+            </div>
+            {memberSavings > 0 && (
+              <div className="flex items-center justify-between">
+                <span className="text-[var(--color-text-secondary)]">会员优惠</span>
+                <span className="font-medium text-[var(--color-success)]">-¥{memberSavings.toFixed(2)}</span>
+              </div>
+            )}
+            {applicableCoupon && (
+              <div className="flex items-center justify-between">
                 <span className="text-[var(--color-text-secondary)]">优惠券</span>
-                {applicableCoupon ? <span className="max-w-[220px] text-right font-medium">{applicableCoupon.title} · 已使用 -¥{couponDiscount.toFixed(2)}</span> : <span className="text-[var(--color-text-tertiary)]">暂无可用优惠券</span>}
+                <span className="max-w-[200px] truncate text-right font-medium text-[var(--color-success)]">{applicableCoupon.title} -¥{couponDiscount.toFixed(2)}</span>
               </div>
-              <div className="flex items-center justify-between gap-3 border-t border-[var(--color-border)] pt-3">
-                <span className="flex items-center gap-2 text-[var(--color-text-secondary)]">积分抵扣<StatusTag>候选示例</StatusTag></span>
-                <button type="button" aria-pressed={usePoints} onClick={() => setUsePoints((current) => !current)} className={`min-h-11 rounded-full px-3 text-sm font-medium ${usePoints ? "bg-[var(--color-primary)] text-[var(--color-on-primary)]" : "border border-[var(--color-border)] text-[var(--color-text-secondary)]"}`}>
-                  {usePoints ? `-¥${pointsDiscount.toFixed(2)}` : "使用积分"}
-                </button>
-              </div>
-              {usePoints && <p className="text-xs leading-5 text-[var(--color-text-tertiary)]">使用 {pointsUsed} 积分抵 ¥{pointsDiscount.toFixed(2)}（100 积分 = 1 元候选示例）；当前余额 {coreDemoUser.pointsBalance} 分。</p>}
-              <div className="flex items-center justify-between gap-3 border-t border-[var(--color-border)] pt-3">
-                <span className="text-[var(--color-text-secondary)]">履约费用</span>
-                <span className="font-medium">{fulfillmentMode === "pickup" ? "自提 ¥0" : fulfillmentFee > 0 ? `短配示例 ¥${fulfillmentFee.toFixed(2)}` : "需选择可配送地址"}</span>
-              </div>
-              <div className="flex items-center justify-between gap-3 border-t border-[var(--color-border)] pt-3">
-                <span className="font-semibold">应付金额</span>
-                <span className="text-lg font-semibold text-[var(--color-primary-pressed)]">¥{payable.toFixed(2)}</span>
-              </div>
+            )}
+            <div className="flex items-center justify-between">
+              <span className="text-[var(--color-text-secondary)]">
+                {fulfillmentMode === "pickup" ? "自提费" : "配送费"}
+              </span>
+              <span className="font-medium">
+                {fulfillmentMode === "pickup" ? "¥0.00" : fulfillmentFee > 0 ? `¥${fulfillmentFee.toFixed(2)}` : "¥0.00"}
+              </span>
             </div>
-          </Card>
-          <Card className="bg-[var(--color-surface-subtle)]">
-            <div className="flex items-start gap-3">
-              <PrototypeIcon name="info" size={19} className="mt-0.5 shrink-0 text-[var(--color-primary)]" />
-              <p className="text-sm leading-6 text-[var(--color-text-secondary)]">提交只生成当前会话内的 Mock 订单，不发起真实支付、库存锁定或骑手调度。券金额与配送费标注为示例规则，正式规则待确认。</p>
+            <div className="flex items-center justify-between">
+              <span className="text-[var(--color-text-secondary)]">购物袋</span>
+              <span className="font-medium">¥{bagFee.toFixed(2)}</span>
             </div>
-          </Card>
-        </Section>
+            <div className="flex items-center justify-between border-t border-[var(--color-border)] pt-2.5">
+              <span className="font-semibold">应付金额</span>
+              <span className="text-xl font-bold text-[var(--color-primary-pressed)]">¥{checkoutTotal.toFixed(2)}</span>
+            </div>
+          </div>
+        </div>
 
-        <Button className="w-full" disabled={!canSubmitCheckout} onClick={submitCheckout}>提交演示订单</Button>
+        {/* 底部占位，给固定操作栏留空间 */}
+        <div className="h-24" />
+
+        {/* 底部固定提交栏 */}
+        <div className="fixed inset-x-0 bottom-0 z-40 mx-auto max-w-[390px] border-t border-[var(--color-border)] bg-[var(--color-surface)] pb-[env(safe-area-inset-bottom)]">
+          <div className="flex items-center justify-between px-4 py-3">
+            <div>
+              <p className="text-xs text-[var(--color-text-tertiary)]">合计</p>
+              <p className="text-xl font-bold text-[var(--color-primary-pressed)]">¥{checkoutTotal.toFixed(2)}</p>
+            </div>
+            <Button disabled={!canSubmitCheckout} onClick={submitCheckout}>提交订单</Button>
+          </div>
+        </div>
       </>
     );
   }

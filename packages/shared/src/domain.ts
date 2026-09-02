@@ -117,6 +117,7 @@ export interface Product {
   originalPriceYuan?: number;
   memberPriceYuan?: number;
   promotionLabel?: string;
+  description?: string;
 }
 
 export type ProductAvailabilityStatus = "available" | "low_stock" | "sold_out" | "unavailable";
