@@ -1053,7 +1053,6 @@ export function StoreFlowScreen({ openActivity, entryContext }: StoreFlowScreenP
 
         <div>
           <p className="text-sm text-[var(--color-text-secondary)]">确认订单</p>
-          <h2 className="mt-1 text-2xl font-semibold">{selectedStore.name}</h2>
         </div>
 
         {/* 卡片1：自提点/门店信息 */}
@@ -1063,7 +1062,7 @@ export function StoreFlowScreen({ openActivity, entryContext }: StoreFlowScreenP
               <PrototypeIcon name="store" size={18} className="text-[var(--color-primary)]" />
             </div>
             <div className="min-w-0 flex-1">
-              <p className="text-sm font-semibold">{selectedStore.name}</p>
+              <p className="text-base font-semibold">{selectedStore.name}</p>
               <p className="mt-0.5 truncate text-xs text-[var(--color-text-tertiary)]">{selectedStore.address}</p>
             </div>
             <StatusTag tone={selectedStore.status === "open" ? "success" : "warning"}>
