@@ -43,10 +43,10 @@ V0.2 要求线上商城呈现成熟、可信的电商体验，并与便利店即
 - [x] 商城首页、商品详情、购物车、结算、订单 / 物流可连续演示。
 - [x] 全程不出现便利店门店库存、自提或 3 公里短配逻辑。
 - [x] Storefront / Channel 业务语义可被用户感知但消费者界面不直接暴露工程术语。
-- [ ] 商品图、规格、价格、优惠、包邮信息和 CTA 达到确认 UI 稿要求的成熟商城中高保真观感；由 T019-R1～R5 重新验收。
+- [x] 商品图、规格、价格、优惠、包邮信息和 CTA 已由 T019-R1～R5 按确认稿完成返工；R5 独立五屏复审结论为 `PASS FOR HUMAN / REVIEW`。
 - [x] 至少覆盖待发货、运输中、签收三类订单状态。
-- [ ] 390×844 Mobile 五屏真实视觉复审通过；由 T019-R5 收口。
-- [x] 原功能基线 `npm run typecheck`、`npm run build` 通过；返工后需重新回归。
+- [x] 390×844 Mobile 五屏真实视觉证据已由 T019-R5 生成并逐屏独立复审；正式人类 PASS 仍待用户确认。
+- [x] 返工最终候选 Verify Prototype #280 success；商城专项与 T019 全购买链浏览器回归通过。
 
 ## Risks / Dependencies
 
@@ -58,21 +58,31 @@ V0.2 要求线上商城呈现成熟、可信的电商体验，并与便利店即
 
 - Original implementation: PR #13；merge `c9aa08342e81199934feff95be5045d925c38ea6`。
 - Visual rework: T019-R1～R5，2026-09-02 起。
+- R2: PR #23 merge `da635596`。
+- R3: PR #24 merge `43ccd84c`。
+- R4: PR #25 merge `247299010e4ef26b316234b6e31c7f1067db6311`。
+- R5: PR #26；首轮发现订单物流进度区产生 19px 横向溢出，已在 R5 修复并补充 R4 三状态横向溢出回归。
 
 ## Verification evidence
 
 - 原功能证据：Verify Prototype #187、T012 Browser Quality #44、Experimental OpenCode #65 success。
 - 原产品验收：2026-08-31 用户功能/当时视觉验收通过。
-- 新视觉结论：2026-09-02 用户明确视觉验收不通过；确认五屏 UI 稿作为返工基准。
+- 视觉重开：2026-09-02 用户明确视觉验收不通过；确认五屏 UI 稿作为返工基准。
+- R5 final candidate: `4f6f3b899fa8b7e7d00553ba51ff9a1c157cb334`。
+- R5 Verify Prototype #280: `success`。
+- R5 Browser Quality #98: 78 项中 70 passed / 8 failed；商城 T012 / T016 handoff / T019 / R1 / R2 / R3 / R4 / R5 全部通过，8 项失败均为既有便利店 T017 / T018 / T032 旧基线。
+- R5 final five-screen artifact: `9855267147`，digest `sha256:671a088a2ac4e947bd02fc24705c8c3b72dcb88e06358c01f72638c17300532c`。
+- R5 visual conclusion: 五屏实图无新的阻塞级结构、密度、遮挡或消费者语义问题；订单三段进度横向溢出已在最终证据前修复。
 
 ## Status history
 
 - 2026-08-31 `TODO → DOING → REVIEW → PASS`：PR #13 完成功能闭环并经用户验收。
 - 2026-09-02 `PASS → REVIEW`：用户视觉复审 `CHANGES_NEEDED`；保留旧功能证据，进入 T019-R1～R5 视觉返工链。
+- 2026-09-02 R5 execution complete：独立视觉复审 `PASS FOR HUMAN / REVIEW`；根据仓库规则，在用户明确确认前父卡继续保持 `REVIEW`。
 
 ## Review
 
-- Reviewer: Tomz / T019-R5 pending
+- Reviewer: Mira independent UX review completed / Tomz final visual confirmation pending
 - Result: REVIEW
-- Conclusion: 功能闭环有效，但当前视觉 PASS 已被 2026-09-02 明确复审结论替代；只有 T019-R5 Visual PASS 后才恢复 T019 PASS。
-- Follow-up: T019-R1 商城首页 → R2 商详 → R3 购物车 → R4 结算/物流 → R5 五屏复审。
+- Conclusion: R1～R5 返工链已完成，R5 真实五屏复审执行层通过并修复 1 个实际横向溢出缺陷；当前仅等待用户在 `dev` 部署预览上做最终视觉确认。
+- Follow-up: PR #26 合入 `dev` → 用户最终视觉确认 → 若确认通过，将 T019-R5 与 T019 正式恢复 `PASS`。
