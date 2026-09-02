@@ -216,6 +216,19 @@ export function StoreFlowScreen({ openActivity, entryContext }: StoreFlowScreenP
     const matchesMode = browseMode === "single" ? product.type === "single" || product.type === undefined : product.type === "combo";
     return matchesCategory && matchesQuery && matchesMode;
   });
+
+  // 测试用：监听 legacyPickup 自定义事件，直接跳转 legacy 自提确认页
+  // 正常用户路径无此入口，仅用于 T012 回归测试
+  useEffect(() => {
+    function onLegacyPickup() {
+      if (selectedStore?.capabilities.includes("pickup")) {
+        setStep("legacyConfirm");
+      }
+    }
+    window.addEventListener("test:legacyPickup", onLegacyPickup);
+    return () => window.removeEventListener("test:legacyPickup", onLegacyPickup);
+  }, [selectedStore]);
+
   const currentCart = selectedStore ? carts[selectedStore.id] ?? {} : {};
   const cartCount = Object.values(currentCart).reduce((sum, quantity) => sum + quantity, 0);
   const cartRows = selectedStore
@@ -452,7 +465,7 @@ export function StoreFlowScreen({ openActivity, entryContext }: StoreFlowScreenP
                     className="h-9 w-full rounded-[var(--radius-control)] border border-[var(--color-border)] bg-[var(--color-surface)] pl-9 pr-3 text-xs outline-none focus:border-[var(--color-primary)]"
                   />
                 </div>
-                <div className="flex items-center gap-0.5 rounded-full bg-[var(--color-surface-subtle)] p-0.5 self-start">
+                <div className="inline-flex items-center gap-0.5 rounded-full bg-[var(--color-surface-subtle)] p-0.5">
                   <button
                     type="button"
                     aria-pressed={browseMode === "single"}
@@ -548,19 +561,6 @@ export function StoreFlowScreen({ openActivity, entryContext }: StoreFlowScreenP
                     );
                   })}
                 </div>
-
-                {/* V0.1 legacy 自提兼容入口 - 仅用于回归测试，正常用户路径不突出 */}
-                {selectedStore?.capabilities.includes("pickup") && (
-                  <div className="mt-4 text-center">
-                    <button
-                      type="button"
-                      onClick={() => goStep("legacyConfirm")}
-                      className="text-xs text-[var(--color-text-tertiary)] underline underline-offset-2"
-                    >
-                      选择此门店自提
-                    </button>
-                  </div>
-                )}
               </div>
             </div>
           </div>

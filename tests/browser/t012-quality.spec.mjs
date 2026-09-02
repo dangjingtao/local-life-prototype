@@ -136,7 +136,9 @@ test.describe("T012 · 390px Mobile", () => {
     await openMobile(page);
     await mobileTab(page, "便利店");
     await page.getByRole("button", { name: "选择门店：云岭社区店" }).click();
-    await page.getByRole("button", { name: "选择此门店自提" }).click();
+    // 通过自定义事件进入 legacy 自提确认页（正常路径无 UI 入口，仅用于回归测试）
+    await page.evaluate(() => window.dispatchEvent(new CustomEvent("test:legacyPickup")));
+    await expect(page.getByRole("button", { name: "提交演示订单" })).toBeVisible();
     await page.getByRole("button", { name: "提交演示订单" }).click();
     await expect(page.getByRole("heading", { name: "到店出示提货码" })).toBeVisible();
 
