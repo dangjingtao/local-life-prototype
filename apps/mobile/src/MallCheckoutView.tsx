@@ -136,7 +136,7 @@ export function MallCheckoutView({
         </div>
         <div className="flex h-7 items-center justify-between gap-3 text-[12px]">
           <span className="min-w-0 truncate text-[var(--color-text-secondary)]">商城优惠{couponTitle ? ` · ${couponTitle}` : ""}</span>
-          <span className="shrink-0 font-medium text-[var(--color-primary-pressed)]">{couponTitle ? "已关联" : "—"}</span>
+          <span className="shrink-0 font-medium text-[var(--color-primary-pressed)]">{couponTitle ? "可用" : "—"}</span>
         </div>
         <div className="flex h-9 items-center justify-between border-t border-[var(--color-border)] text-[13px]">
           <span className="font-semibold">应付金额</span>
