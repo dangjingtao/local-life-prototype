@@ -566,7 +566,7 @@ export function StoreFlowScreen({ openActivity, entryContext }: StoreFlowScreenP
           </div>
         </div>
 
-        {/* 购物车抽屉遮罩 */}
+        {/* 购物车抽屉遮罩 - 全屏变暗，购物栏和抽屉在遮罩之上 */}
         {cartSheetOpen && cartCount > 0 && (
           <div
             className="fixed inset-0 z-30 bg-black/40"
@@ -575,16 +575,19 @@ export function StoreFlowScreen({ openActivity, entryContext }: StoreFlowScreenP
           />
         )}
 
-        {/* 购物车抽屉 */}
+        {/* 购物车抽屉 - 从购物栏顶部向上展开，宽度与购物栏一致 */}
         {cartCount > 0 && (
           <div
             role="dialog"
             aria-label="购物车"
-            className={`fixed inset-x-0 bottom-0 z-40 mx-auto max-w-[390px] transition-transform duration-300 ease-out ${
-              cartSheetOpen ? "translate-y-0" : "translate-y-full"
+            aria-hidden={!cartSheetOpen}
+            className={`fixed inset-x-0 z-40 transition-all duration-300 ease-out bottom-[calc(8rem+env(safe-area-inset-bottom))] left-1/2 w-[calc(100%-2rem)] max-w-[358px] -translate-x-1/2 ${
+              cartSheetOpen ? "translate-y-0 opacity-100 visible" : "translate-y-full opacity-0 invisible pointer-events-none"
             }`}
           >
-            <div className="rounded-t-2xl bg-[var(--color-surface)] pb-[calc(9rem+env(safe-area-inset-bottom))]">
+            {/* 连接条：填掉购物栏顶部圆角，实现无缝衔接 */}
+            <div className="absolute -bottom-2 left-0 right-0 h-4 bg-[var(--color-surface)]" />
+            <div className="relative rounded-t-2xl bg-[var(--color-surface)] pb-3">
               {/* 抽屉头部 */}
               <div className="flex items-center justify-between px-4 pt-3 pb-2">
                 <div>
