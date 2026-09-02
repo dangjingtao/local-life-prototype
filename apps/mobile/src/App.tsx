@@ -102,6 +102,7 @@ export function App() {
   const [searchHandoff, setSearchHandoff] = useState<SearchBusinessHandoff | null>(null);
   const [mallCarts, setMallCarts] = useState<StorefrontCartState>({});
   const [mallStep, setMallStep] = useState<MallStep>("home");
+  const [mallResetKey, setMallResetKey] = useState(0);
   const [reportEntry, setReportEntry] = useState<ReportEntry | null>(null);
 
   const activeTab: Tab = screen === "search" || screen === "activity"
@@ -122,7 +123,10 @@ export function App() {
 
   const go = (next: Screen) => {
     setSearchHandoff(null);
-    if (next === "mall") setMallStep("home");
+    if (next === "mall") {
+      setMallStep("home");
+      setMallResetKey((current) => current + 1);
+    }
     setScreen(next);
     scrollTop();
   };
@@ -227,12 +231,19 @@ export function App() {
           {screen === "mall" && (
             <>
               {searchHandoff?.domain === "mall" && <SearchHandoffBanner handoff={searchHandoff} />}
-              <MallFlowScreen
-                entryContext={searchHandoff?.domain === "mall" ? searchHandoff : undefined}
-                carts={mallCarts}
-                setCarts={setMallCarts}
-                onStepChange={setMallStep}
-              />
+              <div
+                className={mallStep === "home"
+                  ? "[&_[data-testid=mall-home-header]]:h-[calc(92px+env(safe-area-inset-top))] [&_[data-testid=mall-home-header]]:pt-[env(safe-area-inset-top)] [&_[data-testid=mall-category-track]]:-mb-1 [&_[data-testid=mall-category-track]]:mt-1 [&_[data-testid=mall-category-track]]:h-11"
+                  : undefined}
+              >
+                <MallFlowScreen
+                  key={mallResetKey}
+                  entryContext={searchHandoff?.domain === "mall" ? searchHandoff : undefined}
+                  carts={mallCarts}
+                  setCarts={setMallCarts}
+                  onStepChange={setMallStep}
+                />
+              </div>
             </>
           )}
           {screen === "care" && (
