@@ -15,6 +15,14 @@ async function expectHeight(locator, expected) {
   expect(Math.abs(box.height - expected), JSON.stringify(box)).toBeLessThanOrEqual(TOLERANCE);
 }
 
+async function expectVerticalGap(before, after, expected) {
+  const beforeBox = await before.boundingBox();
+  const afterBox = await after.boundingBox();
+  expect(beforeBox).not.toBeNull();
+  expect(afterBox).not.toBeNull();
+  expect(Math.abs(afterBox.y - (beforeBox.y + beforeBox.height) - expected), JSON.stringify({ beforeBox, afterBox })).toBeLessThanOrEqual(TOLERANCE);
+}
+
 async function expectNoHorizontalOverflow(page) {
   const metrics = await page.evaluate(() => ({
     viewport: window.innerWidth,
@@ -27,26 +35,33 @@ async function expectNoHorizontalOverflow(page) {
 test.describe("T019-R1 · mall home visual reconstruction", () => {
   test.use({ viewport: { width: 390, height: 844 } });
 
-  test("canonical mall home follows confirmed 390px geometry", async ({ page }) => {
+  test("canonical mall home follows confirmed 390px geometry and upper spacing rhythm", async ({ page }) => {
     await openMall(page);
 
     await expect(page.getByText("LOCAL LIFE · V0.2 PREVIEW", { exact: true })).toHaveCount(0);
-    await expectHeight(page.getByTestId("mall-home-header"), 92);
-    await expectHeight(page.getByTestId("mall-source-section"), 108);
-    await expectHeight(page.getByTestId("mall-search"), 44);
 
+    const header = page.getByTestId("mall-home-header");
+    const source = page.getByTestId("mall-source-section");
+    const search = page.getByTestId("mall-search");
     const categoryTrack = page.getByTestId("mall-category-track");
-    await expectHeight(categoryTrack, 44);
-    const categoryButton = categoryTrack.getByRole("button").first();
-    await expectHeight(categoryButton, 44);
+    const banner = page.getByTestId("mall-campaign-banner");
 
-    const searchBox = await page.getByTestId("mall-search").boundingBox();
-    const bannerBox = await page.getByTestId("mall-campaign-banner").boundingBox();
-    expect(searchBox).not.toBeNull();
-    expect(bannerBox).not.toBeNull();
-    // 44px hit area + negative margin preserves the confirmed 36px visual-track footprint.
-    expect(Math.abs(bannerBox.y - (searchBox.y + searchBox.height) - 52), JSON.stringify({ searchBox, bannerBox })).toBeLessThanOrEqual(TOLERANCE);
-    await expectHeight(page.getByTestId("mall-campaign-banner"), 112);
+    await expectHeight(header, 92);
+    const headerBox = await header.boundingBox();
+    expect(headerBox).not.toBeNull();
+    expect(Math.abs(headerBox.y), JSON.stringify(headerBox)).toBeLessThanOrEqual(1);
+
+    await expectHeight(source, 108);
+    await expectHeight(search, 44);
+    await expectHeight(categoryTrack, 44);
+    await expectHeight(categoryTrack.getByRole("button").first(), 44);
+    await expectHeight(banner, 112);
+
+    // Human visual correction: the upper controls must breathe instead of touching each other.
+    await expectVerticalGap(header, source, 16);
+    await expectVerticalGap(source, search, 12);
+    await expectVerticalGap(search, categoryTrack, 12);
+    await expectVerticalGap(categoryTrack, banner, 12);
 
     const productCards = page.getByTestId("mall-product-grid").locator(":scope > button");
     expect(await productCards.count()).toBeGreaterThanOrEqual(2);
