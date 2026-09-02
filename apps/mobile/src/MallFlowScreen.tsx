@@ -69,16 +69,16 @@ function storefrontConsumerName(channelKind?: string) {
 }
 
 function storefrontConsumerMeta(channelKind?: string) {
-  if (channelKind === "owned") return "本地生活精选";
+  if (channelKind === "owned") return "正品保障";
   if (channelKind === "douyin") return "渠道精选";
-  return "全国好物";
+  return "优选好物";
 }
 
 function ProductVisual({ product, compact = false, home = false }: { product: Product; compact?: boolean; home?: boolean }) {
   const sizeClass = compact
     ? "h-20 w-20 rounded-[var(--radius-container)]"
     : home
-      ? "h-[122px] w-full rounded-t-[var(--radius-container)]"
+      ? "h-[110px] w-full rounded-t-[var(--radius-container)]"
       : "h-44 w-full rounded-[var(--radius-container)]";
 
   return <MallProductArtwork productId={product.id} name={product.name} className={sizeClass} />;
@@ -189,26 +189,24 @@ export function MallFlowScreen({ entryContext, carts, setCarts, onStepChange }: 
 
   if (step === "home") {
     return (
-      <div data-testid="mall-home" className="-mx-4 -mt-5 pb-1">
+      <div data-testid="mall-home" className="-mx-4 pb-2">
         <header
           data-testid="mall-home-header"
-          className="flex h-[92px] items-center justify-between bg-[var(--color-primary)] px-4 text-[var(--color-on-primary)]"
+          className="flex h-[92px] items-center justify-between bg-[var(--color-background)] px-4 text-[var(--color-text-primary)]"
         >
           <div className="min-w-0">
-            <h2 className="text-[22px] font-semibold leading-7">线上商城</h2>
-            <p className="mt-1 flex items-center gap-1.5 text-xs text-[var(--color-on-primary)]/80">
-              <PrototypeIcon name="info" size={14} /> 全国快递配送 · 送货上门
-            </p>
+            <h2 className="text-[25px] font-semibold leading-8 tracking-[-0.02em]">线上商城</h2>
+            <p className="mt-1 text-[13px] text-[var(--color-text-secondary)]">全国快递配送 · 送货上门</p>
           </div>
           <button
             type="button"
             onClick={() => goStep("cart")}
             aria-label={`商城购物车，共 ${cartCount} 件`}
-            className="relative flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-[var(--color-on-primary)]/15"
+            className="relative flex h-11 w-11 shrink-0 items-center justify-center rounded-full text-[var(--color-text-primary)] active:bg-[var(--color-surface-subtle)]"
           >
-            <PrototypeIcon name="cart" size={20} />
+            <PrototypeIcon name="cart" size={24} />
             {cartCount > 0 && (
-              <span className="absolute -right-1 -top-1 flex min-h-5 min-w-5 items-center justify-center rounded-full bg-[var(--color-surface)] px-1 text-[10px] font-bold text-[var(--color-primary-pressed)]">
+              <span className="absolute right-0 top-0 flex min-h-5 min-w-5 items-center justify-center rounded-full bg-[var(--color-primary)] px-1 text-[10px] font-bold text-[var(--color-on-primary)]">
                 {cartCount}
               </span>
             )}
@@ -216,12 +214,78 @@ export function MallFlowScreen({ entryContext, carts, setCarts, onStepChange }: 
         </header>
 
         <div className="px-4">
-          <section data-testid="mall-source-section" className="h-[108px] pt-2" aria-labelledby="mall-source-title">
-            <div className="flex h-5 items-center justify-between">
-              <h3 id="mall-source-title" className="text-sm font-semibold">选择商城来源</h3>
-              <span className="text-[10px] text-[var(--color-text-tertiary)]">全国配送</span>
+          <form
+            data-testid="mall-search"
+            className="flex h-12 overflow-hidden rounded-[var(--radius-overlay)] border border-[var(--color-border)] bg-[var(--color-surface)] shadow-[0_1px_2px_rgba(15,23,42,0.03)] focus-within:border-[var(--color-primary)]"
+            onSubmit={(event) => {
+              event.preventDefault();
+              setQuery((current) => current.trim());
+            }}
+          >
+            <div className="relative min-w-0 flex-1">
+              <PrototypeIcon name="search" size={19} className="pointer-events-none absolute left-3.5 top-1/2 -translate-y-1/2 text-[var(--color-text-tertiary)]" />
+              <input
+                aria-label="商城内搜索"
+                value={query}
+                onChange={(event) => setQuery(event.target.value)}
+                placeholder="搜索商品名称"
+                className="h-full w-full bg-transparent pl-11 pr-2 text-sm outline-none"
+              />
             </div>
-            <div className="mt-2 grid h-[72px] grid-cols-2 gap-[10px]">
+            <button
+              type="submit"
+              aria-label="执行商城搜索"
+              className="min-w-[64px] bg-[var(--color-primary)] px-3 text-sm font-semibold text-[var(--color-on-primary)] active:bg-[var(--color-primary-pressed)]"
+            >
+              搜索
+            </button>
+          </form>
+
+          <section
+            data-testid="mall-campaign-banner"
+            aria-label={`商城活动：${mallCampaign?.title ?? "精选活动"}`}
+            className="relative mt-4 h-[148px] overflow-hidden rounded-[var(--radius-overlay)] border border-[var(--color-border)] bg-[var(--color-brand-subtle)]"
+          >
+            <div className="absolute inset-y-0 right-0 w-[46%] opacity-90">
+              <MallProductArtwork
+                productId={mallCampaignProduct?.id ?? "PRODUCT-COLLAGEN-DRINK"}
+                name={mallCampaignProduct?.name ?? "商城精选"}
+                decorative
+                className="h-full w-full"
+              />
+            </div>
+            <div className="relative z-10 flex h-full w-[68%] flex-col justify-center px-4">
+              <span className="w-fit rounded-full bg-[var(--color-surface)]/90 px-2 py-1 text-[10px] font-semibold text-[var(--color-primary-pressed)]">全国快递</span>
+              <h3 className="mt-2 text-[22px] font-semibold leading-7 tracking-[-0.02em]">{mallCampaign?.title ?? "商城精选"}</h3>
+              <p className="mt-1.5 line-clamp-2 text-xs leading-5 text-[var(--color-text-secondary)]">{mallCampaign?.subtitle ?? "精选好物，全国快递到家。"}</p>
+            </div>
+          </section>
+
+          <div data-testid="mall-category-track" className="mt-3 flex h-11 items-center gap-2 overflow-x-auto" aria-label="商城商品分类">
+            {categories.map((item) => {
+              const selected = category === item;
+              return (
+                <button
+                  key={item}
+                  type="button"
+                  aria-pressed={selected}
+                  onClick={() => setCategory(item)}
+                  className="flex h-11 shrink-0 items-center"
+                >
+                  <span className={`flex h-9 items-center rounded-full border px-3.5 text-xs ${selected ? "border-[var(--color-primary)] bg-[var(--color-primary)] font-semibold text-[var(--color-on-primary)]" : "border-[var(--color-border)] bg-[var(--color-surface)] text-[var(--color-text-secondary)]"}`}>
+                    {item === "全部" ? "推荐" : item}
+                  </span>
+                </button>
+              );
+            })}
+          </div>
+
+          <section data-testid="mall-source-section" className="mt-4 rounded-[var(--radius-overlay)] border border-[var(--color-border)] bg-[var(--color-surface)] p-3" aria-labelledby="mall-source-title">
+            <div className="flex items-center justify-between gap-3">
+              <h3 id="mall-source-title" className="text-[16px] font-semibold">精选店铺</h3>
+              <span className="text-[11px] text-[var(--color-text-tertiary)]">{storefronts.length} 家可选</span>
+            </div>
+            <div className="mt-2.5 grid grid-cols-2 gap-2">
               {storefronts.map((storefront) => {
                 const channel = findById(channels, storefront.channelId);
                 const selected = storefront.id === selectedStorefront.id;
@@ -232,91 +296,25 @@ export function MallFlowScreen({ entryContext, carts, setCarts, onStepChange }: 
                     aria-label={`切换商城：${storefront.name}`}
                     aria-pressed={selected}
                     onClick={() => switchStorefront(storefront.id)}
-                    className={`relative min-w-0 rounded-[var(--radius-container)] border px-3 py-2 text-left transition ${
-                      selected
-                        ? "border-[var(--color-primary)] bg-[var(--color-brand-subtle)]"
-                        : "border-[var(--color-border)] bg-[var(--color-surface)] active:bg-[var(--color-surface-subtle)]"
-                    }`}
+                    className={`flex h-[64px] min-w-0 items-center gap-2.5 rounded-[var(--radius-container)] border px-2.5 text-left transition ${selected ? "border-[var(--color-primary)] bg-[var(--color-brand-subtle)]" : "border-[var(--color-border)] bg-[var(--color-background)] active:bg-[var(--color-surface-subtle)]"}`}
                   >
-                    <div className="flex items-center justify-between gap-2">
-                      <p className={`truncate text-xs font-semibold ${selected ? "text-[var(--color-primary-pressed)]" : "text-[var(--color-text-primary)]"}`}>
-                        {storefrontConsumerName(channel?.kind)}
-                      </p>
-                      {selected && <PrototypeIcon name="success" size={15} className="shrink-0 text-[var(--color-primary)]" />}
-                    </div>
-                    <p className="mt-1 truncate text-[10px] text-[var(--color-text-secondary)]">{storefrontConsumerMeta(channel?.kind)}</p>
-                    <p className="mt-0.5 truncate text-[10px] text-[var(--color-text-tertiary)]">{storefront.name}</p>
+                    <span className={`flex h-9 w-9 shrink-0 items-center justify-center rounded-full ${selected ? "bg-[var(--color-primary)] text-[var(--color-on-primary)]" : "bg-[var(--color-surface-subtle)] text-[var(--color-primary)]"}`}>
+                      <PrototypeIcon name={channel?.kind === "douyin" ? "store" : "success"} size={18} />
+                    </span>
+                    <span className="min-w-0 flex-1">
+                      <span className="block truncate text-[12px] font-semibold">{storefrontConsumerName(channel?.kind)}</span>
+                      <span className="mt-0.5 block truncate text-[10px] text-[var(--color-text-tertiary)]">{storefrontConsumerMeta(channel?.kind)}</span>
+                    </span>
+                    {selected && <PrototypeIcon name="success" size={14} className="shrink-0 text-[var(--color-primary)]" />}
                   </button>
                 );
               })}
             </div>
           </section>
 
-          <form
-            data-testid="mall-search"
-            className="flex h-11 overflow-hidden rounded-[var(--radius-control)] border border-[var(--color-border)] bg-[var(--color-surface)] focus-within:border-[var(--color-primary)]"
-            onSubmit={(event) => {
-              event.preventDefault();
-              setQuery((current) => current.trim());
-            }}
-          >
-            <div className="relative min-w-0 flex-1">
-              <PrototypeIcon name="search" size={17} className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-[var(--color-text-tertiary)]" />
-              <input
-                aria-label="商城内搜索"
-                value={query}
-                onChange={(event) => setQuery(event.target.value)}
-                placeholder="搜索商品名称"
-                className="h-full w-full bg-transparent pl-10 pr-2 text-sm outline-none"
-              />
-            </div>
-            <button type="submit" aria-label="执行商城搜索" className="min-w-[58px] bg-[var(--color-primary)] px-3 text-sm font-semibold text-[var(--color-on-primary)] active:bg-[var(--color-primary-pressed)]">
-              搜索
-            </button>
-          </form>
-
-          <div data-testid="mall-category-track" className="mt-2 flex h-9 items-center gap-1.5 overflow-x-auto overflow-y-visible" aria-label="商城商品分类">
-            {categories.map((item) => {
-              const selected = category === item;
-              return (
-                <button
-                  key={item}
-                  type="button"
-                  aria-pressed={selected}
-                  onClick={() => setCategory(item)}
-                  className="flex h-11 shrink-0 items-center px-0.5"
-                >
-                  <span className={`flex h-8 items-center rounded-full border px-3 text-xs ${selected ? "border-[var(--color-primary)] bg-[var(--color-brand-subtle)] font-semibold text-[var(--color-primary-pressed)]" : "border-[var(--color-border)] bg-[var(--color-surface)] text-[var(--color-text-secondary)]"}`}>
-                    {item === "全部" ? "推荐" : item}
-                  </span>
-                </button>
-              );
-            })}
-          </div>
-
-          <section
-            data-testid="mall-campaign-banner"
-            aria-label={`商城活动：${mallCampaign?.title ?? "精选活动"}`}
-            className="relative mt-2 flex h-[112px] overflow-hidden rounded-[var(--radius-overlay)] border border-[var(--color-border)] bg-[var(--color-brand-subtle)]"
-          >
-            <div className="relative z-10 flex min-w-0 flex-1 flex-col justify-center px-4 py-3">
-              <span className="w-fit rounded-full bg-[var(--color-surface)] px-2 py-1 text-[10px] font-semibold text-[var(--color-primary-pressed)]">全国快递</span>
-              <h3 className="mt-2 truncate text-lg font-semibold leading-6">{mallCampaign?.title ?? "商城精选"}</h3>
-              <p className="mt-1 line-clamp-1 text-xs text-[var(--color-text-secondary)]">{mallCampaign?.subtitle ?? "精选好物，全国快递到家。"}</p>
-            </div>
-            {mallCampaignProduct && (
-              <MallProductArtwork
-                productId={mallCampaignProduct.id}
-                name={mallCampaignProduct.name}
-                decorative
-                className="h-[112px] w-[126px] shrink-0"
-              />
-            )}
-          </section>
-
-          <div data-testid="mall-recommend-title" className="mt-3 flex h-7 items-center justify-between">
-            <h3 className="text-base font-semibold">为你推荐</h3>
-            <span className="text-[10px] text-[var(--color-text-tertiary)]">{selectedStorefront.name}</span>
+          <div data-testid="mall-recommend-title" className="mt-4 flex h-8 items-center justify-between">
+            <h3 className="text-[18px] font-semibold tracking-[-0.01em]">为你推荐</h3>
+            <span className="max-w-[150px] truncate text-[11px] text-[var(--color-text-tertiary)]">{selectedStorefront.name}</span>
           </div>
 
           {visibleProducts.length > 0 ? (
@@ -330,22 +328,22 @@ export function MallFlowScreen({ entryContext, carts, setCarts, onStepChange }: 
                     type="button"
                     aria-label={`查看商品：${product.name}`}
                     onClick={() => openProduct(product.id)}
-                    className="h-[220px] min-w-0 overflow-hidden rounded-[var(--radius-container)] border border-[var(--color-border)] bg-[var(--color-surface)] text-left active:bg-[var(--color-surface-subtle)]"
+                    className="h-[208px] min-w-0 overflow-hidden rounded-[var(--radius-container)] border border-[var(--color-border)] bg-[var(--color-surface)] text-left shadow-[0_1px_2px_rgba(15,23,42,0.025)] active:bg-[var(--color-surface-subtle)]"
                   >
                     <ProductVisual product={product} home />
                     <div className="flex h-[98px] flex-col px-2.5 pb-2 pt-2">
-                      <p className="line-clamp-2 min-h-9 text-[13px] font-semibold leading-[18px]">{product.name}</p>
-                      <p className="mt-0.5 truncate text-[10px] text-[var(--color-text-tertiary)]">{product.spec ?? product.category}</p>
+                      <p className="line-clamp-1 text-[13px] font-semibold leading-[18px]">{product.name}</p>
+                      <p className="mt-1 truncate text-[10px] text-[var(--color-text-tertiary)]">{product.spec ?? product.category}</p>
                       <div className="mt-auto flex items-end justify-between gap-1">
                         <div className="min-w-0">
                           <div className="flex items-baseline gap-1">
                             <span className="text-[11px] font-semibold text-[var(--color-primary-pressed)]">¥</span>
-                            <span className="text-base font-bold leading-5 text-[var(--color-primary-pressed)]">{price.toFixed(0)}</span>
+                            <span className="text-[18px] font-bold leading-5 text-[var(--color-primary-pressed)]">{price.toFixed(0)}</span>
                             {product.originalPriceYuan && product.originalPriceYuan > price && (
                               <span className="truncate text-[9px] text-[var(--color-text-tertiary)] line-through">¥{product.originalPriceYuan.toFixed(0)}</span>
                             )}
                           </div>
-                          {product.promotionLabel && <p className="mt-0.5 truncate text-[9px] font-medium text-[var(--color-primary-pressed)]">{product.promotionLabel}</p>}
+                          {product.promotionLabel && <p className="mt-1 truncate text-[9px] font-medium text-[var(--color-primary-pressed)]">{product.promotionLabel}</p>}
                         </div>
                         <span className={`shrink-0 rounded-full px-1.5 py-1 text-[9px] font-medium ${freeShipping ? "bg-[var(--color-success-bg)] text-[var(--color-success)]" : "bg-[var(--color-surface-subtle)] text-[var(--color-text-secondary)]"}`}>
                           {freeShipping ? "包邮" : "全国快递"}
@@ -365,17 +363,16 @@ export function MallFlowScreen({ entryContext, carts, setCarts, onStepChange }: 
             </div>
           )}
 
-          <div data-testid="mall-shipping-strip" className="mt-3 flex h-[52px] items-center justify-between rounded-[var(--radius-container)] border border-[var(--color-border)] bg-[var(--color-surface-subtle)] px-3">
-            <div className="flex min-w-0 items-center gap-2.5">
-              <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-[var(--color-brand-subtle)] text-[var(--color-primary-pressed)]">
-                <PrototypeIcon name="info" size={16} />
-              </div>
-              <div className="min-w-0">
-                <p className="truncate text-xs font-semibold">满 ¥{freeShippingThreshold} 包邮</p>
-                <p className="mt-0.5 truncate text-[10px] text-[var(--color-text-tertiary)]">未满 ¥{freeShippingThreshold} 运费 ¥{standardShippingFee} · 全国快递配送</p>
-              </div>
+          <div data-testid="mall-shipping-strip" className="mt-4 grid h-[56px] grid-cols-3 items-center rounded-[var(--radius-container)] border border-[var(--color-border)] bg-[var(--color-surface)] px-2">
+            <div className="flex items-center justify-center gap-1.5 text-[10px] font-medium text-[var(--color-text-secondary)]">
+              <PrototypeIcon name="info" size={14} className="text-[var(--color-primary)]" /> 满 ¥{freeShippingThreshold} 包邮
             </div>
-            <span className="ml-2 shrink-0 text-[10px] font-medium text-[var(--color-primary-pressed)]">送货上门</span>
+            <div className="flex items-center justify-center gap-1.5 border-x border-[var(--color-border)] text-[10px] font-medium text-[var(--color-text-secondary)]">
+              <PrototypeIcon name="cart" size={14} className="text-[var(--color-primary)]" /> 全国快递配送
+            </div>
+            <div className="flex items-center justify-center gap-1.5 text-[10px] font-medium text-[var(--color-text-secondary)]">
+              <PrototypeIcon name="success" size={14} className="text-[var(--color-primary)]" /> 安心选购
+            </div>
           </div>
         </div>
       </div>
