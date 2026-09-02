@@ -34,7 +34,18 @@ test.describe("T019-R1 · mall home visual reconstruction", () => {
     await expectHeight(page.getByTestId("mall-home-header"), 92);
     await expectHeight(page.getByTestId("mall-source-section"), 108);
     await expectHeight(page.getByTestId("mall-search"), 44);
-    await expectHeight(page.getByTestId("mall-category-track"), 36);
+
+    const categoryTrack = page.getByTestId("mall-category-track");
+    await expectHeight(categoryTrack, 44);
+    const categoryButton = categoryTrack.getByRole("button").first();
+    await expectHeight(categoryButton, 44);
+
+    const searchBox = await page.getByTestId("mall-search").boundingBox();
+    const bannerBox = await page.getByTestId("mall-campaign-banner").boundingBox();
+    expect(searchBox).not.toBeNull();
+    expect(bannerBox).not.toBeNull();
+    // 44px hit area + negative margin preserves the confirmed 36px visual-track footprint.
+    expect(Math.abs(bannerBox.y - (searchBox.y + searchBox.height) - 52), JSON.stringify({ searchBox, bannerBox })).toBeLessThanOrEqual(TOLERANCE);
     await expectHeight(page.getByTestId("mall-campaign-banner"), 112);
 
     const productCards = page.getByTestId("mall-product-grid").locator(":scope > button");
@@ -79,6 +90,20 @@ test.describe("T019-R1 · mall home visual reconstruction", () => {
     await search.fill("胶原");
     await expect(home.getByRole("button", { name: /查看商品：胶原蛋白肽饮/ })).toBeVisible();
     await expect(home.getByRole("img", { name: "胶原蛋白肽饮 商品图", exact: true })).toBeVisible();
+    await expectNoHorizontalOverflow(page);
+  });
+
+  test("re-tapping the active Mall tab resets deep flow and chrome together", async ({ page }) => {
+    await openMall(page);
+
+    await page.getByRole("button", { name: /查看商品：/ }).first().click();
+    await expect(page.getByRole("button", { name: "返回商城", exact: true })).toBeVisible();
+    await expect(page.getByText("LOCAL LIFE · V0.2 PREVIEW", { exact: true })).toBeVisible();
+
+    await page.getByRole("navigation", { name: "一级导航" }).getByRole("button", { name: "商城", exact: true }).click();
+    await expect(page.getByTestId("mall-home")).toBeVisible();
+    await expect(page.getByText("LOCAL LIFE · V0.2 PREVIEW", { exact: true })).toHaveCount(0);
+    await expect(page.getByRole("heading", { name: "线上商城", exact: true })).toBeVisible();
     await expectNoHorizontalOverflow(page);
   });
 });
