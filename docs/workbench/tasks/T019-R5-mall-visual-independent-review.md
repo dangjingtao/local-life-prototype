@@ -1,6 +1,6 @@
 # T019-R5 · 商城五屏独立视觉复审
 
-- Status: DOING
+- Status: REVIEW
 - Target version: 0.2.0
 - Impact: Mobile / UX / QA
 - Parent: T019
@@ -61,13 +61,13 @@ T019-R1～R4 已依次完成商城首页、商品详情、购物车、结算确�
 
 ## Acceptance
 
-- [ ] 五张 390×844 canonical ready state 实屏证据已生成并逐屏复审。
-- [ ] 五屏无阻塞级视觉结构漂移、拥挤、遮挡或明显层级问题。
-- [ ] R1～R4 商城专项回归与 T019 全购买链回归保持通过。
-- [ ] 商城消费者界面无内部术语和便利店履约语义泄漏。
-- [ ] Verify Prototype 通过。
-- [ ] UX independent review 给出明确结论与证据链接。
-- [ ] 若需要修复，修复后重新生成整套五屏证据，不复用旧截图。
+- [x] 五张 390×844 canonical ready state 实屏证据已生成并逐屏复审。
+- [x] 五屏无阻塞级视觉结构漂移、拥挤、遮挡或明显层级问题。
+- [x] R1～R4 商城专项回归与 T019 全购买链回归保持通过。
+- [x] 商城消费者界面无内部术语和便利店履约语义泄漏。
+- [x] Verify Prototype 通过。
+- [x] UX independent review 给出明确结论与证据链接。
+- [x] 首轮发现订单进度条横向溢出后已修复，并重新生成整套五屏证据，没有复用旧截图。
 
 ## Out of scope
 
@@ -80,14 +80,26 @@ T019-R1～R4 已依次完成商城首页、商品详情、购物车、结算确�
 
 - Branch: `task/T019-R5-mall-visual-independent-review`
 - Base: `dev @ 247299010e4ef26b316234b6e31c7f1067db6311`
-- Screenshot evidence: pending CI artifact
-- Verify: pending
-- Browser: pending
-- Independent UX review: pending
+- First visual run: Browser Quality #96 / artifact `9854954411`。首轮只生成 4 张图；R5 在 Order 页发现 `scrollWidth 409 > viewport 390`，定位为三段物流进度连接线布局溢出，因此不接受首轮证据。
+- Fix: `MallOrderView.tsx` 将三段物流步骤改为真正等分；连接线从当前节点中心连接到下一节点中心。并在 R4 回归中增加 pending / shipping / completed 三态横向溢出 gate。
+- Final candidate: `4f6f3b899fa8b7e7d00553ba51ff9a1c157cb334`。
+- Verify: Verify Prototype #280 `success`。
+- Browser: Browser Quality #98 共 78 项，70 passed / 8 failed。T012 mall、T016 mall handoff、T019、R1、R2、R3、R4、R5 全部通过；剩余 8 项均为既有便利店 T017 / T018 / T032 旧基线，不属于本卡回归。
+- Final screenshot artifact: `t019-r5-visual-evidence` artifact `9855267147`，5 files，digest `sha256:671a088a2ac4e947bd02fc24705c8c3b72dcb88e06358c01f72638c17300532c`。
+- Final screenshots reviewed: `01-home.png`、`02-detail.png`、`03-cart.png`、`04-checkout.png`、`05-order.png`。
+
+## Independent visual findings
+
+- Home：首屏搜索 → 活动 → 分类 → 精选店铺 → 推荐商品的信息优先级清楚；此前用户指出的顶部拥挤未复现；双列商品和底部一级导航稳定。
+- Detail：商品主视觉、价格、规格、促销、配送 / 包邮、商城优惠与固定购买栏层级连续；抽象商品背景符合用户允许的视觉策略，没有退回伪包装插画。
+- Cart：两商品列表、数量控件、金额 / 包邮进度和固定结算栏无挤压或遮挡；一级导航与结算栏相邻但不重叠。
+- Checkout：地址、来源 / 配送 / 备注、商品摘要、金额与固定提交栏层级清楚；无横向溢出。
+- Order：首轮发现并修复物流三段进度横向溢出；最终三节点等分、连线正确，状态 Hero / 订单号 / 物流轨迹 / 订单信息 / 固定操作栏完整且无遮挡。
+- 五屏正常消费者视图未发现 `Storefront`、`Channel`、`Mock`、`T019`、`演示数据` 或便利店自提 / 3 km 履约语义泄漏。
 
 ## Review
 
 - Reviewer: Mira independent UX review
-- Result: pending
-- Conclusion: pending
-- Follow-up: 若无阻塞问题，R5 推进到 REVIEW 并把完整证据交给 T019 最终验收；若有问题直接在本分支修复并重跑五屏证据。
+- Result: `PASS FOR HUMAN / REVIEW`
+- Conclusion: R5 执行层独立视觉复审通过；本轮确实发现并修复 1 个 Order 横向溢出问题，最终五屏实屏未发现新的阻塞级 UX / Visual 缺陷。
+- Follow-up: PR 合入 `dev` 后交给 Tomz 最终人类视觉确认。按照仓库状态规则，在用户明确确认前 R5 与父卡 T019 均保持 `REVIEW`；用户确认后才可恢复正式 `PASS`。
