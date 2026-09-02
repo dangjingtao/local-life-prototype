@@ -79,7 +79,7 @@ test.describe("T032 · Cart sheet & checkout card layout", () => {
     await enterStoreAndOpenCart(page);
 
     // 去结算按钮固定在抽屉底部
-    const checkoutBtn = page.getByRole("button", { name: "去结算" });
+    const checkoutBtn = page.getByRole("dialog", { name: "购物车" }).getByRole("button", { name: "去结算" });
     await expect(checkoutBtn).toBeVisible();
     const box = await checkoutBtn.boundingBox();
     expect(box).not.toBeNull();
@@ -117,7 +117,7 @@ test.describe("T032 · Cart sheet & checkout card layout", () => {
     await openConvenience(page);
     await page.getByRole("button", { name: "选择门店：云岭社区店" }).click();
     await page.getByRole("button", { name: /打开购物车，\d+ 件商品/ }).click();
-    await page.getByRole("button", { name: "去结算" }).click();
+    await page.getByRole("dialog", { name: "购物车" }).getByRole("button", { name: "去结算" }).click();
 
     // 确认订单标题
     await expect(page.getByRole("heading", { name: "云岭社区店" })).toBeVisible();
@@ -139,7 +139,7 @@ test.describe("T032 · Cart sheet & checkout card layout", () => {
     await openConvenience(page);
     await page.getByRole("button", { name: "选择门店：云岭社区店" }).click();
     await page.getByRole("button", { name: /打开购物车，\d+ 件商品/ }).click();
-    await page.getByRole("button", { name: "去结算" }).click();
+    await page.getByRole("dialog", { name: "购物车" }).getByRole("button", { name: "去结算" }).click();
 
     const pickupBtn = page.getByRole("button", { name: "到店自提" });
     const deliveryBtn = page.getByRole("button", { name: "约 3 km 短配" });
@@ -156,7 +156,7 @@ test.describe("T032 · Cart sheet & checkout card layout", () => {
     await openConvenience(page);
     await page.getByRole("button", { name: "选择门店：云岭社区店" }).click();
     await page.getByRole("button", { name: /打开购物车，\d+ 件商品/ }).click();
-    await page.getByRole("button", { name: "去结算" }).click();
+    await page.getByRole("dialog", { name: "购物车" }).getByRole("button", { name: "去结算" }).click();
 
     // 购物袋开关
     const bagSwitch = page.getByRole("switch", { name: "需要购物袋" });
@@ -176,7 +176,7 @@ test.describe("T032 · Cart sheet & checkout card layout", () => {
     await openConvenience(page);
     await page.getByRole("button", { name: "选择门店：云岭社区店" }).click();
     await page.getByRole("button", { name: /打开购物车，\d+ 件商品/ }).click();
-    await page.getByRole("button", { name: "去结算" }).click();
+    await page.getByRole("dialog", { name: "购物车" }).getByRole("button", { name: "去结算" }).click();
 
     // 底部固定提交栏含合计金额和提交按钮
     await expect(page.getByText("合计")).toBeVisible();

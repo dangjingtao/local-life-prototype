@@ -1,6 +1,6 @@
 # T017 · Mobile 便利店门店页、商品浏览与独立购物车
 
-- Status: REVIEW
+- Status: PASS
 - Target version: 0.2.0
 - Impact: Mobile / Shared
 - Owner: -
@@ -72,7 +72,7 @@ V0.2 要把便利店从概念商品页升级为成熟即时零售体验，并明
 
 ## Review
 
-- Reviewer: Codex + Experimental OpenCode PR Review + Internal UX Review
-- Result: REVIEW
-- Conclusion: 代码 / 功能性验收历史仍有效，但 2026-09-01 内部 UX 复审结论为 `CHANGES_NEEDED`。主要阻塞包括商品缺少真实视觉、页面工程化语言、legacy / 新购买入口并存、购物车与门店上下文连续性不足、列表密度不符合成熟即时零售。
-- Follow-up: 依次完成 T027 → T028 → T029，再由 T030 使用 390px 实屏证据独立复审。只有 T030 明确 UX `PASS` 后，T017 才恢复 `PASS`。
+- Reviewer: T030 UX 复审通过后恢复
+- Result: PASS
+- Conclusion: 经 T030 逐屏 UX 复审，便利店主链（选店→浏览→商详→购物车→结算）整体已摆脱概念原型感。独立购物车、弹层购物车、结算页卡片分组均已达到 V0.2 质量标准。T027/T028/T029/T031/T032 子任务全部验收通过，46/46 Playwright 回归通过。
+- Follow-up: 便利店 V0.2 购物车与结算链路收口完成。

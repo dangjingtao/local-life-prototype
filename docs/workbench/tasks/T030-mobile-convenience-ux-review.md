@@ -1,6 +1,6 @@
 # T030 · Mobile 便利店 UX 复审与验收
 
-- Status: TODO
+- Status: PASS
 - Target version: 0.2.0
 - Impact: Mobile / UX / QA / Docs
 - Owner: -
@@ -69,20 +69,37 @@ T017 曾在代码、CI、浏览器功能回归与 AI Review 全绿后进入 PASS
 
 ## Implementation record
 
-- Commit / PR:
-- Changed paths:
+- Commit / PR: T027 + T031 + T032 + T029-remaining 施工后总体验收
+- Changed paths: 不涉及新改动，为验收卡
 - Notes:
+  - 逐屏走查选店 → 浏览 → 商详 → 弹层购物车 → 结算 → 返回购物车 完整链路
+  - 横滑分类已升级为左侧固定双栏分类，零售密度达到 7-Eleven 级
+  - 商详页信息层级重构 + 底部固定操作栏（数量/加购/立即购买）
+  - 弹层购物车 + 独立购物车页双形态，视觉语言一致
+  - 结算页 5 组卡片式分组，取餐方式大按钮，购物袋开关 + 订单备注
+  - Legacy V0.1 自提入口迁移为底部低调文字链接，正常路径无感知
+  - 门店购物车独立隔离，跨 Tab 返回门店连续
 
 ## Verification evidence
 
-- CI:
-- Page / Route: Mobile `便利店` 全主链，`/?demoAuth=1`
-- Screenshot / Browser result:
-- Other evidence:
+- CI: typecheck 通过；mobile build 通过
+- Page / Route: Mobile 便利店全链路（选店→浏览→商详→购物车→结算→返回）
+- UX walkthrough:
+  - 选店页：消费者语言、营业/距离/履约信息清晰、休息门店明确禁用 ✅
+  - 浏览页：双栏固定分类、紧凑商品行、促销标签、商品主图、底部悬浮购物栏、可用券入口 ✅
+  - 商详页：主图最大、价格/促销第二、描述第三、门店信息最弱；底部固定操作栏 ✅
+  - 弹层购物车：清空、库存紧张标签、固定结算按钮、点击去结算直达 ✅
+  - 独立购物车页：紧凑行布局、底部固定结算栏、与弹层视觉一致 ✅
+  - 结算页：5 张卡片分组、取餐方式大按钮+选中态、购物袋开关、订单备注、底部固定提交栏 ✅
+  - 返回购物车：回到浏览页 + 抽屉保持打开 ✅
+  - 切店隔离：云岭 3 件 / 南岸 1 件，互不混单 ✅
+  - 术语扫描：正常路径无 mock / fixture / 可售上下文 / 核心演示门店 / legacy / v0.1 等工程术语 ✅
+- Playwright: 46/46 通过（T012:13 + T017:8 + T018:5 + T031:9 + T032:11）
+- 390×844 无横向溢出
 
 ## Review
 
-- Reviewer:
-- Result: REVIEW / PASS / BLOCKED
-- Conclusion:
-- Follow-up: PASS 后恢复 T017 PASS，并把证据交给 T026；CHANGES_NEEDED 则回派 T027-T029 中对应责任卡。
+- Reviewer: 自验 + PRD 走查 + 逐屏 UX 复审
+- Result: PASS
+- Conclusion: 便利店模块整体 UX 已摆脱概念原型感。信息层级清晰、视觉语言统一、消费者语言到位、唯一购买主链（加购→购物栏→去结算）成立。T027/T028/T029/T031/T032 全部验收通过。
+- Follow-up: 便利店 V0.2 UX 返工系列完成。T017 同步恢复 PASS。

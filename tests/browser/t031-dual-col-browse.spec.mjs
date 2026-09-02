@@ -79,7 +79,8 @@ test.describe("T031 · Dual-column convenience browse UX", () => {
     const cartBar = page.getByRole("button", { name: /打开购物车，3 件商品/ });
     await expect(cartBar).toBeVisible();
     await expect(cartBar).toContainText("合计");
-    await expect(cartBar).toContainText("去结算");
+    // 去结算为独立按钮，在购物栏右侧
+    await expect(page.getByLabel("去结算")).toBeVisible();
 
     await page.getByRole("button", { name: "加入购物车：青柠气泡水" }).click();
     const updated = page.getByRole("button", { name: /打开购物车，4 件商品/ });

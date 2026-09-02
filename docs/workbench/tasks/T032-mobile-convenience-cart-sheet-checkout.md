@@ -6,7 +6,7 @@
 
 - Type: Mobile / UX
 
-- Status: PASS
+- Status: REVIEW
 
 - Target: 0.2.0
 
@@ -118,11 +118,11 @@ T031 完成了浏览页的双栏布局和密度升级，购物车和结算页也
 
 ## Review
 
-- Reviewer: TraeDesign
+- Reviewer:
 
-- Result: PASS
+- Result: REVIEW / PASS / BLOCKED
 
-- Conclusion: 15/15 条验收标准全部通过。结算页卡片式分组、商详页底部固定操作栏、弹层购物车增强均符合 PRD 要求，无内部术语泄露，无横向溢出，测试全通过。
+- Conclusion:
 
 - Follow-up: 完成后进入 T030 UX 复审。
 

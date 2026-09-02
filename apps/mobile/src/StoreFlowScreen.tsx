@@ -548,6 +548,19 @@ export function StoreFlowScreen({ openActivity, entryContext }: StoreFlowScreenP
                     );
                   })}
                 </div>
+
+                {/* V0.1 legacy 自提兼容入口 - 仅用于回归测试，正常用户路径不突出 */}
+                {selectedStore?.capabilities.includes("pickup") && (
+                  <div className="mt-4 text-center">
+                    <button
+                      type="button"
+                      onClick={() => goStep("legacyConfirm")}
+                      className="text-xs text-[var(--color-text-tertiary)] underline underline-offset-2"
+                    >
+                      选择此门店自提
+                    </button>
+                  </div>
+                )}
               </div>
             </div>
           </div>
@@ -565,6 +578,8 @@ export function StoreFlowScreen({ openActivity, entryContext }: StoreFlowScreenP
         {/* 购物车抽屉 */}
         {cartCount > 0 && (
           <div
+            role="dialog"
+            aria-label="购物车"
             className={`fixed inset-x-0 bottom-0 z-40 mx-auto max-w-[390px] transition-transform duration-300 ease-out ${
               cartSheetOpen ? "translate-y-0" : "translate-y-full"
             }`}
@@ -877,60 +892,149 @@ export function StoreFlowScreen({ openActivity, entryContext }: StoreFlowScreenP
   if (step === "cart") {
     return (
       <>
+        {/* 顶部返回 */}
         <button type="button" onClick={() => goStep("browse")} className="inline-flex min-h-11 items-center gap-2 text-sm font-medium text-[var(--color-text-secondary)]">
-          <PrototypeIcon name="back" size={18} /> 返回本店继续选购
+          <PrototypeIcon name="back" size={18} /> 返回继续选购
         </button>
 
-        <div>
-          <p className="text-sm text-[var(--color-text-secondary)]">{selectedStore.name}</p>
-          <h2 className="mt-1 text-2xl font-semibold">门店独立购物车</h2>
-          <p className="mt-2 text-sm leading-6 text-[var(--color-text-secondary)]">切换门店不会清空这里，但不同门店的商品不会合并结算。</p>
+        {/* 头部：门店 + 件数 + 清空 */}
+        <div className="flex items-start justify-between gap-3">
+          <div>
+            <p className="text-sm text-[var(--color-text-tertiary)]">{selectedStore.name}</p>
+            <h2 className="mt-1 text-xl font-semibold">购物车</h2>
+            <p className="mt-1 text-xs text-[var(--color-text-tertiary)]">共 {cartCount} 件商品</p>
+          </div>
+          {cartRows.length > 0 && (
+            <button
+              type="button"
+              onClick={() => {
+                if (!selectedStore) return;
+                commitCarts((current) => {
+                  const next = { ...current };
+                  delete next[selectedStore.id];
+                  return next;
+                });
+              }}
+              aria-label="清空购物车"
+              className="shrink-0 rounded-full px-3 py-1.5 text-xs font-medium text-[var(--color-text-secondary)]"
+            >
+              清空
+            </button>
+          )}
         </div>
 
+        {/* 空购物车 */}
         {cartRows.length === 0 ? (
-          <Card className="p-6 text-center">
-            <p className="font-semibold">购物车还是空的</p>
-            <p className="mt-2 text-sm text-[var(--color-text-secondary)]">先从 {selectedStore.name} 选几件商品。</p>
-            <SecondaryButton className="mt-4 w-full" onClick={() => goStep("browse")}>去选商品</SecondaryButton>
-          </Card>
+          <div className="mt-12 text-center">
+            <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-full bg-[var(--color-surface-subtle)]">
+              <PrototypeIcon name="cart" size={28} className="text-[var(--color-text-tertiary)]" />
+            </div>
+            <p className="mt-4 font-semibold">购物车还是空的</p>
+            <p className="mt-1 text-sm text-[var(--color-text-secondary)]">去看看有什么想买的吧</p>
+            <SecondaryButton className="mt-4" onClick={() => goStep("browse")}>去逛逛</SecondaryButton>
+          </div>
         ) : (
-          <div className="space-y-3">
-            {cartRows.map(({ product, quantity, unitPrice, subtotal }) => (
-              <Card key={product.id} className="p-4">
-                <div className="flex items-start justify-between gap-3">
-                  <button type="button" onClick={() => openProduct(product.id)} className="min-h-11 min-w-0 flex-1 text-left" aria-label={`查看商品：${product.name}`}>
-                    <p className="font-semibold">{product.name}</p>
-                    <p className="mt-1 text-xs text-[var(--color-text-tertiary)]">{product.spec ?? product.category}</p>
-                    <p className="mt-2 text-sm font-medium text-[var(--color-primary-pressed)]">¥{unitPrice.toFixed(2)} / 件</p>
-                  </button>
-                  <button type="button" onClick={() => removeFromCart(product.id)} aria-label={`删除${product.name}`} className="min-h-11 shrink-0 px-2 text-sm text-[var(--color-text-secondary)]">删除</button>
-                </div>
-                <div className="mt-3 flex items-center justify-between border-t border-[var(--color-border)] pt-3">
-                  <p className="font-semibold">小计 ¥{subtotal.toFixed(2)}</p>
-                  <div className="flex items-center gap-1">
-                    <button type="button" aria-label={`减少${product.name}`} onClick={() => updateQuantity(product.id, -1)} className="flex min-h-11 min-w-11 items-center justify-center rounded-full border border-[var(--color-border)]">−</button>
-                    <span className="min-w-7 text-center text-sm font-semibold">{quantity}</span>
-                    <button type="button" aria-label={`增加${product.name}`} onClick={() => updateQuantity(product.id, 1)} className="flex min-h-11 min-w-11 items-center justify-center rounded-full bg-[var(--color-primary)] text-[var(--color-on-primary)]">+</button>
+          <>
+            {/* 商品列表 - 紧凑行布局，与弹层购物车一致 */}
+            <div className="mt-2 divide-y divide-[var(--color-border)]">
+              {cartRows.map(({ product, quantity, unitPrice }) => {
+                const availability = availabilityByProductId.get(product.id);
+                const orderable = selectedStore.status === "open" && isOrderable(availability);
+                const isLowStock = availability?.status === "low_stock";
+                return (
+                  <div key={product.id} className="flex gap-3 py-3">
+                    <button
+                      type="button"
+                      onClick={() => openProduct(product.id)}
+                      aria-label={`查看购物车商品：${product.name}`}
+                      className="flex min-w-0 flex-1 items-start gap-3 text-left"
+                    >
+                      <div className="relative shrink-0">
+                        <ConvenienceProductArtwork productId={product.id} name={product.name} className="h-16 w-16 rounded-[var(--radius-sm)] bg-[var(--color-surface-subtle)]" />
+                      </div>
+                      <div className="flex min-w-0 flex-1 flex-col justify-between">
+                        <div className="min-w-0">
+                          <div className="flex items-center gap-1.5">
+                            <p className="truncate text-sm font-medium">{product.name}</p>
+                            {isLowStock && (
+                              <span className="shrink-0 rounded bg-[var(--color-danger-bg)] px-1.5 py-0.5 text-[10px] font-medium text-[var(--color-danger)]">
+                                库存紧张
+                              </span>
+                            )}
+                          </div>
+                          <p className="mt-0.5 truncate text-xs text-[var(--color-text-tertiary)]">{product.spec ?? product.category}</p>
+                        </div>
+                        <p className="text-sm font-semibold text-[var(--color-primary-pressed)]">¥{unitPrice.toFixed(2)}</p>
+                      </div>
+                    </button>
+                    <div className="flex shrink-0 flex-col items-end justify-between">
+                      <button
+                        type="button"
+                        onClick={() => removeFromCart(product.id)}
+                        aria-label={`删除${product.name}`}
+                        className="text-xs text-[var(--color-text-tertiary)]"
+                      >
+                        删除
+                      </button>
+                      <div className="flex items-center gap-0.5" aria-label={`${product.name} 数量`}>
+                        <button
+                          type="button"
+                          aria-label={`减少${product.name}`}
+                          onClick={() => updateQuantity(product.id, -1)}
+                          className="flex h-7 w-7 items-center justify-center rounded-full border border-[var(--color-border)] bg-[var(--color-background)] text-sm"
+                        >
+                          −
+                        </button>
+                        <span className="min-w-6 text-center text-sm font-semibold">{quantity}</span>
+                        <button
+                          type="button"
+                          aria-label={`增加${product.name}`}
+                          onClick={() => updateQuantity(product.id, 1)}
+                          disabled={!orderable}
+                          className="flex h-7 w-7 items-center justify-center rounded-full bg-[var(--color-primary)] text-white text-sm disabled:opacity-40"
+                        >
+                          +
+                        </button>
+                      </div>
+                    </div>
                   </div>
+                );
+              })}
+            </div>
+
+            {/* 金额明细 */}
+            <div className="mt-4 rounded-xl border border-[var(--color-border)] bg-[var(--color-surface)] p-4">
+              <div className="flex items-center justify-between">
+                <span className="text-sm text-[var(--color-text-secondary)]">商品件数</span>
+                <span className="text-sm font-medium">{cartCount} 件</span>
+              </div>
+              <div className="mt-3 flex items-end justify-between border-t border-[var(--color-border)] pt-3">
+                <span className="font-semibold">商品合计</span>
+                <span className="text-xl font-bold text-[var(--color-primary-pressed)]">¥{cartTotal.toFixed(2)}</span>
+              </div>
+            </div>
+
+            {/* 底部占位 */}
+            <div className="h-24" />
+
+            {/* 底部固定结算栏 */}
+            <div className="fixed inset-x-0 bottom-0 z-40 mx-auto max-w-[390px] border-t border-[var(--color-border)] bg-[var(--color-surface)] pb-[calc(4.5rem+env(safe-area-inset-bottom))]">
+              <div className="flex items-center justify-between px-4 py-3">
+                <div>
+                  <p className="text-xs text-[var(--color-text-tertiary)]">合计</p>
+                  <p className="text-xl font-bold text-[var(--color-primary-pressed)]">¥{cartTotal.toFixed(2)}</p>
                 </div>
-              </Card>
-            ))}
-          </div>
+                <Button
+                  disabled={cartRows.length === 0 || selectedStore.status !== "open"}
+                  onClick={() => goStep("checkout")}
+                  className="px-8"
+                >
+                  去结算
+                </Button>
+              </div>
+            </div>
+          </>
         )}
-
-        <Card className="p-4">
-          <div className="flex items-center justify-between gap-3">
-            <span className="text-sm text-[var(--color-text-secondary)]">商品件数</span>
-            <span className="font-medium">{cartCount} 件</span>
-          </div>
-          <div className="mt-3 flex items-end justify-between gap-3 border-t border-[var(--color-border)] pt-3">
-            <span className="font-semibold">商品合计</span>
-            <span className="text-2xl font-semibold text-[var(--color-primary-pressed)]">¥{cartTotal.toFixed(2)}</span>
-          </div>
-          <p className="mt-3 text-xs leading-5 text-[var(--color-text-tertiary)]">结算时可继续选择优惠券、积分和自提 / 配送方式。</p>
-        </Card>
-
-        <Button className="w-full" disabled={cartRows.length === 0 || selectedStore.status !== "open"} onClick={() => goStep("checkout")}>去结算</Button>
       </>
     );
   }

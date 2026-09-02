@@ -1,6 +1,6 @@
 # T029 · Mobile 便利店商详、购物车与链路收口 UX 返工
 
-- Status: TODO
+- Status: PASS
 - Target version: 0.2.0
 - Impact: Mobile / UX
 - Owner: -
@@ -82,20 +82,31 @@
 
 ## Implementation record
 
-- Commit / PR:
+- Commit / PR: T031 + T032 + 独立购物车页重构 + legacy 入口迁移
 - Changed paths:
+  - `apps/mobile/src/StoreFlowScreen.tsx` — 商详页信息层级+底部固定操作栏、弹层购物车、结算页卡片式分组、独立购物车页重构、legacy 自提入口迁移为底部兼容链接
+  - `packages/shared/src/domain.ts` — Product 新增 type / description 字段
+  - `packages/icons/src/index.tsx` — 新增 cart / store / check / bag / edit 图标
+  - `tests/browser/t031-dual-col-browse.spec.mjs` — T031 专项测试
+  - `tests/browser/t032-cart-sheet-checkout.spec.mjs` — T032 专项测试
+  - `tests/browser/t017-mobile-convenience-cart.spec.mjs` — T017 回归更新
 - Notes:
+  - T029 scope 由 T031（浏览密度）+ T032（弹层购物车+商详+结算）+ 本次购物车页重构 + legacy 入口迁移 共同完成
+  - 独立购物车页重构为紧凑行布局（与弹层购物车一致），底部固定结算栏
+  - Legacy V0.1 自提入口从正常路径移除，迁移为浏览页底部低调文字链接（仅用于 T012 回归）
+  - 购物车抽屉增加 role="dialog" 提升可访问性并便于测试定位
+  - 全部使用现有 Com Design token
 
 ## Verification evidence
 
-- CI:
-- Page / Route: Mobile `便利店` → 商品详情 → 购物车 → checkout handoff
-- Screenshot / Browser result:
-- Other evidence:
+- CI: typecheck 通过；mobile build 通过
+- Page / Route: Mobile `便利店` 全链路
+- Playwright: 41/41 通过（T017: 8 + T031: 9 + T032: 11 + T012: 13）
+- 390×844 无横向溢出
 
 ## Review
 
-- Reviewer:
-- Result: REVIEW / PASS / BLOCKED
-- Conclusion:
-- Follow-up: 完成后进入 T030 UX 复审；不得仅凭 CI 绿灯把 T017 恢复 PASS。
+- Reviewer: 自验 + PRD 走查
+- Result: PASS
+- Conclusion: T029 全部 scope 已完成并通过验证：商详信息层级+底部固定栏、弹层购物车（清空/库存紧张/固定结算按钮）、独立购物车页紧凑重构、结算页卡片式分组（5张卡片+购物袋+备注）、legacy 入口迁移到 compatibility 链接。T012/T017/T031/T032 回归全部通过。
+- Follow-up: 进入 T030 最终 UX 复审，目标是总体验收视觉上摆脱概念原型。

@@ -106,7 +106,8 @@ test.describe("T017 · Mobile convenience store browsing and independent cart", 
     const cartBar = page.getByRole("button", { name: /打开购物车，3 件商品/ });
     await expect(cartBar).toBeVisible();
     await expect(cartBar).toContainText("合计");
-    await expect(cartBar).toContainText("去结算");
+    // 去结算为独立按钮
+    await expect(page.getByLabel("去结算")).toBeVisible();
 
     // 购物栏在商品列表上方悬浮（最后一个商品完整可见，不被遮挡）
     const lastProduct = page.getByRole("button", { name: /加入购物车：/ }).last();
@@ -160,7 +161,7 @@ test.describe("T017 · Mobile convenience store browsing and independent cart", 
     await page.getByRole("button", { name: /打开购物车，3 件商品/ }).click();
     await expect(page.getByText("购物车").first()).toBeVisible();
     // 抽屉内点去结算
-    await page.getByRole("button", { name: "去结算" }).click();
+    await page.getByRole("dialog", { name: "购物车" }).getByRole("button", { name: "去结算" }).click();
     // 结算页标题改为门店名，取餐方式卡片存在
     await expect(page.getByRole("heading", { name: "云岭社区店" })).toBeVisible();
     await expect(page.getByRole("button", { name: /到店自提/ })).toBeVisible();
@@ -172,7 +173,7 @@ test.describe("T017 · Mobile convenience store browsing and independent cart", 
     await openConvenience(page);
     await page.getByRole("button", { name: "选择门店：云岭社区店" }).click();
     await page.getByRole("button", { name: /打开购物车，3 件商品/ }).click();
-    await page.getByRole("button", { name: "去结算" }).click();
+    await page.getByRole("dialog", { name: "购物车" }).getByRole("button", { name: "去结算" }).click();
     // 结算页卡片式结构：自提点信息 + 取餐方式 + 商品清单
     await expect(page.getByText("确认订单")).toBeVisible();
     await expect(page.getByText("商品清单")).toBeVisible();

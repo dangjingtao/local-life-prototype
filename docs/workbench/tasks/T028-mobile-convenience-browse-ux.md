@@ -1,6 +1,6 @@
 # T028 · Mobile 便利店商品浏览与零售密度 UX 返工
 
-- Status: DOING
+- Status: PASS
 - Target version: 0.2.0
 - Impact: Mobile / UX / Assets
 - Owner: -
@@ -89,7 +89,7 @@ T017 功能性实现能正确展示门店商品、价格、会员价与库存状
 
 ## Review
 
-- Reviewer: pending
-- Result: DOING
-- Conclusion: 实现已进入验证阶段，尚未完成 PR / AI review。
-- Follow-up: 门禁和 review 无阻塞后合入 `dev`，再进入 T029。
+- Reviewer: 已由 T031 替代完成
+- Result: PASS
+- Conclusion: T028 核心 scope（双栏布局、紧凑商品行、底部悬浮购物栏、可用券入口、单品/套餐双态）已由 T031 以更高标准完成并通过验收。T031 在 T028 基础上进一步升级为左侧固定分类栏 + 7-Eleven 级零售密度，AC 全部满足。
+- Follow-up: T029 继续商详/购物车/链路收口；T030 做最终 UX 复审。
