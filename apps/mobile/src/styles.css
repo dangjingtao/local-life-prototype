@@ -57,3 +57,9 @@ body { background: var(--color-background); }
 body:has([data-testid="mall-cart"]) details:has(> summary[aria-label^="Prototype ·"]) {
   bottom: calc(144px + env(safe-area-inset-bottom));
 }
+
+/* T019-R4: checkout/order use a 72px full-screen action bar with no primary nav. */
+body:has([data-testid="mall-checkout"]) details:has(> summary[aria-label^="Prototype ·"]),
+body:has([data-testid="mall-order"]) details:has(> summary[aria-label^="Prototype ·"]) {
+  bottom: calc(88px + env(safe-area-inset-bottom));
+}
