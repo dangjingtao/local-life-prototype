@@ -101,10 +101,12 @@ test.describe("T019 · Mobile mall medium-high fidelity purchase loop", () => {
     await page.getByRole("button", { name: /查看商品：/ }).first().click();
     await page.getByRole("button", { name: "立即购买", exact: true }).click();
 
+    const cart = page.getByTestId("mall-cart");
     await expect(page.getByRole("heading", { name: "购物车" })).toBeVisible();
-    await expect(page.getByText(/不与任何便利店购物车混单/)).toBeVisible();
+    await expect(cart).toContainText("全国快递");
+    await expect(cart).not.toContainText(/Storefront|Channel|Mock|不与任何便利店购物车混单|独立购物车模型/i);
     await expect(page.getByText(/预计运费/)).toBeVisible();
-    await page.getByRole("button", { name: /去结算/ }).click();
+    await page.getByRole("button", { name: "去结算", exact: true }).click();
 
     await expect(page.getByRole("heading", { name: "确认收货与订单" })).toBeVisible();
     await expect(page.getByText("收货地址 · 演示数据", { exact: true })).toBeVisible();
@@ -117,7 +119,7 @@ test.describe("T019 · Mobile mall medium-high fidelity purchase loop", () => {
 
     await page.getByRole("button", { name: /查看商品：/ }).first().click();
     await page.getByRole("button", { name: "立即购买", exact: true }).click();
-    await page.getByRole("button", { name: /去结算/ }).click();
+    await page.getByRole("button", { name: "去结算", exact: true }).click();
     await page.getByRole("button", { name: "提交演示订单", exact: true }).click();
 
     await expect(page.getByRole("heading", { name: /MALL-/ })).toBeVisible();
