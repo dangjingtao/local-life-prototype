@@ -114,7 +114,7 @@ export function MallOrderView({ snapshot, status, onBack, onAdvance }: MallOrder
 
       <section
         data-testid="mall-order-logistics"
-        className="h-[228px] border-b border-[var(--color-border)] bg-[var(--color-surface)] px-4 py-3"
+        className="h-[228px] border-b border-[var(--color-border)] bg-[var(--color-surface)] px-4 py-[11px]"
       >
         <div className="flex h-11 items-center justify-between gap-3 border-b border-[var(--color-border)]">
           <div className="min-w-0">
@@ -139,7 +139,7 @@ export function MallOrderView({ snapshot, status, onBack, onAdvance }: MallOrder
 
       <section
         data-testid="mall-order-info"
-        className="h-[136px] border-b border-[var(--color-border)] bg-[var(--color-surface)] px-4 py-2"
+        className="h-[136px] border-b border-[var(--color-border)] bg-[var(--color-surface)] px-4 py-1"
       >
         <div className="flex h-7 items-center justify-between gap-3 text-[11px]">
           <span className="text-[var(--color-text-secondary)]">店铺来源</span>
