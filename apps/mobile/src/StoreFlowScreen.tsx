@@ -548,26 +548,28 @@ export function StoreFlowScreen({ openActivity, entryContext }: StoreFlowScreenP
           </div>
         </div>
 
-        {/* 可用券悬浮入口 - fixed 定位悬浮在购物栏上方 */}
+        {/* 可用券悬浮入口 - 与购物栏同宽容器内左对齐 */}
         {availableCouponCount > 0 && (
-          <button
-            type="button"
-            aria-label={`可用券 ${availableCouponCount} 张`}
-            onClick={() => {}}
-            className="fixed bottom-[calc(6rem+env(safe-area-inset-bottom))] left-4 z-20 flex items-center gap-1 rounded-full bg-[var(--color-warning)] px-2.5 py-1 text-[11px] font-medium text-white shadow-md"
-          >
-            <PrototypeIcon name="coupon" size={14} />
-            <span>可用券 {availableCouponCount}</span>
-          </button>
+          <div className="fixed bottom-[calc(5.5rem+env(safe-area-inset-bottom))] left-1/2 z-20 w-[calc(100%-2rem)] max-w-[358px] -translate-x-1/2">
+            <button
+              type="button"
+              aria-label={`可用券 ${availableCouponCount} 张`}
+              onClick={() => {}}
+              className="flex items-center gap-1 rounded-full bg-[var(--color-warning)] px-2.5 py-1 text-[11px] font-medium text-white shadow-md"
+            >
+              <PrototypeIcon name="coupon" size={14} />
+              <span>可用券 {availableCouponCount}</span>
+            </button>
+          </div>
         )}
 
-        {/* 底部悬浮购物栏 - fixed 定位，独立悬浮胶囊 */}
+        {/* 底部悬浮购物栏 - fixed 定位，独立悬浮胶囊，与底部导航留有空隙 */}
         <button
           type="button"
           onClick={() => goStep("cart")}
           aria-label={`打开购物车，${cartCount} 件商品`}
           disabled={cartCount === 0}
-          className="fixed bottom-[calc(4rem+env(safe-area-inset-bottom))] left-1/2 z-20 flex min-h-14 w-[calc(100%-2rem)] max-w-[358px] -translate-x-1/2 items-center justify-between gap-3 rounded-[var(--radius-container)] bg-[var(--color-primary)] px-4 text-white shadow-lg disabled:opacity-50"
+          className="fixed bottom-[calc(4.5rem+env(safe-area-inset-bottom))] left-1/2 z-20 flex min-h-14 w-[calc(100%-2rem)] max-w-[358px] -translate-x-1/2 items-center justify-between gap-3 rounded-[var(--radius-container)] bg-[var(--color-primary)] px-4 text-white shadow-lg disabled:opacity-50"
         >
           <div className="flex items-center gap-2">
             <div className="relative">
