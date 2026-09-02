@@ -50,7 +50,7 @@
 | T016 | Mobile 运营首页、一级 IA 与全局搜索 | Mobile | PASS | 0.2.0 | T015 | PR #11 已合入 `dev`；Verify #172、Browser Quality #31、Codex 返工闭环；2026-09-01 用户授权按台账证据验收 |
 | T017 | Mobile 便利店门店页、商品浏览与独立购物车 | Mobile | REVIEW | 0.2.0 | T015、T016 | 原 PR #12 / CI / AI Review 功能证据保留；2026-09-01 内部 UX 复审 `CHANGES_NEEDED`，拆 T027-T030 返工后再恢复 PASS |
 | T018 | Mobile 便利店结算、自提与 3 公里短距配送 | Mobile | PASS | 0.2.0 | T017（业务语义） | `8c9b8cb` + `d97eb53` 已进入 `dev`；`80d93a2` 记录验收；`npm run verify` success；Playwright 390px 全量 41 项 success；本轮仅消费侧 UX 返工，不回滚 T018 业务语义 |
-| T019 | Mobile 线上商城中高保真购买闭环 | Mobile / UX | REVIEW | 0.2.0 | T015、T016 | 原 PR #13 / CI / 2026-08-31 验收证据保留；2026-09-02 用户视觉验收重开。R1 首页已稳定；R2 PR #23 merge `da635596`；R3 PR #24 merge `43ccd84c` 后保持 REVIEW；R4 PR #25 UX 自审 `PASS FOR MERGE`、状态 `REVIEW`；父卡等待 R5 五屏独立视觉复审，不恢复 PASS |
+| T019 | Mobile 线上商城中高保真购买闭环 | Mobile / UX | REVIEW | 0.2.0 | T015、T016 | 原 PR #13 / CI / 2026-08-31 验收证据保留；2026-09-02 用户视觉验收重开。R1-R4 已整合；R5 PR #26 完成五屏 390×844 独立视觉复审，首轮发现并修复订单进度横向溢出；最终 artifact `9855267147` 五屏齐全，R5 结论 `PASS FOR HUMAN / REVIEW`。父卡等待用户最终视觉确认，不自行恢复 PASS |
 | T020 | Mobile 智慧抗衰项目、预约与二维码核销 | Mobile | PASS | 0.2.0 | T015、T016 | PR #14 merge `3297f1c`；`a2f68b1` 记录验收；`npm run verify` success；Playwright 390px 全量 45 项通过（T020 专项 4 项）；7 项验收标准全部满足 |
 | T021 | Mobile 智慧抗衰检测报告、转化与历史对比 | Mobile | PASS | 0.2.0 | T015、T020 | `6adfc0d` 记录验收；8 项标准全部满足；假按钮与返回导航问题已修复回归；typecheck / build / 全量 40 浏览器用例通过 |
 | T022 | PC 便利店订单、履约与核销后台 | PC | TODO | 0.2.0 | T015、T018 | 自提 / 短配订单、核销、门店可售关系、履约配置 mock |
@@ -74,11 +74,11 @@
 
 - Wave 0-2 的业务语义施工已完成；T015、T016、T018、T020、T021 保持 `PASS`。T019 保留原业务闭环证据，但因 2026-09-02 视觉验收重开为 `REVIEW`。
 - T017 因 2026-09-01 内部 UX 复审 `CHANGES_NEEDED` 重开为 `REVIEW`；新增 T027-T030 作为消费侧 UX 返工与独立复审链。
-- T019 商城 UX 返工已完成 R1-R4 施工：R1 首页稳定；R2 商品详情 PR #23 已 merge `dev`；R3 商城购物车 PR #24 已 merge `dev` 并保持 `REVIEW`；R4 PR #25 已完成 UX 自审并进入 `REVIEW`，下一步为 R5 五屏独立视觉复审。
+- T019 商城 UX 返工已完成 R1-R4 施工与 R5 独立复审。R5 首轮真实五屏链在 Order 页发现 19px 横向溢出并修复；最终 Browser #98 中 R5 / R1-R4 / T019 商城链全部通过，五屏 artifact `9855267147` 已逐屏复审，无新的阻塞级 UX / Visual 缺陷。当前 R5 / T019 均保持 `REVIEW`，等待用户最终视觉确认。
 - T027 已完成施工、review gate 并合入 `dev`；T028 正在 PR #16 施工 / review。T028 → T029 → T030 继续串行，避免当前单体 `StoreFlowScreen.tsx` 产生语义 / 文件竞态。
 - Wave 3 PC 后台 T022、T023、T024 的业务前置仍已满足，可与消费侧 UX 返工 lane 并行施工；UX 返工不得改变 T018 / Shared 已确认业务语义。
 - T025 必须等待 T022-T024 的 PC 业务语义稳定后施工。
-- T026 除原前置外新增 T030 UX gate；T030 未 PASS 时，不得把 V0.2 便利店中高保真视觉视为完成。
+- T026 除原前置外新增 T030 UX gate；T030 未 PASS 时，不得把 V0.2 便利店中高保真视觉视为完成；商城侧还需用户把 R5 / T019 正式确认 PASS。
 
 ## V0.2 派卡原则
 
@@ -98,7 +98,7 @@
 ### Wave 1 · 三大 Mobile 业务域
 
 - T017 便利店浏览 / 独立购物车 — `REVIEW`（UX reopen）。
-- T019 线上商城购买闭环 — `REVIEW`（2026-09-02 UX reopen；R5 next）。
+- T019 线上商城购买闭环 — `REVIEW`（R5 独立视觉复审执行通过，等待用户最终确认）。
 - T020 智慧抗衰预约 / 核销 — `PASS`。
 
 ### Wave 2 · 深层流程 — PASS
@@ -113,13 +113,13 @@
 3. T029 商详、购物车与购买链路收口 — `TODO`。
 4. T030 独立 UX 复审 — `TODO`；通过后恢复 T017 PASS。
 
-### Wave 2.6 · 商城 UX 返工 — IN PROGRESS
+### Wave 2.6 · 商城 UX 返工 — REVIEW
 
 - T019-R1 商城首页视觉返工 — 已形成稳定 browsing-first 首页基线。
 - T019-R2 商品详情视觉返工 — PR #23 已 merge `dev`，UX 自审 `PASS FOR MERGE`。
-- T019-R3 商城购物车视觉返工 — `REVIEW`，PR #24 merge `43ccd84c`；等待全链 R5 复审。
+- T019-R3 商城购物车视觉返工 — `REVIEW`，PR #24 merge `43ccd84c`；已纳入 R5 全链复审。
 - T019-R4 结算确认 + 订单物流视觉返工 — `REVIEW`，PR #25；Verify #274 success，Browser #93 中商城相关全通过，UX 自审 `PASS FOR MERGE`。
-- T019-R5 商城视觉独立复审 — NEXT；等待 R4 整合后对五屏做 390×844 实屏复审，PASS 后才能恢复 T019 PASS。
+- T019-R5 商城视觉独立复审 — `REVIEW`，PR #26；Verify #280 success，Browser #98 为 70/78（8 项失败均为既有便利店旧基线），最终五屏 artifact `9855267147`；独立结论 `PASS FOR HUMAN / REVIEW`，等待用户正式确认。
 
 ### Wave 3 · PC 后台并行 — NEXT
 
@@ -132,7 +132,7 @@
 ### Wave 4 · 数据与总验收
 
 1. T025 数据驾驶舱增量。
-2. T026 跨端串联、中高保真质量与 V0.2 验收准备；除 T030 外，商城视觉还必须等待 T019-R5 PASS。
+2. T026 跨端串联、中高保真质量与 V0.2 验收准备；除 T030 外，商城视觉还必须等待用户正式确认 T019-R5 PASS。
 
 ## 历史记录
 
@@ -142,7 +142,7 @@
 
 ## 下一步
 
-1. 合入 T019-R4 PR #25 后进入 T019-R5，对商城首页 / 商详 / 购物车 / checkout / order 五屏做独立视觉复审；R5 PASS 后才恢复 T019 PASS。
+1. T019-R5 已完成执行层五屏独立视觉复审；PR #26 合入 `dev` 后由用户在部署预览上做最终确认，确认后再把 R5 / T019 恢复 `PASS`。
 2. T028 完成 PR #16 review / 回归并合入 `dev` 后，再进入 T029；后续按 T029 → T030 串行。
 3. T022 / T023 / T024 仍可与消费侧 UX lane 并行推进；不得因为 UX reopen 回滚已经确认的 Shared / T018 业务事实。
-4. T022-T024 稳定后进入 T025；T025、T030、T019-R5 都完成后再执行 T026 总体跨端验收准备。
+4. T022-T024 稳定后进入 T025；T025、T030、T019-R5 都正式 PASS 后再执行 T026 总体跨端验收准备。
