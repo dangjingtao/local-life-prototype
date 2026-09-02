@@ -5,6 +5,7 @@
 - Canonical viewport: `390 × 844`
 - Confirmed by: Tomz
 - Confirmed at: 2026-09-02
+- Visual SSOT: `docs/design/assets/t019-mall-ui-reference.webp`
 
 ## 1. 基准来源与优先级
 
@@ -16,12 +17,21 @@
 4. 结算确认
 5. 订单 / 物流详情
 
+![T019 商城五屏确认 UI 稿](./assets/t019-mall-ui-reference.webp)
+
 用户已明确确认：**交互没有问题；除颜色改用项目现有 Design Token 外，要求严格按该稿的交互、模块顺序、关键宽高布局施工。**
+
+### Visual SSOT 规则
+
+- 上图是 T019-R1～R5 的视觉真相源，不是“风格参考”。
+- **图片决定交互、模块顺序、关键宽高比例、首屏密度和固定操作栏位置；Design Token 决定颜色。**
+- 图片颜色与项目 token 冲突时，仅颜色以 token 为准；不得借 token 适配改变几何或结构。
+- 文字版尺寸合同用于把图稿转换成可测量验收项；若文字描述与图稿视觉关系发生歧义，应优先保持图稿的相对布局，并在 R5 以 390 × 844 实屏复核。
 
 优先级：
 
 1. T015 / T016 / T019 已确认业务事实与实际功能点
-2. 本视觉基准的交互、模块顺序、关键宽高比例和信息层级
+2. 本视觉基准的确认 UI 稿、交互、模块顺序、关键宽高比例和信息层级
 3. `@prototype/design-system/tokens.css` 的颜色 token
 4. 现有实现中不与以上冲突的细节
 
@@ -228,7 +238,7 @@ Canonical ready state 使用 `390 × 844` 浏览器视口。
 
 ## 12. 验收方式
 
-T019-R5 必须在真实 Chromium `390 × 844` 下逐屏对照本基准，至少留存五个 canonical ready state 实屏证据。
+T019-R5 必须在真实 Chromium `390 × 844` 下逐屏对照本基准和 `docs/design/assets/t019-mall-ui-reference.webp`，至少留存五个 canonical ready state 实屏证据。
 
 视觉判断不是“差不多”：
 
