@@ -3,7 +3,7 @@
 - Code: T031
 - Theme: 便利店浏览 UX 升级
 - Type: Mobile / UX
-- Status: REVIEW
+- Status: PASS
 - Target: 0.2.0
 - Predecessors: T028
 - Related PRD: AC-V0.2-001（便利店独立购物车）、AC-V0.2-016（数据一致性）
@@ -85,6 +85,6 @@ T028 已完成基础的密度返工（顶部横滑分类 + 卡片式商品列表
 ## Review
 
 - Reviewer: 自验
-- Result: REVIEW
-- Conclusion: 15 项 AC 全部满足；Playwright 9 项专项测试通过；无横向溢出
-- Follow-up: 完成后进入 T032。
+- Result: PASS
+- Conclusion: 15 项 AC 全部满足；Playwright 9 项专项测试通过 + T017 回归 8 项通过；首屏密度布局能力满足（数据量待后续扩充 fixture 验证）；无横向溢出；配色完全使用现有 Com Design token
+- Follow-up: 进入 T032（弹层购物车与结算页分组）。
