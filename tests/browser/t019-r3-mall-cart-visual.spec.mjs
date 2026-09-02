@@ -77,6 +77,14 @@ test.describe("T019-R3 · mall cart approved UI", () => {
     expect(Math.abs(checkoutBar.y + checkoutBar.height - navBox.y), JSON.stringify({ checkoutBar, navBox })).toBeLessThanOrEqual(TOLERANCE);
     expect(Math.abs(navBox.y + navBox.height - 844), JSON.stringify(navBox)).toBeLessThanOrEqual(TOLERANCE);
 
+    const checkoutButton = page.getByRole("button", { name: "去结算", exact: true });
+    const prototypePanel = page.locator("details").filter({ hasText: /Prototype ·/ }).last();
+    const checkoutButtonBox = await checkoutButton.boundingBox();
+    const prototypePanelBox = await prototypePanel.boundingBox();
+    expect(checkoutButtonBox).not.toBeNull();
+    expect(prototypePanelBox).not.toBeNull();
+    expect(prototypePanelBox.y + prototypePanelBox.height, JSON.stringify({ checkoutButtonBox, prototypePanelBox })).toBeLessThanOrEqual(checkoutButtonBox.y - 8);
+
     const cart = page.getByTestId("mall-cart");
     await expect(cart).toContainText("商品小计");
     await expect(cart).toContainText("预计运费");
