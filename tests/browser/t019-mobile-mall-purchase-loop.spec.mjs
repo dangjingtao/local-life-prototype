@@ -25,7 +25,7 @@ async function expectNoHorizontalOverflow(page) {
 test.describe("T019 · Mobile mall medium-high fidelity purchase loop", () => {
   test.use({ viewport: { width: 390, height: 844 } });
 
-  test("mall exposes multiple storefront/channel samples without convenience fulfillment", async ({ page }) => {
+  test("mall exposes multiple consumer-facing sources without convenience fulfillment", async ({ page }) => {
     await openMall(page);
 
     const storefrontSwitches = page.getByRole("button", { name: /切换商城：/ });
@@ -33,10 +33,11 @@ test.describe("T019 · Mobile mall medium-high fidelity purchase loop", () => {
     await storefrontSwitches.nth(1).click();
     await expect(storefrontSwitches.nth(1)).toHaveAttribute("aria-pressed", "true");
 
-    await expect(page.getByText("全国快递", { exact: true }).first()).toBeVisible();
-    await expect(page.getByText(/不与便利店库存或履约混用/)).toBeVisible();
-    await expect(page.getByText("门店自提", { exact: true })).toHaveCount(0);
-    await expect(page.getByText(/3\s*公里短配|3\s*km\s*短配/i)).toHaveCount(0);
+    await expect(page.getByText("全国快递配送 · 送货上门", { exact: true })).toBeVisible();
+    const mallHome = page.getByTestId("mall-home");
+    await expect(mallHome).not.toContainText(/Storefront|Channel|Mock|planned|integrationStatus|T019/i);
+    await expect(mallHome.getByText("门店自提", { exact: true })).toHaveCount(0);
+    await expect(mallHome.getByText(/3\s*公里短配|3\s*km\s*短配/i)).toHaveCount(0);
     await expectNoHorizontalOverflow(page);
   });
 

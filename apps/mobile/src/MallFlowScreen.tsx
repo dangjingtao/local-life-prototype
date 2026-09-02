@@ -2,6 +2,7 @@ import { useState, type Dispatch, type SetStateAction } from "react";
 import { Button, Card, SecondaryButton, Section, StatusTag } from "@prototype/design-system";
 import { PrototypeIcon } from "@prototype/icons";
 import {
+  campaigns,
   catalogProducts,
   channels,
   coreDemoUser,
@@ -12,8 +13,9 @@ import {
   type Product,
 } from "@prototype/shared";
 import type { SearchBusinessHandoff } from "./GlobalSearchScreen";
+import { MallProductArtwork } from "./MallProductArtwork";
 
-type MallStep = "home" | "detail" | "cart" | "checkout" | "order";
+export type MallStep = "home" | "detail" | "cart" | "checkout" | "order";
 export type StorefrontCartState = Record<string, Record<string, number>>;
 
 type MallOrderSnapshot = {
@@ -31,6 +33,7 @@ interface MallFlowScreenProps {
   entryContext?: SearchBusinessHandoff;
   carts: StorefrontCartState;
   setCarts: Dispatch<SetStateAction<StorefrontCartState>>;
+  onStepChange?: (step: MallStep) => void;
 }
 
 const mallProducts = catalogProducts.filter((product) => product.scenes.includes("mall"));
@@ -39,6 +42,9 @@ const defaultStorefront = activeStorefronts[0] ?? storefronts[0];
 const defaultProduct = mallProducts[0];
 const mallCoupon = coreUserV02Coupons.find((coupon) => coupon.scene === "mall" && coupon.status === "available");
 const categories = ["全部", ...Array.from(new Set(mallProducts.map((product) => product.category)))];
+const mallCampaign = campaigns.find((campaign) => campaign.scene === "mall" && campaign.status === "active");
+const mallCampaignProductId = mallCampaign?.refs.find((ref) => ref.type === "product")?.id;
+const mallCampaignProduct = mallCampaignProductId ? findById(catalogProducts, mallCampaignProductId) : undefined;
 const freeShippingThreshold = 99;
 const standardShippingFee = 8;
 const demoAddress = "林女士 · 138****8899 · 广东省华南某市演示路 88 号";
@@ -56,22 +62,29 @@ function productPrice(product: Product) {
   return product.memberPriceYuan ?? product.priceYuan;
 }
 
-function ProductVisual({ product, compact = false }: { product: Product; compact?: boolean }) {
-  return (
-    <div
-      role="img"
-      aria-label={`${product.name} 商品图`}
-      className={`flex shrink-0 items-end overflow-hidden rounded-[var(--radius-container)] border border-[var(--color-border)] bg-[var(--color-brand-subtle)] p-3 ${compact ? "h-20 w-20" : "h-44 w-full"}`}
-    >
-      <div>
-        <span className="inline-flex rounded-full bg-[var(--color-surface)] px-2 py-1 text-[10px] font-semibold text-[var(--color-primary-pressed)]">精选好物</span>
-        {!compact && <p className="mt-2 max-w-[240px] text-lg font-semibold leading-6 text-[var(--color-text-primary)]">{product.name}</p>}
-      </div>
-    </div>
-  );
+function storefrontConsumerName(channelKind?: string) {
+  if (channelKind === "owned") return "官方商城";
+  if (channelKind === "douyin") return "合作渠道专场";
+  return "精选商城";
 }
 
-export function MallFlowScreen({ entryContext, carts, setCarts }: MallFlowScreenProps) {
+function storefrontConsumerMeta(channelKind?: string) {
+  if (channelKind === "owned") return "本地生活精选";
+  if (channelKind === "douyin") return "渠道精选";
+  return "全国好物";
+}
+
+function ProductVisual({ product, compact = false, home = false }: { product: Product; compact?: boolean; home?: boolean }) {
+  const sizeClass = compact
+    ? "h-20 w-20 rounded-[var(--radius-container)]"
+    : home
+      ? "h-[122px] w-full rounded-t-[var(--radius-container)]"
+      : "h-44 w-full rounded-[var(--radius-container)]";
+
+  return <MallProductArtwork productId={product.id} name={product.name} className={sizeClass} />;
+}
+
+export function MallFlowScreen({ entryContext, carts, setCarts, onStepChange }: MallFlowScreenProps) {
   const entryProduct = entryContext?.entityType === "product"
     ? findById(catalogProducts, entryContext.entityId)
     : undefined;
@@ -106,6 +119,7 @@ export function MallFlowScreen({ entryContext, carts, setCarts }: MallFlowScreen
 
   const goStep = (next: MallStep) => {
     setStep(next);
+    onStepChange?.(next);
     scrollTop();
   };
 
@@ -167,128 +181,204 @@ export function MallFlowScreen({ entryContext, carts, setCarts }: MallFlowScreen
   if (!selectedStorefront || !selectedChannel) {
     return (
       <Card>
-        <p className="font-semibold">商城渠道数据暂不可用</p>
-        <p className="mt-2 text-sm leading-6 text-[var(--color-text-secondary)]">T019 需要至少一套有效的 Storefront / Channel 关系后才能演示购买闭环。</p>
+        <p className="font-semibold">商城暂不可用</p>
+        <p className="mt-2 text-sm leading-6 text-[var(--color-text-secondary)]">当前没有可用的线上商城来源，请稍后再试。</p>
       </Card>
     );
   }
 
   if (step === "home") {
     return (
-      <>
-        <section className="overflow-hidden rounded-[var(--radius-overlay)] bg-[var(--color-primary)] p-5 text-white">
-          <div className="flex items-start justify-between gap-3">
-            <div>
-              <p className="text-xs font-semibold tracking-[0.12em] text-white/70">ONLINE MALL · NATIONWIDE DELIVERY</p>
-              <h2 className="mt-3 text-2xl font-semibold">线上商城</h2>
-              <p className="mt-2 text-sm leading-6 text-white/80">独立购物车、全国快递、完整订单与物流状态；不与便利店库存或履约混用。</p>
-            </div>
-            <button type="button" onClick={() => goStep("cart")} aria-label={`商城购物车，共 ${cartCount} 件`} className="relative flex min-h-11 min-w-11 shrink-0 items-center justify-center rounded-full bg-white/15">
-              <PrototypeIcon name="modules" size={19} />
-              {cartCount > 0 && <span className="absolute -right-1 -top-1 min-w-5 rounded-full bg-white px-1 text-center text-[10px] font-bold text-[var(--color-primary-pressed)]">{cartCount}</span>}
-            </button>
+      <div data-testid="mall-home" className="-mx-4 -mt-5 pb-1">
+        <header
+          data-testid="mall-home-header"
+          className="flex h-[92px] items-center justify-between bg-[var(--color-primary)] px-4 text-[var(--color-on-primary)]"
+        >
+          <div className="min-w-0">
+            <h2 className="text-[22px] font-semibold leading-7">线上商城</h2>
+            <p className="mt-1 flex items-center gap-1.5 text-xs text-[var(--color-on-primary)]/80">
+              <PrototypeIcon name="info" size={14} /> 全国快递配送 · 送货上门
+            </p>
           </div>
-          <div className="mt-5 flex items-center justify-between gap-3 rounded-[var(--radius-container)] bg-white/10 p-3">
-            <div className="min-w-0">
-              <p className="truncate text-sm font-semibold">{selectedStorefront.name}</p>
-              <p className="mt-1 truncate text-xs text-white/70">来源：{selectedChannel.name} · 全国快递</p>
-            </div>
-            <span className="shrink-0 rounded-full bg-white/15 px-2 py-1 text-[10px] font-semibold">当前 Storefront</span>
-          </div>
-        </section>
+          <button
+            type="button"
+            onClick={() => goStep("cart")}
+            aria-label={`商城购物车，共 ${cartCount} 件`}
+            className="relative flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-[var(--color-on-primary)]/15"
+          >
+            <PrototypeIcon name="cart" size={20} />
+            {cartCount > 0 && (
+              <span className="absolute -right-1 -top-1 flex min-h-5 min-w-5 items-center justify-center rounded-full bg-[var(--color-surface)] px-1 text-[10px] font-bold text-[var(--color-primary-pressed)]">
+                {cartCount}
+              </span>
+            )}
+          </button>
+        </header>
 
-        <Section title="店铺 / 渠道来源">
-          <div className="grid grid-cols-2 gap-3">
-            {storefronts.map((storefront) => {
-              const channel = findById(channels, storefront.channelId);
-              const selected = storefront.id === selectedStorefront.id;
+        <div className="px-4">
+          <section data-testid="mall-source-section" className="h-[108px] pt-2" aria-labelledby="mall-source-title">
+            <div className="flex h-5 items-center justify-between">
+              <h3 id="mall-source-title" className="text-sm font-semibold">选择商城来源</h3>
+              <span className="text-[10px] text-[var(--color-text-tertiary)]">全国配送</span>
+            </div>
+            <div className="mt-2 grid h-[72px] grid-cols-2 gap-[10px]">
+              {storefronts.map((storefront) => {
+                const channel = findById(channels, storefront.channelId);
+                const selected = storefront.id === selectedStorefront.id;
+                return (
+                  <button
+                    key={storefront.id}
+                    type="button"
+                    aria-label={`切换商城：${storefront.name}`}
+                    aria-pressed={selected}
+                    onClick={() => switchStorefront(storefront.id)}
+                    className={`relative min-w-0 rounded-[var(--radius-container)] border px-3 py-2 text-left transition ${
+                      selected
+                        ? "border-[var(--color-primary)] bg-[var(--color-brand-subtle)]"
+                        : "border-[var(--color-border)] bg-[var(--color-surface)] active:bg-[var(--color-surface-subtle)]"
+                    }`}
+                  >
+                    <div className="flex items-center justify-between gap-2">
+                      <p className={`truncate text-xs font-semibold ${selected ? "text-[var(--color-primary-pressed)]" : "text-[var(--color-text-primary)]"}`}>
+                        {storefrontConsumerName(channel?.kind)}
+                      </p>
+                      {selected && <PrototypeIcon name="success" size={15} className="shrink-0 text-[var(--color-primary)]" />}
+                    </div>
+                    <p className="mt-1 truncate text-[10px] text-[var(--color-text-secondary)]">{storefrontConsumerMeta(channel?.kind)}</p>
+                    <p className="mt-0.5 truncate text-[10px] text-[var(--color-text-tertiary)]">{storefront.name}</p>
+                  </button>
+                );
+              })}
+            </div>
+          </section>
+
+          <form
+            data-testid="mall-search"
+            className="flex h-11 overflow-hidden rounded-[var(--radius-control)] border border-[var(--color-border)] bg-[var(--color-surface)] focus-within:border-[var(--color-primary)]"
+            onSubmit={(event) => {
+              event.preventDefault();
+              setQuery((current) => current.trim());
+            }}
+          >
+            <div className="relative min-w-0 flex-1">
+              <PrototypeIcon name="search" size={17} className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-[var(--color-text-tertiary)]" />
+              <input
+                aria-label="商城内搜索"
+                value={query}
+                onChange={(event) => setQuery(event.target.value)}
+                placeholder="搜索商品名称"
+                className="h-full w-full bg-transparent pl-10 pr-2 text-sm outline-none"
+              />
+            </div>
+            <button type="submit" aria-label="执行商城搜索" className="min-w-[58px] bg-[var(--color-primary)] px-3 text-sm font-semibold text-[var(--color-on-primary)] active:bg-[var(--color-primary-pressed)]">
+              搜索
+            </button>
+          </form>
+
+          <div data-testid="mall-category-track" className="mt-2 flex h-9 items-center gap-1.5 overflow-x-auto overflow-y-visible" aria-label="商城商品分类">
+            {categories.map((item) => {
+              const selected = category === item;
               return (
                 <button
-                  key={storefront.id}
+                  key={item}
                   type="button"
-                  aria-label={`切换商城：${storefront.name}`}
                   aria-pressed={selected}
-                  onClick={() => switchStorefront(storefront.id)}
-                  className={`min-h-[104px] rounded-[var(--radius-container)] border p-3 text-left ${selected ? "border-[var(--color-primary)] bg-[var(--color-brand-subtle)]" : "border-[var(--color-border)] bg-[var(--color-surface)]"}`}
+                  onClick={() => setCategory(item)}
+                  className="flex h-11 shrink-0 items-center px-0.5"
                 >
-                  <div className="flex items-start justify-between gap-2">
-                    <span className="text-xs font-semibold text-[var(--color-primary-pressed)]">{channel?.name ?? "Channel"}</span>
-                    <StatusTag tone={storefront.status === "active" ? "success" : "warning"}>{storefront.status === "active" ? "可演示" : "暂停"}</StatusTag>
-                  </div>
-                  <p className="mt-3 font-semibold leading-5">{storefront.name}</p>
-                  <p className="mt-1 text-xs leading-5 text-[var(--color-text-tertiary)]">{channel?.integrationStatus === "planned" ? "规划语义样本 · 不跳转外部平台" : "Mock 渠道 · 当前原型内演示"}</p>
+                  <span className={`flex h-8 items-center rounded-full border px-3 text-xs ${selected ? "border-[var(--color-primary)] bg-[var(--color-brand-subtle)] font-semibold text-[var(--color-primary-pressed)]" : "border-[var(--color-border)] bg-[var(--color-surface)] text-[var(--color-text-secondary)]"}`}>
+                    {item === "全部" ? "推荐" : item}
+                  </span>
                 </button>
               );
             })}
           </div>
-          <p className="text-xs leading-5 text-[var(--color-text-tertiary)]">Storefront 与 Channel 是独立语义；切换来源不会调用真实外部商城 API。每个 Storefront 保留自己的商城购物车。</p>
-        </Section>
 
-        <div className="relative">
-          <PrototypeIcon name="search" size={18} className="pointer-events-none absolute left-3 top-3.5 text-[var(--color-text-tertiary)]" />
-          <input
-            aria-label="商城内搜索"
-            value={query}
-            onChange={(event) => setQuery(event.target.value)}
-            placeholder="搜索商城商品"
-            className="min-h-11 w-full rounded-[var(--radius-control)] border border-[var(--color-border)] bg-[var(--color-surface)] pl-10 pr-3 text-sm outline-none focus:border-[var(--color-primary)]"
-          />
-        </div>
-
-        <div className="flex gap-2 overflow-x-auto pb-1" aria-label="商城商品分类">
-          {categories.map((item) => (
-            <button
-              key={item}
-              type="button"
-              aria-pressed={category === item}
-              onClick={() => setCategory(item)}
-              className={`min-h-11 shrink-0 rounded-full border px-4 text-sm ${category === item ? "border-[var(--color-primary)] bg-[var(--color-brand-subtle)] font-medium text-[var(--color-primary-pressed)]" : "border-[var(--color-border)] bg-[var(--color-surface)] text-[var(--color-text-secondary)]"}`}
-            >
-              {item}
-            </button>
-          ))}
-        </div>
-
-        <Section title="推荐好物">
-          <div className="grid grid-cols-2 gap-3">
-            {visibleProducts.map((product) => {
-              const price = productPrice(product);
-              return (
-                <button key={product.id} type="button" aria-label={`查看商品：${product.name}`} onClick={() => openProduct(product.id)} className="min-w-0 text-left">
-                  <Card className="h-full p-3 transition active:bg-[var(--color-surface-subtle)]">
-                    <ProductVisual product={product} />
-                    <p className="mt-3 line-clamp-2 min-h-10 text-sm font-semibold leading-5">{product.name}</p>
-                    <p className="mt-1 text-xs text-[var(--color-text-tertiary)]">{product.spec ?? product.category}</p>
-                    <div className="mt-3 flex items-end justify-between gap-2">
-                      <div>
-                        <p className="font-semibold text-[var(--color-primary-pressed)]">¥{price.toFixed(2)}</p>
-                        {product.originalPriceYuan && product.originalPriceYuan > price && <p className="text-[10px] text-[var(--color-text-tertiary)] line-through">¥{product.originalPriceYuan.toFixed(2)}</p>}
-                      </div>
-                      <StatusTag tone="success">全国包裹</StatusTag>
-                    </div>
-                  </Card>
-                </button>
-              );
-            })}
-          </div>
-          {visibleProducts.length === 0 && (
-            <Card className="bg-[var(--color-surface-subtle)]">
-              <p className="font-semibold">没有匹配商品</p>
-              <p className="mt-1 text-sm text-[var(--color-text-secondary)]">换个关键词或分类继续逛逛。</p>
-            </Card>
-          )}
-        </Section>
-
-        <Card className="bg-[var(--color-surface-subtle)]">
-          <div className="flex items-start justify-between gap-3">
-            <div>
-              <p className="font-semibold">满 ¥{freeShippingThreshold} 包邮</p>
-              <p className="mt-1 text-sm leading-6 text-[var(--color-text-secondary)]">T019 可追踪 Mock 规则：未满 ¥{freeShippingThreshold} 收 ¥{standardShippingFee} 运费；不连接真实仓配计价。</p>
+          <section
+            data-testid="mall-campaign-banner"
+            aria-label={`商城活动：${mallCampaign?.title ?? "精选活动"}`}
+            className="relative mt-2 flex h-[112px] overflow-hidden rounded-[var(--radius-overlay)] border border-[var(--color-border)] bg-[var(--color-brand-subtle)]"
+          >
+            <div className="relative z-10 flex min-w-0 flex-1 flex-col justify-center px-4 py-3">
+              <span className="w-fit rounded-full bg-[var(--color-surface)] px-2 py-1 text-[10px] font-semibold text-[var(--color-primary-pressed)]">全国快递</span>
+              <h3 className="mt-2 truncate text-lg font-semibold leading-6">{mallCampaign?.title ?? "商城精选"}</h3>
+              <p className="mt-1 line-clamp-1 text-xs text-[var(--color-text-secondary)]">{mallCampaign?.subtitle ?? "精选好物，全国快递到家。"}</p>
             </div>
-            <StatusTag>全国快递</StatusTag>
+            {mallCampaignProduct && (
+              <MallProductArtwork
+                productId={mallCampaignProduct.id}
+                name={mallCampaignProduct.name}
+                decorative
+                className="h-[112px] w-[126px] shrink-0"
+              />
+            )}
+          </section>
+
+          <div data-testid="mall-recommend-title" className="mt-3 flex h-7 items-center justify-between">
+            <h3 className="text-base font-semibold">为你推荐</h3>
+            <span className="text-[10px] text-[var(--color-text-tertiary)]">{selectedStorefront.name}</span>
           </div>
-        </Card>
-      </>
+
+          {visibleProducts.length > 0 ? (
+            <div data-testid="mall-product-grid" className="grid grid-cols-2 gap-[10px]">
+              {visibleProducts.map((product) => {
+                const price = productPrice(product);
+                const freeShipping = price >= freeShippingThreshold;
+                return (
+                  <button
+                    key={product.id}
+                    type="button"
+                    aria-label={`查看商品：${product.name}`}
+                    onClick={() => openProduct(product.id)}
+                    className="h-[220px] min-w-0 overflow-hidden rounded-[var(--radius-container)] border border-[var(--color-border)] bg-[var(--color-surface)] text-left active:bg-[var(--color-surface-subtle)]"
+                  >
+                    <ProductVisual product={product} home />
+                    <div className="flex h-[98px] flex-col px-2.5 pb-2 pt-2">
+                      <p className="line-clamp-2 min-h-9 text-[13px] font-semibold leading-[18px]">{product.name}</p>
+                      <p className="mt-0.5 truncate text-[10px] text-[var(--color-text-tertiary)]">{product.spec ?? product.category}</p>
+                      <div className="mt-auto flex items-end justify-between gap-1">
+                        <div className="min-w-0">
+                          <div className="flex items-baseline gap-1">
+                            <span className="text-[11px] font-semibold text-[var(--color-primary-pressed)]">¥</span>
+                            <span className="text-base font-bold leading-5 text-[var(--color-primary-pressed)]">{price.toFixed(0)}</span>
+                            {product.originalPriceYuan && product.originalPriceYuan > price && (
+                              <span className="truncate text-[9px] text-[var(--color-text-tertiary)] line-through">¥{product.originalPriceYuan.toFixed(0)}</span>
+                            )}
+                          </div>
+                          {product.promotionLabel && <p className="mt-0.5 truncate text-[9px] font-medium text-[var(--color-primary-pressed)]">{product.promotionLabel}</p>}
+                        </div>
+                        <span className={`shrink-0 rounded-full px-1.5 py-1 text-[9px] font-medium ${freeShipping ? "bg-[var(--color-success-bg)] text-[var(--color-success)]" : "bg-[var(--color-surface-subtle)] text-[var(--color-text-secondary)]"}`}>
+                          {freeShipping ? "包邮" : "全国快递"}
+                        </span>
+                      </div>
+                    </div>
+                  </button>
+                );
+              })}
+            </div>
+          ) : (
+            <div className="flex h-[120px] items-center justify-center rounded-[var(--radius-container)] border border-dashed border-[var(--color-border)] bg-[var(--color-surface)] px-6 text-center">
+              <div>
+                <p className="font-semibold">没有匹配商品</p>
+                <p className="mt-1 text-xs text-[var(--color-text-secondary)]">换个关键词或分类继续逛逛。</p>
+              </div>
+            </div>
+          )}
+
+          <div data-testid="mall-shipping-strip" className="mt-3 flex h-[52px] items-center justify-between rounded-[var(--radius-container)] border border-[var(--color-border)] bg-[var(--color-surface-subtle)] px-3">
+            <div className="flex min-w-0 items-center gap-2.5">
+              <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-[var(--color-brand-subtle)] text-[var(--color-primary-pressed)]">
+                <PrototypeIcon name="info" size={16} />
+              </div>
+              <div className="min-w-0">
+                <p className="truncate text-xs font-semibold">满 ¥{freeShippingThreshold} 包邮</p>
+                <p className="mt-0.5 truncate text-[10px] text-[var(--color-text-tertiary)]">未满 ¥{freeShippingThreshold} 运费 ¥{standardShippingFee} · 全国快递配送</p>
+              </div>
+            </div>
+            <span className="ml-2 shrink-0 text-[10px] font-medium text-[var(--color-primary-pressed)]">送货上门</span>
+          </div>
+        </div>
+      </div>
     );
   }
 
