@@ -567,8 +567,7 @@ export function StoreFlowScreen({ openActivity, entryContext }: StoreFlowScreenP
               cartSheetOpen ? "translate-y-0" : "translate-y-full"
             }`}
           >
-            {/* 抽屉内容 */}
-            <div className="rounded-t-2xl bg-[var(--color-surface)] pb-[calc(6.5rem+env(safe-area-inset-bottom))]">
+            <div className="rounded-t-2xl bg-[var(--color-surface)] pb-[calc(9rem+env(safe-area-inset-bottom))]">
               {/* 抽屉头部 */}
               <div className="flex items-center justify-between px-4 pt-3 pb-2">
                 <div>
@@ -668,7 +667,7 @@ export function StoreFlowScreen({ openActivity, entryContext }: StoreFlowScreenP
 
         {/* 可用券悬浮入口 - 与购物栏同宽容器内左对齐，抽屉打开时隐藏 */}
         {availableCouponCount > 0 && !cartSheetOpen && (
-          <div className="fixed bottom-[calc(6.5rem+env(safe-area-inset-bottom))] left-1/2 z-20 w-[calc(100%-2rem)] max-w-[358px] -translate-x-1/2">
+          <div className="fixed bottom-[calc(8.5rem+env(safe-area-inset-bottom))] left-1/2 z-20 w-[calc(100%-2rem)] max-w-[358px] -translate-x-1/2">
             <button
               type="button"
               aria-label={`可用券 ${availableCouponCount} 张`}
