@@ -1,6 +1,6 @@
 # T019-R4 · 商城结算确认与订单物流视觉返工
 
-- Status: DOING
+- Status: REVIEW
 - Target version: 0.2.0
 - Impact: Mobile / UX
 - Parent: T019
@@ -83,27 +83,29 @@ T019 已完成 checkout、订单快照和 `待发货 → 运输中 → 已签收
 
 ## Acceptance
 
-- [ ] Checkout 390×844 与 Screen D 布局基准一致，关键块高度 ±4px。
-- [ ] 地址、来源、配送、商品摘要、运费 / 优惠 / 应付金额层级清晰。
-- [ ] 提交订单继续生成 snapshot、清空当前 storefront cart，并进入订单详情。
-- [ ] Order 390×844 与 Screen E 布局基准一致，关键块高度 ±4px。
-- [ ] `待发货 → 运输中 → 已签收 / 已完成` 可连续推进。
-- [ ] 运输中状态展示正常格式的虚拟物流公司 / 运单 / 时间线；无工程命名泄漏。
-- [ ] 已签收状态仍可返回商城继续购物。
-- [ ] 深层固定操作栏不与 safe area / 一级导航冲突。
-- [ ] 所有颜色使用项目 Design Token。
-- [ ] typecheck / build / T019 checkout + order browser regression 通过。
+- [x] Checkout 390×844 与 Screen D 布局基准一致，关键块高度 ±4px。
+- [x] 地址、来源、配送、商品摘要、运费 / 优惠 / 应付金额层级清晰。
+- [x] 提交订单继续生成 snapshot、清空当前 storefront cart，并进入订单详情。
+- [x] Order 390×844 与 Screen E 布局基准一致，关键块高度 ±4px。
+- [x] `待发货 → 运输中 → 已签收 / 已完成` 可连续推进。
+- [x] 运输中状态展示正常格式的虚拟物流公司 / 运单 / 时间线；无工程命名泄漏。
+- [x] 已签收状态仍可返回商城继续购物。
+- [x] 深层固定操作栏不与 safe area / 一级导航冲突。
+- [x] 所有颜色使用项目 Design Token。
+- [x] typecheck / build / T019 checkout + order browser regression 通过。
 
 ## Verification evidence
 
-- CI: pending
-- Browser: pending
-- UX self-review: pending
-- Human visual review: pending
+- CI: Verify Prototype #274 success（final head `f836edf7`）。
+- Browser: T012 Browser Quality #93 共 77 项，69 passed / 8 failed；商城 T012/T016/T019/R1/R2/R3/R4 全部通过，8 个失败均为既有便利店 T017/T018/T032 旧基线断言，不属于 R4 回归。
+- R4 geometry: Screen D / E 两条 390×844 专项回归均通过，固定栏 / 一级导航隐藏 / PrototypePanel 避让均有实际几何断言。
+- Codex review: 优惠券“已关联”误表达已改为事实准确的“可用”；台账同步问题已修复；两条 P2 thread 均已 resolve。
+- UX self-review: PASS FOR MERGE（2026-09-02）。重点复核信息层级、首屏密度、固定栏、安全区、消费者文案、优惠券语义与状态连续性，无 R4 阻塞项。
+- Human visual review: pending；统一进入 T019-R5 五屏独立视觉复审。
 
 ## Review
 
-- Reviewer: pending
-- Result: REVIEW / CHANGES_NEEDED
-- Conclusion: pending
-- Follow-up: R4 进入 REVIEW 并整合后进入 R5 独立视觉复审。
+- Reviewer: AI UX self-review + PR automated review
+- Result: REVIEW
+- Conclusion: R4 施工与 UX 自审通过，可合入 `dev`；不单独冒充最终视觉 PASS。
+- Follow-up: 合入后进入 T019-R5 独立视觉复审；R5 PASS 后才能恢复父卡 T019 PASS。
