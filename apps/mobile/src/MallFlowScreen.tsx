@@ -1,5 +1,5 @@
 import { useState, type Dispatch, type SetStateAction } from "react";
-import { Button, Card, SecondaryButton, Section, StatusTag } from "@prototype/design-system";
+import { Button, Card } from "@prototype/design-system";
 import { PrototypeIcon } from "@prototype/icons";
 import {
   campaigns,
@@ -9,26 +9,16 @@ import {
   coreUserV02Coupons,
   findById,
   storefronts,
-  type OrderStatus,
   type Product,
 } from "@prototype/shared";
 import type { SearchBusinessHandoff } from "./GlobalSearchScreen";
 import { MallCartView } from "./MallCartView";
+import { MallCheckoutView } from "./MallCheckoutView";
+import { MallOrderView, type MallOrderSnapshot, type MallOrderStatus } from "./MallOrderView";
 import { MallProductArtwork } from "./MallProductArtwork";
 
 export type MallStep = "home" | "detail" | "cart" | "checkout" | "order";
 export type StorefrontCartState = Record<string, Record<string, number>>;
-
-type MallOrderSnapshot = {
-  id: string;
-  storefrontName: string;
-  channelName: string;
-  itemCount: number;
-  subtotal: number;
-  shippingFee: number;
-  payable: number;
-  address: string;
-};
 
 interface MallFlowScreenProps {
   entryContext?: SearchBusinessHandoff;
@@ -50,11 +40,6 @@ const mallCampaignProduct = mallCampaignProductId ? findById(catalogProducts, ma
 const freeShippingThreshold = 99;
 const standardShippingFee = 8;
 const demoAddress = "林女士 · 138****8899 · 广东省华南某市演示路 88 号";
-const mallStatusLabels: Record<Extract<OrderStatus, "pending_fulfillment" | "shipping" | "completed">, string> = {
-  pending_fulfillment: "待发货",
-  shipping: "运输中",
-  completed: "已签收 / 已完成",
-};
 
 function scrollTop() {
   window.scrollTo({ top: 0, behavior: "smooth" });
@@ -76,12 +61,10 @@ function storefrontConsumerMeta(channelKind?: string) {
   return "优选好物";
 }
 
-function ProductVisual({ product, compact = false, home = false }: { product: Product; compact?: boolean; home?: boolean }) {
-  const sizeClass = compact
-    ? "h-20 w-20 rounded-[var(--radius-container)]"
-    : home
-      ? "h-[110px] w-full rounded-t-[var(--radius-container)]"
-      : "h-44 w-full rounded-[var(--radius-container)]";
+function ProductVisual({ product, home = false }: { product: Product; home?: boolean }) {
+  const sizeClass = home
+    ? "h-[110px] w-full rounded-t-[var(--radius-container)]"
+    : "h-44 w-full rounded-[var(--radius-container)]";
 
   return <MallProductArtwork productId={product.id} name={product.name} className={sizeClass} />;
 }
@@ -95,7 +78,7 @@ export function MallFlowScreen({ entryContext, carts, setCarts, onStepChange, on
   const [selectedProductId, setSelectedProductId] = useState(entryProduct?.id ?? defaultProduct?.id ?? "");
   const [category, setCategory] = useState("全部");
   const [query, setQuery] = useState("");
-  const [orderStatus, setOrderStatus] = useState<Extract<OrderStatus, "pending_fulfillment" | "shipping" | "completed">>("pending_fulfillment");
+  const [orderStatus, setOrderStatus] = useState<MallOrderStatus>("pending_fulfillment");
   const [orderSnapshot, setOrderSnapshot] = useState<MallOrderSnapshot | null>(null);
 
   const selectedStorefront = findById(storefronts, selectedStorefrontId) ?? defaultStorefront;
@@ -160,7 +143,8 @@ export function MallFlowScreen({ entryContext, carts, setCarts, onStepChange, on
 
   const submitOrder = () => {
     if (!selectedStorefront || !selectedChannel || cartRows.length === 0) return;
-    const orderId = `MALL-${selectedStorefront.id}-${coreDemoUser.id.replace("LL-", "")}`;
+    const storefrontOrdinal = Math.max(1, activeStorefronts.findIndex((item) => item.id === selectedStorefront.id) + 1);
+    const orderId = `LL260902${String(storefrontOrdinal).padStart(2, "0")}${String(cartCount).padStart(2, "0")}`;
     setOrderSnapshot({
       id: orderId,
       storefrontName: selectedStorefront.name,
@@ -517,106 +501,38 @@ export function MallFlowScreen({ entryContext, carts, setCarts, onStepChange, on
 
   if (step === "checkout") {
     return (
-      <>
-        <button type="button" onClick={() => goStep("cart")} className="inline-flex min-h-11 items-center gap-2 text-sm font-medium text-[var(--color-text-secondary)]">
-          <PrototypeIcon name="back" size={18} /> 返回购物车
-        </button>
-
-        <div>
-          <p className="text-sm text-[var(--color-text-secondary)]">结算确认</p>
-          <h2 className="mt-1 text-2xl font-semibold">确认收货与订单</h2>
-        </div>
-
-        <Card>
-          <div className="flex items-start justify-between gap-3">
-            <div>
-              <p className="text-xs text-[var(--color-text-tertiary)]">收货地址 · 演示数据</p>
-              <p className="mt-2 font-semibold">{demoAddress}</p>
-              <p className="mt-2 text-xs leading-5 text-[var(--color-text-tertiary)]">仅用于 T019 购买闭环，不写入真实用户资料。</p>
-            </div>
-            <StatusTag tone="success">全国快递</StatusTag>
-          </div>
-        </Card>
-
-        <Card>
-          <div className="flex items-center justify-between gap-3"><span className="text-sm text-[var(--color-text-secondary)]">店铺 / 渠道</span><span className="max-w-[220px] text-right font-semibold">{selectedStorefront.name} · {selectedChannel.name}</span></div>
-          <div className="mt-3 flex items-center justify-between gap-3 border-t border-[var(--color-border)] pt-3"><span className="text-sm text-[var(--color-text-secondary)]">商品</span><span className="font-semibold">{cartCount} 件 · ¥{subtotal.toFixed(2)}</span></div>
-          <div className="mt-3 flex items-center justify-between gap-3 border-t border-[var(--color-border)] pt-3"><span className="text-sm text-[var(--color-text-secondary)]">运费</span><span className="font-semibold">{shippingFee === 0 ? `满 ¥${freeShippingThreshold} 包邮` : `¥${shippingFee.toFixed(2)}`}</span></div>
-          <div className="mt-3 flex items-start justify-between gap-3 border-t border-[var(--color-border)] pt-3"><span className="text-sm text-[var(--color-text-secondary)]">商城优惠</span><span className="max-w-[220px] text-right text-sm font-medium">{mallCoupon ? `${mallCoupon.title} · 金额规则未定义` : "暂无可用优惠"}</span></div>
-          <div className="mt-3 flex items-center justify-between gap-3 border-t border-[var(--color-border)] pt-3"><span className="font-semibold">应付</span><span className="text-lg font-semibold text-[var(--color-primary-pressed)]">¥{payable.toFixed(2)}</span></div>
-        </Card>
-
-        <Card className="bg-[var(--color-surface-subtle)]">
-          <div className="flex items-start gap-3">
-            <PrototypeIcon name="info" size={19} className="mt-0.5 shrink-0 text-[var(--color-primary)]" />
-            <p className="text-sm leading-6 text-[var(--color-text-secondary)]">提交只生成当前会话内的 Mock 商城订单，不发起真实支付、外部平台下单、库存锁定或物流创建。提交成功后会消费当前 Storefront 的购物车。</p>
-          </div>
-        </Card>
-
-        <Button className="w-full" disabled={cartRows.length === 0} onClick={submitOrder}>提交演示订单</Button>
-      </>
+      <MallCheckoutView
+        address={demoAddress}
+        sourceLabel={storefrontConsumerName(selectedChannel.kind)}
+        sourceName={selectedStorefront.name}
+        rows={cartRows}
+        subtotal={subtotal}
+        shippingFee={shippingFee}
+        payable={payable}
+        freeShippingThreshold={freeShippingThreshold}
+        couponTitle={mallCoupon?.title}
+        onBack={() => goStep("cart")}
+        onSubmit={submitOrder}
+      />
     );
   }
 
   if (!orderSnapshot) {
     return (
       <Card>
-        <p className="font-semibold">订单快照不可用</p>
-        <p className="mt-2 text-sm text-[var(--color-text-secondary)]">请返回商城重新从购物车提交演示订单。</p>
+        <p className="font-semibold">订单信息暂不可用</p>
+        <p className="mt-2 text-sm text-[var(--color-text-secondary)]">请返回商城重新从购物车提交订单。</p>
         <Button className="mt-4 w-full" onClick={() => goStep("home")}>返回商城</Button>
       </Card>
     );
   }
 
-  const status = mallStatusLabels[orderStatus];
-  const trackingVisible = orderStatus === "shipping" || orderStatus === "completed";
   return (
-    <>
-      <div>
-        <p className="text-sm text-[var(--color-text-secondary)]">商城订单详情</p>
-        <h2 className="mt-1 break-all text-2xl font-semibold">{orderSnapshot.id}</h2>
-      </div>
-
-      <section className="rounded-[var(--radius-overlay)] bg-[var(--color-surface)] p-5">
-        <div className="flex items-center justify-between gap-3">
-          <StatusTag tone={orderStatus === "completed" ? "success" : undefined}>{status}</StatusTag>
-          <span className="text-xs text-[var(--color-text-tertiary)]">Mock order</span>
-        </div>
-        <p className="mt-5 font-semibold">{orderSnapshot.storefrontName}</p>
-        <p className="mt-1 text-sm text-[var(--color-text-secondary)]">{orderSnapshot.channelName} · 全国快递 · {orderSnapshot.itemCount} 件商品</p>
-        <div className="mt-5 space-y-3 border-t border-[var(--color-border)] pt-4 text-sm">
-          <div className="flex justify-between gap-3"><span className="text-[var(--color-text-secondary)]">商品小计</span><span className="font-medium">¥{orderSnapshot.subtotal.toFixed(2)}</span></div>
-          <div className="flex justify-between gap-3"><span className="text-[var(--color-text-secondary)]">运费</span><span className="font-medium">{orderSnapshot.shippingFee === 0 ? "包邮" : `¥${orderSnapshot.shippingFee.toFixed(2)}`}</span></div>
-          <div className="flex justify-between gap-3"><span className="text-[var(--color-text-secondary)]">应付</span><span className="font-semibold">¥{orderSnapshot.payable.toFixed(2)}</span></div>
-          <div className="flex justify-between gap-3"><span className="text-[var(--color-text-secondary)]">收货</span><span className="max-w-[230px] text-right font-medium">{orderSnapshot.address}</span></div>
-        </div>
-      </section>
-
-      <Section title="物流进度">
-        <div className="space-y-3">
-          <Card className={orderStatus === "pending_fulfillment" ? "border-[var(--color-primary)] bg-[var(--color-brand-subtle)]" : "bg-[var(--color-surface-subtle)]"}>
-            <div className="flex items-center justify-between gap-3"><p className="font-semibold">待发货</p><span className="text-xs text-[var(--color-text-tertiary)]">订单已提交</span></div>
-            <p className="mt-1 text-sm leading-6 text-[var(--color-text-secondary)]">商城已收到订单，等待 Mock 仓配侧出库。</p>
-          </Card>
-          <Card className={orderStatus === "shipping" ? "border-[var(--color-primary)] bg-[var(--color-brand-subtle)]" : "bg-[var(--color-surface-subtle)]"}>
-            <div className="flex items-center justify-between gap-3"><p className="font-semibold">运输中</p><span className="text-xs text-[var(--color-text-tertiary)]">全国快递</span></div>
-            <p className="mt-1 text-sm leading-6 text-[var(--color-text-secondary)]">{trackingVisible ? "演示物流 · MOCK-SF-20260831 · 已离开华南分拨中心" : "发货后显示承运与轨迹信息。"}</p>
-          </Card>
-          <Card className={orderStatus === "completed" ? "border-[var(--color-success)] bg-[var(--color-success-bg)]" : "bg-[var(--color-surface-subtle)]"}>
-            <div className="flex items-center justify-between gap-3"><p className="font-semibold">已签收</p>{orderStatus === "completed" && <PrototypeIcon name="success" size={20} className="text-[var(--color-success)]" />}</div>
-            <p className="mt-1 text-sm leading-6 text-[var(--color-text-secondary)]">签收后订单进入已完成状态；售后能力不在 T019 范围。</p>
-          </Card>
-        </div>
-      </Section>
-
-      {orderStatus !== "completed" && <Button className="w-full" onClick={advanceOrder}>{orderStatus === "pending_fulfillment" ? "模拟发货" : "模拟签收"}</Button>}
-      {orderStatus === "completed" && (
-        <Card className="bg-[var(--color-success-bg)]">
-          <p className="font-semibold">订单已签收</p>
-          <p className="mt-1 text-sm leading-6 text-[var(--color-text-secondary)]">T019 的商城首页 → 商品详情 → 独立购物车 → 结算 → 待发货 → 运输中 → 签收闭环已走通；已提交购物车不会再次出现在商城中。</p>
-        </Card>
-      )}
-      <SecondaryButton className="w-full" onClick={() => goStep("home")}>返回商城继续购物</SecondaryButton>
-    </>
+    <MallOrderView
+      snapshot={orderSnapshot}
+      status={orderStatus}
+      onBack={() => goStep("home")}
+      onAdvance={advanceOrder}
+    />
   );
 }

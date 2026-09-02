@@ -108,9 +108,12 @@ test.describe("T019 · Mobile mall medium-high fidelity purchase loop", () => {
     await expect(page.getByText(/预计运费/)).toBeVisible();
     await page.getByRole("button", { name: "去结算", exact: true }).click();
 
+    const checkout = page.getByTestId("mall-checkout");
     await expect(page.getByRole("heading", { name: "确认收货与订单" })).toBeVisible();
-    await expect(page.getByText("收货地址 · 演示数据", { exact: true })).toBeVisible();
-    await expect(page.getByText("店铺 / 渠道", { exact: true })).toBeVisible();
+    await expect(checkout).toContainText("收货地址");
+    await expect(checkout).toContainText("店铺来源");
+    await expect(checkout).toContainText("全国快递 · 送货上门");
+    await expect(checkout).not.toContainText(/Mock|演示数据|Storefront|Channel|T019/i);
     await expectNoHorizontalOverflow(page);
   });
 
@@ -120,16 +123,18 @@ test.describe("T019 · Mobile mall medium-high fidelity purchase loop", () => {
     await page.getByRole("button", { name: /查看商品：/ }).first().click();
     await page.getByRole("button", { name: "立即购买", exact: true }).click();
     await page.getByRole("button", { name: "去结算", exact: true }).click();
-    await page.getByRole("button", { name: "提交演示订单", exact: true }).click();
+    await page.getByRole("button", { name: "提交订单", exact: true }).click();
 
-    await expect(page.getByRole("heading", { name: /MALL-/ })).toBeVisible();
+    const order = page.getByTestId("mall-order");
+    await expect(page.getByRole("heading", { name: "订单详情", exact: true })).toBeVisible();
+    await expect(order).toContainText(/订单编号\s*LL\d+/);
     await expect(page.getByText("待发货", { exact: true }).first()).toBeVisible();
-    await page.getByRole("button", { name: "模拟发货", exact: true }).click();
+    await page.getByRole("button", { name: "刷新物流", exact: true }).click();
     await expect(page.getByText("运输中", { exact: true }).first()).toBeVisible();
-    await expect(page.getByText(/MOCK-SF-20260831/)).toBeVisible();
-    await page.getByRole("button", { name: "模拟签收", exact: true }).click();
+    await expect(order).toContainText(/安心速运 · AN\d+/);
+    await page.getByRole("button", { name: "确认收货", exact: true }).click();
     await expect(page.getByText("已签收 / 已完成", { exact: true })).toBeVisible();
-    await expect(page.getByText("订单已签收", { exact: true })).toBeVisible();
+    await expect(order).not.toContainText(/Mock|MOCK-|T019|演示物流|Storefront|Channel/i);
 
     await page.getByRole("button", { name: "返回商城继续购物", exact: true }).click();
     await expect(page.getByRole("button", { name: "商城购物车，共 0 件", exact: true })).toBeVisible();

@@ -120,7 +120,7 @@ test.describe("T019-R3 · mall cart approved UI", () => {
 
     await page.getByRole("button", { name: "去结算", exact: true }).click();
     await expect(page.getByRole("heading", { name: "确认收货与订单", exact: true })).toBeVisible();
-    await expect(page.getByText("店铺 / 渠道", { exact: true })).toBeVisible();
+    await expect(page.getByText("店铺来源", { exact: true })).toBeVisible();
     await expect(page.getByText(/满 ¥99 包邮|¥8\.00/).first()).toBeVisible();
     await expectNoHorizontalOverflow(page);
   });

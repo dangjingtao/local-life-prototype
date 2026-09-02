@@ -117,10 +117,9 @@ export function App() {
       : screen === "reports"
         ? "我的检测"
         : tabs.find((item) => item.id === activeTab)?.label ?? "首页";
-  const isMallDetail = screen === "mall" && mallStep === "detail";
-  const isMallCart = screen === "mall" && mallStep === "cart";
-  const isMallDedicatedLayout = isMallDetail || isMallCart;
-  const showGlobalHeader = screen !== "mall" || !["home", "detail", "cart"].includes(mallStep);
+  const isMallFullScreen = screen === "mall" && ["detail", "checkout", "order"].includes(mallStep);
+  const isMallDedicatedLayout = screen === "mall" && mallStep !== "home";
+  const showGlobalHeader = screen !== "mall";
 
   const scrollTop = () => window.scrollTo({ top: 0, behavior: "smooth" });
 
@@ -282,7 +281,7 @@ export function App() {
         </main>
       </PrototypeState>
 
-      {!isMallDetail && (
+      {!isMallFullScreen && (
         <nav className="fixed inset-x-0 bottom-0 z-30 mx-auto flex min-h-16 max-w-[390px] border-t border-[var(--color-border)] bg-[var(--color-surface)] pb-[env(safe-area-inset-bottom)]" aria-label="一级导航">
           {tabs.map((item) => (
             <button
