@@ -246,6 +246,7 @@ export function App() {
                   carts={mallCarts}
                   setCarts={setMallCarts}
                   onStepChange={setMallStep}
+                  onOpenGlobalSearch={() => openSearch()}
                 />
               </div>
             </>
