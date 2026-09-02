@@ -113,16 +113,18 @@ test.describe("T019-R1 · mall home approved UI composition", () => {
     await expectNoHorizontalOverflow(page);
   });
 
-  test("re-tapping the active Mall tab resets deep flow and chrome together", async ({ page }) => {
+  test("returning from the dedicated detail restores mall home chrome", async ({ page }) => {
     await openMall(page);
 
     await page.getByRole("button", { name: /查看商品：/ }).first().click();
     await expect(page.getByRole("button", { name: "返回商城", exact: true })).toBeVisible();
-    await expect(page.getByText("LOCAL LIFE · V0.2 PREVIEW", { exact: true })).toBeVisible();
+    await expect(page.getByText("LOCAL LIFE · V0.2 PREVIEW", { exact: true })).toHaveCount(0);
+    await expect(page.getByRole("navigation", { name: "一级导航" })).toHaveCount(0);
 
-    await page.getByRole("navigation", { name: "一级导航" }).getByRole("button", { name: "商城", exact: true }).click();
+    await page.getByRole("button", { name: "返回商城", exact: true }).click();
     await expect(page.getByTestId("mall-home")).toBeVisible();
     await expect(page.getByText("LOCAL LIFE · V0.2 PREVIEW", { exact: true })).toHaveCount(0);
+    await expect(page.getByRole("navigation", { name: "一级导航" })).toBeVisible();
     await expect(page.getByRole("heading", { name: "线上商城", exact: true })).toBeVisible();
     await expectNoHorizontalOverflow(page);
   });

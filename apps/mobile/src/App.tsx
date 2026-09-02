@@ -117,7 +117,8 @@ export function App() {
       : screen === "reports"
         ? "我的检测"
         : tabs.find((item) => item.id === activeTab)?.label ?? "首页";
-  const showGlobalHeader = screen !== "mall" || mallStep !== "home";
+  const isMallDetail = screen === "mall" && mallStep === "detail";
+  const showGlobalHeader = screen !== "mall" || (mallStep !== "home" && mallStep !== "detail");
 
   const scrollTop = () => window.scrollTo({ top: 0, behavior: "smooth" });
 
@@ -210,7 +211,10 @@ export function App() {
       )}
 
       <PrototypeState view={view}>
-        <main className={`mx-auto max-w-[390px] space-y-6 px-4 pb-28 ${screen === "mall" && mallStep === "home" ? "pt-0" : "pt-5"}`}>
+        <main className={isMallDetail
+          ? "mx-auto max-w-[390px] space-y-0 px-4 pb-0 pt-0"
+          : `mx-auto max-w-[390px] space-y-6 px-4 pb-28 ${screen === "mall" && mallStep === "home" ? "pt-0" : "pt-5"}`}
+        >
           {screen === "home" && (
             <V02HomeScreen
               onOpenSearch={openSearch}
@@ -230,7 +234,7 @@ export function App() {
           {screen === "store" && <StoreFlowScreen openActivity={openActivityCenter} entryContext={searchHandoff?.domain === "store" ? searchHandoff : undefined} />}
           {screen === "mall" && (
             <>
-              {searchHandoff?.domain === "mall" && <SearchHandoffBanner handoff={searchHandoff} />}
+              {searchHandoff?.domain === "mall" && mallStep !== "detail" && <SearchHandoffBanner handoff={searchHandoff} />}
               <div
                 className={mallStep === "home"
                   ? "[&_[data-testid=mall-home]]:mt-0 [&_[data-testid=mall-home-header]]:h-[calc(92px+env(safe-area-inset-top))] [&_[data-testid=mall-home-header]]:pt-[env(safe-area-inset-top)] [&_[data-testid=mall-source-section]]:mt-4 [&_[data-testid=mall-search]]:mt-3 [&_[data-testid=mall-category-track]]:mt-3 [&_[data-testid=mall-category-track]]:h-11 [&_[data-testid=mall-campaign-banner]]:mt-3"
@@ -242,6 +246,7 @@ export function App() {
                   carts={mallCarts}
                   setCarts={setMallCarts}
                   onStepChange={setMallStep}
+                  onOpenGlobalSearch={() => openSearch()}
                 />
               </div>
             </>
@@ -275,20 +280,22 @@ export function App() {
         </main>
       </PrototypeState>
 
-      <nav className="fixed inset-x-0 bottom-0 z-30 mx-auto flex min-h-16 max-w-[390px] border-t border-[var(--color-border)] bg-[var(--color-surface)] pb-[env(safe-area-inset-bottom)]" aria-label="一级导航">
-        {tabs.map((item) => (
-          <button
-            key={item.id}
-            type="button"
-            onClick={() => go(item.id)}
-            aria-current={activeTab === item.id ? "page" : undefined}
-            className={`flex min-h-[56px] min-w-0 flex-1 flex-col items-center justify-center gap-1 px-0.5 text-[11px] ${activeTab === item.id ? "font-semibold text-[var(--color-primary)]" : "text-[var(--color-text-tertiary)]"}`}
-          >
-            <PrototypeIcon name={item.icon} size={19} />
-            <span className="whitespace-nowrap">{item.label}</span>
-          </button>
-        ))}
-      </nav>
+      {!isMallDetail && (
+        <nav className="fixed inset-x-0 bottom-0 z-30 mx-auto flex min-h-16 max-w-[390px] border-t border-[var(--color-border)] bg-[var(--color-surface)] pb-[env(safe-area-inset-bottom)]" aria-label="一级导航">
+          {tabs.map((item) => (
+            <button
+              key={item.id}
+              type="button"
+              onClick={() => go(item.id)}
+              aria-current={activeTab === item.id ? "page" : undefined}
+              className={`flex min-h-[56px] min-w-0 flex-1 flex-col items-center justify-center gap-1 px-0.5 text-[11px] ${activeTab === item.id ? "font-semibold text-[var(--color-primary)]" : "text-[var(--color-text-tertiary)]"}`}
+            >
+              <PrototypeIcon name={item.icon} size={19} />
+              <span className="whitespace-nowrap">{item.label}</span>
+            </button>
+          ))}
+        </nav>
+      )}
 
       <PrototypePanel />
     </div>

@@ -34,6 +34,7 @@ interface MallFlowScreenProps {
   carts: StorefrontCartState;
   setCarts: Dispatch<SetStateAction<StorefrontCartState>>;
   onStepChange?: (step: MallStep) => void;
+  onOpenGlobalSearch?: () => void;
 }
 
 const mallProducts = catalogProducts.filter((product) => product.scenes.includes("mall"));
@@ -84,7 +85,7 @@ function ProductVisual({ product, compact = false, home = false }: { product: Pr
   return <MallProductArtwork productId={product.id} name={product.name} className={sizeClass} />;
 }
 
-export function MallFlowScreen({ entryContext, carts, setCarts, onStepChange }: MallFlowScreenProps) {
+export function MallFlowScreen({ entryContext, carts, setCarts, onStepChange, onOpenGlobalSearch }: MallFlowScreenProps) {
   const entryProduct = entryContext?.entityType === "product"
     ? findById(catalogProducts, entryContext.entityId)
     : undefined;
@@ -390,55 +391,103 @@ export function MallFlowScreen({ entryContext, carts, setCarts, onStepChange }: 
 
   if (step === "detail") {
     const price = productPrice(selectedProduct);
-    const cartQuantity = currentCart[selectedProduct.id] ?? 0;
+    const hasOriginalPrice = selectedProduct.originalPriceYuan !== undefined && selectedProduct.originalPriceYuan > price;
+    const saving = hasOriginalPrice ? selectedProduct.originalPriceYuan! - price : 0;
+    const freeShipping = price >= freeShippingThreshold;
+    const isSearchHandoff = entryContext?.domain === "mall" && entryContext.entityType === "product";
+
     return (
-      <>
-        <button type="button" onClick={() => goStep("home")} className="inline-flex min-h-11 items-center gap-2 text-sm font-medium text-[var(--color-text-secondary)]">
-          <PrototypeIcon name="back" size={18} /> 返回商城
-        </button>
-
-        <ProductVisual product={selectedProduct} />
-
-        <section className="rounded-[var(--radius-overlay)] bg-[var(--color-surface)] p-5">
-          <div className="flex flex-wrap items-center gap-2">
-            <StatusTag>{selectedProduct.category}</StatusTag>
-            <StatusTag tone="success">{selectedStorefront.name}</StatusTag>
+      <div data-testid="mall-detail" className="relative -mx-4 bg-[var(--color-background)] pb-[88px]">
+        <header data-testid="mall-detail-topbar" className="sticky top-0 z-20 flex h-12 items-center border-b border-[var(--color-border)] bg-[var(--color-surface)]/95 px-2 backdrop-blur">
+          <button type="button" aria-label="返回商城" onClick={() => goStep("home")} className="flex h-11 w-11 items-center justify-center rounded-full active:bg-[var(--color-surface-subtle)]">
+            <PrototypeIcon name="back" size={21} />
+          </button>
+          <p className="pointer-events-none absolute left-1/2 -translate-x-1/2 text-[15px] font-semibold">商品详情</p>
+          <div className="ml-auto flex items-center">
+            {onOpenGlobalSearch && (
+              <button type="button" aria-label="打开全局搜索" onClick={onOpenGlobalSearch} className="flex h-11 w-11 items-center justify-center rounded-full active:bg-[var(--color-surface-subtle)]">
+                <PrototypeIcon name="search" size={20} />
+              </button>
+            )}
+            <button
+              type="button"
+              onClick={() => goStep("cart")}
+              aria-label={`商城购物车，共 ${cartCount} 件`}
+              className="relative flex h-11 w-11 items-center justify-center rounded-full active:bg-[var(--color-surface-subtle)]"
+            >
+              <PrototypeIcon name="cart" size={21} />
+              {cartCount > 0 && (
+                <span className="absolute right-0 top-0 flex min-h-5 min-w-5 items-center justify-center rounded-full bg-[var(--color-primary)] px-1 text-[10px] font-bold text-[var(--color-on-primary)]">{cartCount}</span>
+              )}
+            </button>
           </div>
-          <h2 className="mt-4 text-2xl font-semibold leading-8">{selectedProduct.name}</h2>
-          <div className="mt-3 flex items-end gap-2">
-            <p className="text-2xl font-semibold text-[var(--color-primary-pressed)]">¥{price.toFixed(2)}</p>
-            {selectedProduct.originalPriceYuan && selectedProduct.originalPriceYuan > price && <p className="pb-0.5 text-sm text-[var(--color-text-tertiary)] line-through">¥{selectedProduct.originalPriceYuan.toFixed(2)}</p>}
+        </header>
+
+        <MallProductArtwork
+          productId={selectedProduct.id}
+          name={selectedProduct.name}
+          className="h-[286px] w-full"
+        />
+
+        <section data-testid="mall-detail-main-info" className="h-[132px] border-b border-[var(--color-border)] bg-[var(--color-surface)] px-4 py-3">
+          <div className="flex min-w-0 items-center gap-2">
+            <span className="rounded-full bg-[var(--color-brand-subtle)] px-2 py-1 text-[10px] font-semibold text-[var(--color-primary-pressed)]">{selectedProduct.category}</span>
+            <span className="truncate rounded-full bg-[var(--color-surface-subtle)] px-2 py-1 text-[10px] text-[var(--color-text-secondary)]">{storefrontConsumerName(selectedChannel.kind)}</span>
+            {isSearchHandoff && <span className="ml-auto shrink-0 text-[10px] text-[var(--color-text-tertiary)]">来自全局搜索</span>}
           </div>
-          <p className="mt-4 text-sm leading-6 text-[var(--color-text-secondary)]">规格：{selectedProduct.spec ?? "标准规格"}</p>
-          {selectedProduct.promotionLabel && <p className="mt-2 text-sm font-medium text-[var(--color-primary-pressed)]">优惠：{selectedProduct.promotionLabel}</p>}
+          <h2 className="mt-2 line-clamp-1 text-[21px] font-semibold leading-7 tracking-[-0.02em]">{selectedProduct.name}</h2>
+          <div className="mt-2 flex items-end gap-2">
+            <span className="text-xs font-semibold text-[var(--color-primary-pressed)]">¥</span>
+            <span className="text-[26px] font-bold leading-7 text-[var(--color-primary-pressed)]">{price.toFixed(price % 1 === 0 ? 0 : 2)}</span>
+            {hasOriginalPrice && <span className="pb-0.5 text-xs text-[var(--color-text-tertiary)] line-through">¥{selectedProduct.originalPriceYuan!.toFixed(0)}</span>}
+            {hasOriginalPrice && <span className="mb-0.5 rounded-full bg-[var(--color-danger-bg)] px-2 py-0.5 text-[10px] font-medium text-[var(--color-danger)]">已省 ¥{saving.toFixed(0)}</span>}
+          </div>
         </section>
 
-        <Card>
-          <div className="flex items-start justify-between gap-3">
-            <div>
-              <p className="font-semibold">配送与包邮</p>
-              <p className="mt-1 text-sm leading-6 text-[var(--color-text-secondary)]">全国快递 · 满 ¥{freeShippingThreshold} 包邮，未满运费 ¥{standardShippingFee}。商城不读取便利店库存、距离或履约能力。</p>
-            </div>
-            <StatusTag tone="success">可寄送</StatusTag>
+        <div data-testid="mall-detail-spec" className="flex h-11 items-center justify-between gap-4 border-b border-[var(--color-border)] bg-[var(--color-surface)] px-4 text-sm">
+          <span className="shrink-0 font-medium">规格</span>
+          <span className="truncate text-[var(--color-text-secondary)]">{selectedProduct.spec ?? "标准规格"}</span>
+        </div>
+
+        <div data-testid="mall-detail-promotion" className="flex h-[52px] items-center justify-between gap-4 border-b border-[var(--color-border)] bg-[var(--color-surface)] px-4 text-sm">
+          <span className="shrink-0 font-medium">促销</span>
+          {selectedProduct.promotionLabel ? (
+            <span className="rounded-full bg-[var(--color-brand-subtle)] px-2.5 py-1 text-xs font-medium text-[var(--color-primary-pressed)]">{selectedProduct.promotionLabel}</span>
+          ) : (
+            <span className="text-xs text-[var(--color-text-tertiary)]">当前无额外促销</span>
+          )}
+        </div>
+
+        <section data-testid="mall-detail-shipping" className="flex h-[72px] items-center justify-between gap-4 border-b border-[var(--color-border)] bg-[var(--color-surface)] px-4">
+          <div className="min-w-0">
+            <p className="text-sm font-semibold">配送与包邮</p>
+            <p className="mt-1 truncate text-xs text-[var(--color-text-secondary)]">全国快递 · 满 ¥{freeShippingThreshold} 包邮{freeShipping ? " · 当前商品已包邮" : `，未满运费 ¥${standardShippingFee}`}</p>
           </div>
-        </Card>
+          <span className="shrink-0 rounded-full bg-[var(--color-success-bg)] px-2.5 py-1 text-[10px] font-medium text-[var(--color-success)]">送货上门</span>
+        </section>
 
-        {mallCoupon && (
-          <Card className="bg-[var(--color-surface-subtle)]">
-            <div className="flex items-center justify-between gap-3">
-              <div>
-                <p className="font-semibold">{mallCoupon.title}</p>
-                <p className="mt-1 text-sm text-[var(--color-text-secondary)]">已关联统一账号；Shared 未定义具体减免金额，本页不擅自计算。</p>
-              </div>
-              <StatusTag tone="success">可用</StatusTag>
-            </div>
-          </Card>
-        )}
+        <section data-testid="mall-detail-coupon" className="flex h-[76px] items-center justify-between gap-4 bg-[var(--color-surface)] px-4">
+          <div className="min-w-0">
+            <p className="text-sm font-semibold">商城优惠</p>
+            <p className="mt-1 truncate text-xs text-[var(--color-text-secondary)]">{mallCoupon?.title ?? "暂无可用优惠"}</p>
+          </div>
+          {mallCoupon && <span className="shrink-0 rounded-full border border-[var(--color-primary)] px-2.5 py-1 text-[10px] font-medium text-[var(--color-primary-pressed)]">可用</span>}
+        </section>
 
-        {cartQuantity > 0 && <p className="text-center text-xs text-[var(--color-text-tertiary)]">当前 Storefront 购物车已有 {cartQuantity} 件</p>}
-        <Button className="w-full" onClick={addSelectedProduct}>加入购物车</Button>
-        <SecondaryButton className="w-full" onClick={buyNow}>立即购买</SecondaryButton>
-      </>
+        <div data-testid="mall-detail-buybar" className="fixed inset-x-0 bottom-0 z-40 mx-auto flex h-[calc(72px+env(safe-area-inset-bottom))] max-w-[390px] items-start gap-2 border-t border-[var(--color-border)] bg-[var(--color-surface)] px-3 pt-3 pb-[env(safe-area-inset-bottom)]">
+          <button
+            type="button"
+            onClick={() => goStep("cart")}
+            aria-label={`查看商城购物车，共 ${cartCount} 件`}
+            className="relative flex h-12 w-12 shrink-0 items-center justify-center rounded-[var(--radius-control)] border border-[var(--color-border)] bg-[var(--color-surface)] text-[var(--color-text-secondary)] active:bg-[var(--color-surface-subtle)]"
+          >
+            <PrototypeIcon name="cart" size={19} />
+            {cartCount > 0 && <span className="absolute -right-1 -top-1 flex min-h-5 min-w-5 items-center justify-center rounded-full bg-[var(--color-primary)] px-1 text-[10px] font-bold text-[var(--color-on-primary)]">{cartCount}</span>}
+          </button>
+          <button type="button" onClick={addSelectedProduct} className="h-12 min-w-0 flex-1 rounded-[var(--radius-control)] border border-[var(--color-primary)] bg-[var(--color-surface)] px-3 text-sm font-semibold text-[var(--color-primary-pressed)] active:bg-[var(--color-brand-subtle)]">加入购物车</button>
+          <button type="button" onClick={buyNow} className="h-12 min-w-0 flex-1 rounded-[var(--radius-control)] bg-[var(--color-primary)] px-3 text-sm font-semibold text-[var(--color-on-primary)] active:bg-[var(--color-primary-pressed)]">立即购买</button>
+        </div>
+      </div>
     );
   }
 
