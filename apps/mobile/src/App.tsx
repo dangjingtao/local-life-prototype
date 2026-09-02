@@ -118,7 +118,9 @@ export function App() {
         ? "我的检测"
         : tabs.find((item) => item.id === activeTab)?.label ?? "首页";
   const isMallDetail = screen === "mall" && mallStep === "detail";
-  const showGlobalHeader = screen !== "mall" || (mallStep !== "home" && mallStep !== "detail");
+  const isMallCart = screen === "mall" && mallStep === "cart";
+  const isMallDedicatedLayout = isMallDetail || isMallCart;
+  const showGlobalHeader = screen !== "mall" || !["home", "detail", "cart"].includes(mallStep);
 
   const scrollTop = () => window.scrollTo({ top: 0, behavior: "smooth" });
 
@@ -211,7 +213,7 @@ export function App() {
       )}
 
       <PrototypeState view={view}>
-        <main className={isMallDetail
+        <main className={isMallDedicatedLayout
           ? "mx-auto max-w-[390px] space-y-0 px-4 pb-0 pt-0"
           : `mx-auto max-w-[390px] space-y-6 px-4 pb-28 ${screen === "mall" && mallStep === "home" ? "pt-0" : "pt-5"}`}
         >
@@ -234,7 +236,7 @@ export function App() {
           {screen === "store" && <StoreFlowScreen openActivity={openActivityCenter} entryContext={searchHandoff?.domain === "store" ? searchHandoff : undefined} />}
           {screen === "mall" && (
             <>
-              {searchHandoff?.domain === "mall" && mallStep !== "detail" && <SearchHandoffBanner handoff={searchHandoff} />}
+              {searchHandoff?.domain === "mall" && mallStep === "home" && <SearchHandoffBanner handoff={searchHandoff} />}
               <div
                 className={mallStep === "home"
                   ? "[&_[data-testid=mall-home]]:mt-0 [&_[data-testid=mall-home-header]]:h-[calc(92px+env(safe-area-inset-top))] [&_[data-testid=mall-home-header]]:pt-[env(safe-area-inset-top)] [&_[data-testid=mall-source-section]]:mt-4 [&_[data-testid=mall-search]]:mt-3 [&_[data-testid=mall-category-track]]:mt-3 [&_[data-testid=mall-category-track]]:h-11 [&_[data-testid=mall-campaign-banner]]:mt-3"
