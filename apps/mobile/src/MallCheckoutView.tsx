@@ -124,7 +124,7 @@ export function MallCheckoutView({
 
       <section
         data-testid="mall-checkout-amounts"
-        className="h-[132px] border-b border-[var(--color-border)] bg-[var(--color-surface)] px-4 py-2"
+        className="h-[132px] border-b border-[var(--color-border)] bg-[var(--color-surface)] px-4 py-1.5"
       >
         <div className="flex h-7 items-center justify-between text-[12px]">
           <span className="text-[var(--color-text-secondary)]">商品金额</span>
