@@ -107,17 +107,20 @@ test.describe("T019-R4 · mall checkout and order approved UI", () => {
     await expect(order).toContainText("待发货");
     await expect(order).toContainText(/订单编号\s*LL\d+/);
     await expect(order).not.toContainText(/Mock|MOCK-|T019|演示物流|演示数据|Storefront|Channel/i);
+    await expectNoHorizontalOverflow(page);
 
     await page.getByRole("button", { name: "刷新物流", exact: true }).click();
     await expect(page.getByText("运输中", { exact: true }).first()).toBeVisible();
     await expect(order).toContainText(/安心速运 · AN\d+/);
     await expect(order).toContainText("包裹已离开华南分拨中心");
+    await expectNoHorizontalOverflow(page);
 
     await page.getByRole("button", { name: "确认收货", exact: true }).click();
     await expect(page.getByText("已签收 / 已完成", { exact: true })).toBeVisible();
     const returnButton = page.getByRole("button", { name: "返回商城继续购物", exact: true });
     await expect(returnButton).toBeVisible();
     await expectPrototypeClearOfButton(page, returnButton);
+    await expectNoHorizontalOverflow(page);
 
     await returnButton.click();
     await expect(page.getByRole("button", { name: "商城购物车，共 0 件", exact: true })).toBeVisible();
