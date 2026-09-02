@@ -102,7 +102,7 @@ export function MallCartView({
                   name={product.name}
                   className="h-[82px] w-[82px] shrink-0 rounded-[var(--radius-container)]"
                 />
-                <div className="flex h-[82px] min-w-0 flex-1 flex-col">
+                <div className="flex h-[104px] min-w-0 flex-1 flex-col">
                   <div className="min-w-0">
                     <p className="truncate text-[14px] font-semibold leading-5">{product.name}</p>
                     <p className="mt-0.5 truncate text-[11px] text-[var(--color-text-tertiary)]">{product.spec ?? product.category}</p>
