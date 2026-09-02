@@ -1,6 +1,6 @@
 # T019-R3 · 商城购物车视觉返工
 
-- Status: DOING
+- Status: REVIEW
 - Target version: 0.2.0
 - Impact: Mobile / UX
 - Parent: T019
@@ -41,26 +41,27 @@ Canonical viewport：390×844；关键块容差 ±4px。
 
 ## Acceptance
 
-- [ ] 390×844 购物车关键几何符合 Screen C。
-- [ ] 多商品连续展示，无横向溢出。
-- [ ] 商品名、规格、单价、数量和行小计主次清楚。
-- [ ] +/- 数量行为与数量归零语义不回归。
-- [ ] storefront 购物车隔离保持原 T019 行为。
-- [ ] 商品小计、运费、包邮提示与应付金额保持现有规则。
-- [ ] 去结算继续进入 checkout。
-- [ ] 固定结算栏与一级导航不重叠。
-- [ ] 正常消费者路径无工程术语。
-- [ ] typecheck / build / T019 cart regression / R3 geometry browser tests 通过。
+- [x] 390×844 购物车关键几何符合 Screen C。
+- [x] 多商品连续展示，无横向溢出。
+- [x] 商品名、规格、单价、数量和行小计主次清楚。
+- [x] +/- 数量行为与数量归零语义不回归。
+- [x] storefront 购物车隔离保持原 T019 行为。
+- [x] 商品小计、运费、包邮提示与应付金额保持现有规则。
+- [x] 去结算继续进入 checkout。
+- [x] 固定结算栏与一级导航不重叠。
+- [x] 正常消费者路径无工程术语。
+- [x] typecheck / build / T019 cart regression / R3 geometry browser tests 通过。
 
 ## Verification evidence
 
-- CI: pending
-- Browser: pending
-- UX self-review: pending
-- Human visual review: pending
+- PR: #24；merge commit `43ccd84c816e9f47e75f3c060008874e9404c73a` 已进入 `dev`。
+- CI: Verify Prototype #264 `success`。
+- Browser: T019 原闭环 6/6、R1 3/3、R2 3/3、R3 3/3，共 15/15 商城用例通过；全仓 Browser Quality 仍有 8 条既有便利店 checkout 旧断言失败，不由 R3 引入。
+- UX self-review: PASS；修正商品行内部拥挤，并处理 PrototypePanel 遮挡“去结算”点击区问题；对应 Codex P2 已修复并 resolve。
+- Human visual review: pending。
 
 ## Review
 
-- Reviewer: pending
-- Result: REVIEW / CHANGES_NEEDED
-- Conclusion: pending
+- Reviewer: human pending
+- Result: REVIEW
+- Conclusion: 已合入 `dev` 供实屏复审；用户明确视觉 PASS 前不进入 `PASS`。
