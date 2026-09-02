@@ -210,7 +210,7 @@ export function App() {
       )}
 
       <PrototypeState view={view}>
-        <main className="mx-auto max-w-[390px] space-y-6 px-4 py-5 pb-28">
+        <main className={`mx-auto max-w-[390px] space-y-6 px-4 pb-28 ${screen === "mall" && mallStep === "home" ? "pt-0" : "pt-5"}`}>
           {screen === "home" && (
             <V02HomeScreen
               onOpenSearch={openSearch}
@@ -233,7 +233,7 @@ export function App() {
               {searchHandoff?.domain === "mall" && <SearchHandoffBanner handoff={searchHandoff} />}
               <div
                 className={mallStep === "home"
-                  ? "[&_[data-testid=mall-home-header]]:h-[calc(92px+env(safe-area-inset-top))] [&_[data-testid=mall-home-header]]:pt-[env(safe-area-inset-top)] [&_[data-testid=mall-category-track]]:-mb-1 [&_[data-testid=mall-category-track]]:mt-1 [&_[data-testid=mall-category-track]]:h-11"
+                  ? "[&_[data-testid=mall-home]]:mt-0 [&_[data-testid=mall-home-header]]:h-[calc(92px+env(safe-area-inset-top))] [&_[data-testid=mall-home-header]]:pt-[env(safe-area-inset-top)] [&_[data-testid=mall-source-section]]:mt-4 [&_[data-testid=mall-search]]:mt-3 [&_[data-testid=mall-category-track]]:mt-3 [&_[data-testid=mall-category-track]]:h-11 [&_[data-testid=mall-campaign-banner]]:mt-3"
                   : undefined}
               >
                 <MallFlowScreen
