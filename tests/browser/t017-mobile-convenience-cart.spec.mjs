@@ -152,12 +152,13 @@ test.describe("T017 · Mobile convenience store browsing and independent cart", 
     await expect(page.getByRole("button", { name: "加入购物车：燕麦拿铁" })).toBeDisabled();
   });
 
-  test("cart opens the T018 checkout with fulfillment selection without mixing carts", async ({ page }) => {
+  test("cart opens sheet then goes to T018 checkout without mixing carts", async ({ page }) => {
     await openConvenience(page);
     await page.getByRole("button", { name: "选择门店：云岭社区店" }).click();
+    // 点击购物栏打开抽屉
     await page.getByRole("button", { name: /打开购物车，3 件商品/ }).click();
-    await expect(page.getByRole("heading", { name: "门店独立购物车" })).toBeVisible();
-    await expect(page.getByText("商品合计")).toBeVisible();
+    await expect(page.getByText("购物车").first()).toBeVisible();
+    // 抽屉内点去结算
     await page.getByRole("button", { name: "去结算" }).click();
     await expect(page.getByRole("heading", { name: "选择履约方式并确认订单" })).toBeVisible();
     await expect(page.getByRole("button", { name: /到店自提/ })).toBeVisible();

@@ -185,6 +185,7 @@ export function StoreFlowScreen({ openActivity, entryContext }: StoreFlowScreenP
   const [query, setQuery] = useState("");
   const [category, setCategory] = useState("全部");
   const [browseMode, setBrowseMode] = useState<"single" | "combo">("single");
+  const [cartSheetOpen, setCartSheetOpen] = useState(false);
   const [carts, setCarts] = useState<CartState>(loadPersistedCarts);
   const [fulfillmentMode, setFulfillmentMode] = useState<FulfillmentMode>("pickup");
   const [pickupSlots] = useState<string[]>(buildPickupSlots);
@@ -506,21 +507,21 @@ export function StoreFlowScreen({ openActivity, entryContext }: StoreFlowScreenP
                       : undefined;
                     return (
                       <div key={product.id} className={`flex gap-2.5 py-2.5 ${orderable ? "" : "opacity-60"}`}>
-                        <button type="button" onClick={() => openProduct(product.id)} aria-label={`查看商品：${product.name}`} className="relative shrink-0">
-                          <ConvenienceProductArtwork productId={product.id} name={product.name} className="h-16 w-16 rounded-[var(--radius-sm)] bg-[var(--color-surface)]" />
-                          {!orderable && (
-                            <span className="absolute inset-0 flex items-center justify-center rounded-[var(--radius-sm)] bg-black/40 text-[10px] font-semibold text-white">
-                              {statusLabel ?? "暂不可售"}
-                            </span>
-                          )}
-                        </button>
-                        <div className="flex min-w-0 flex-1 flex-col justify-between">
-                          <button type="button" onClick={() => openProduct(product.id)} className="min-w-0 text-left" aria-label={`查看商品信息：${product.name}`}>
-                            <p className="truncate text-sm font-medium leading-tight">{product.name}</p>
-                            <p className="mt-0.5 truncate text-[11px] text-[var(--color-text-tertiary)]">{product.spec ?? product.category}</p>
-                            {promoLabel && <span className="mt-1 inline-block rounded-sm bg-[var(--color-danger)] px-1.5 py-0.5 text-[10px] font-medium text-white">{promoLabel}</span>}
-                          </button>
-                          <div className="flex items-end justify-between gap-2">
+                        <button type="button" onClick={() => openProduct(product.id)} aria-label={`查看商品：${product.name}`} className="flex min-w-0 flex-1 items-start gap-2.5 text-left">
+                          <div className="relative shrink-0">
+                            <ConvenienceProductArtwork productId={product.id} name={product.name} className="h-16 w-16 rounded-[var(--radius-sm)] bg-[var(--color-surface)]" />
+                            {!orderable && (
+                              <span className="absolute inset-0 flex items-center justify-center rounded-[var(--radius-sm)] bg-black/40 text-[10px] font-semibold text-white">
+                                {statusLabel ?? "暂不可售"}
+                              </span>
+                            )}
+                          </div>
+                          <div className="flex min-w-0 flex-1 flex-col justify-between">
+                            <div className="min-w-0">
+                              <p className="truncate text-sm font-medium leading-tight">{product.name}</p>
+                              <p className="mt-0.5 truncate text-[11px] text-[var(--color-text-tertiary)]">{product.spec ?? product.category}</p>
+                              {promoLabel && <span className="mt-1 inline-block rounded-sm bg-[var(--color-danger)] px-1.5 py-0.5 text-[10px] font-medium text-white">{promoLabel}</span>}
+                            </div>
                             <div className="min-w-0">
                               {isMemberDeal && <p className="text-[10px] text-[var(--color-text-tertiary)] line-through">¥{displayPrice.toFixed(2)}</p>}
                               <p className="text-sm font-bold text-[var(--color-primary-pressed)] leading-tight">
@@ -528,16 +529,18 @@ export function StoreFlowScreen({ openActivity, entryContext }: StoreFlowScreenP
                                 {isMemberDeal && <span className="ml-0.5 text-[10px] font-normal text-[var(--color-text-tertiary)]">会员</span>}
                               </p>
                             </div>
-                            {quantity > 0 ? (
-                              <div className="flex shrink-0 items-center gap-0.5" aria-label={`${product.name} 数量`}>
-                                <button type="button" aria-label={`减少${product.name}`} onClick={() => updateQuantity(product.id, -1)} className="flex h-6 w-6 items-center justify-center rounded-full border border-[var(--color-border)] bg-[var(--color-surface)] text-xs">−</button>
-                                <span className="min-w-5 text-center text-xs font-semibold">{quantity}</span>
-                                <button type="button" aria-label={`增加${product.name}`} onClick={() => updateQuantity(product.id, 1)} disabled={!orderable} className="flex h-6 w-6 items-center justify-center rounded-full bg-[var(--color-primary)] text-white text-xs disabled:opacity-40">+</button>
-                              </div>
-                            ) : (
-                              <button type="button" aria-label={`加入购物车：${product.name}`} onClick={() => updateQuantity(product.id, 1)} disabled={!orderable} className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-[var(--color-primary)] text-white text-xs disabled:opacity-40">+</button>
-                            )}
                           </div>
+                        </button>
+                        <div className="flex shrink-0 items-end">
+                          {quantity > 0 ? (
+                            <div className="flex items-center gap-0.5" aria-label={`${product.name} 数量`}>
+                              <button type="button" aria-label={`减少${product.name}`} onClick={(e) => { e.stopPropagation(); updateQuantity(product.id, -1); }} className="flex h-6 w-6 items-center justify-center rounded-full border border-[var(--color-border)] bg-[var(--color-surface)] text-xs">−</button>
+                              <span className="min-w-5 text-center text-xs font-semibold">{quantity}</span>
+                              <button type="button" aria-label={`增加${product.name}`} onClick={(e) => { e.stopPropagation(); updateQuantity(product.id, 1); }} disabled={!orderable} className="flex h-6 w-6 items-center justify-center rounded-full bg-[var(--color-primary)] text-white text-xs disabled:opacity-40">+</button>
+                            </div>
+                          ) : (
+                            <button type="button" aria-label={`加入购物车：${product.name}`} onClick={(e) => { e.stopPropagation(); updateQuantity(product.id, 1); }} disabled={!orderable} className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-[var(--color-primary)] text-white text-xs disabled:opacity-40">+</button>
+                          )}
                         </div>
                       </div>
                     );
@@ -548,9 +551,124 @@ export function StoreFlowScreen({ openActivity, entryContext }: StoreFlowScreenP
           </div>
         </div>
 
-        {/* 可用券悬浮入口 - 与购物栏同宽容器内左对齐 */}
-        {availableCouponCount > 0 && (
-          <div className="fixed bottom-[calc(5.5rem+env(safe-area-inset-bottom))] left-1/2 z-20 w-[calc(100%-2rem)] max-w-[358px] -translate-x-1/2">
+        {/* 购物车抽屉遮罩 */}
+        {cartSheetOpen && cartCount > 0 && (
+          <div
+            className="fixed inset-0 z-30 bg-black/40"
+            onClick={() => setCartSheetOpen(false)}
+            aria-label="关闭购物车抽屉"
+          />
+        )}
+
+        {/* 购物车抽屉 */}
+        {cartCount > 0 && (
+          <div
+            className={`fixed inset-x-0 bottom-0 z-40 mx-auto max-w-[390px] transition-transform duration-300 ease-out ${
+              cartSheetOpen ? "translate-y-0" : "translate-y-full"
+            }`}
+          >
+            {/* 抽屉内容 */}
+            <div className="rounded-t-2xl bg-[var(--color-surface)] pb-[calc(6.5rem+env(safe-area-inset-bottom))]">
+              {/* 抽屉头部 */}
+              <div className="flex items-center justify-between px-4 pt-3 pb-2">
+                <div>
+                  <p className="text-sm font-semibold">购物车</p>
+                  <p className="text-xs text-[var(--color-text-tertiary)]">{selectedStore.name} · {cartCount} 件商品</p>
+                </div>
+                <button
+                  type="button"
+                  onClick={() => setCartSheetOpen(false)}
+                  aria-label="关闭购物车"
+                  className="flex h-8 w-8 items-center justify-center rounded-full text-[var(--color-text-tertiary)]"
+                >
+                  <PrototypeIcon name="close" size={18} />
+                </button>
+              </div>
+
+              {/* 抽屉商品列表 - 最大高度约为视口 40% */}
+              <div className="max-h-[40vh] overflow-y-auto px-4">
+                <div className="divide-y divide-[var(--color-border)]">
+                  {cartRows.map(({ product, quantity, unitPrice }) => {
+                    const availability = availabilityByProductId.get(product.id);
+                    const orderable = selectedStore.status === "open" && isOrderable(availability);
+                    return (
+                      <div key={product.id} className="flex gap-3 py-3">
+                        <button
+                          type="button"
+                          onClick={() => {
+                            setSelectedProductId(product.id);
+                            setCartSheetOpen(false);
+                            goStep("product");
+                          }}
+                          aria-label={`查看购物车商品：${product.name}`}
+                          className="flex min-w-0 flex-1 items-start gap-3 text-left"
+                        >
+                          <div className="relative shrink-0">
+                            <ConvenienceProductArtwork productId={product.id} name={product.name} className="h-14 w-14 rounded-[var(--radius-sm)] bg-[var(--color-surface-subtle)]" />
+                          </div>
+                          <div className="flex min-w-0 flex-1 flex-col justify-between">
+                            <div className="min-w-0">
+                              <p className="truncate text-sm font-medium">{product.name}</p>
+                              <p className="mt-0.5 truncate text-xs text-[var(--color-text-tertiary)]">{product.spec ?? product.category}</p>
+                            </div>
+                            <p className="text-sm font-semibold text-[var(--color-primary-pressed)]">¥{unitPrice.toFixed(2)}</p>
+                          </div>
+                        </button>
+                        <div className="flex shrink-0 items-end">
+                          <div className="flex items-center gap-0.5" aria-label={`${product.name} 数量`}>
+                            <button
+                              type="button"
+                              aria-label={`减少${product.name}`}
+                              onClick={(e) => { e.stopPropagation(); updateQuantity(product.id, -1); }}
+                              className="flex h-7 w-7 items-center justify-center rounded-full border border-[var(--color-border)] bg-[var(--color-background)] text-sm"
+                            >
+                              −
+                            </button>
+                            <span className="min-w-6 text-center text-sm font-semibold">{quantity}</span>
+                            <button
+                              type="button"
+                              aria-label={`增加${product.name}`}
+                              onClick={(e) => { e.stopPropagation(); updateQuantity(product.id, 1); }}
+                              disabled={!orderable}
+                              className="flex h-7 w-7 items-center justify-center rounded-full bg-[var(--color-primary)] text-white text-sm disabled:opacity-40"
+                            >
+                              +
+                            </button>
+                          </div>
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+              </div>
+
+              {/* 抽屉底部：合计 + 去结算 */}
+              <div className="border-t border-[var(--color-border)] px-4 pt-3 pb-2">
+                <div className="flex items-end justify-between">
+                  <div>
+                    <p className="text-xs text-[var(--color-text-tertiary)]">共 {cartCount} 件，合计</p>
+                    <p className="text-lg font-bold text-[var(--color-primary-pressed)]">¥{cartTotal.toFixed(2)}</p>
+                  </div>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setCartSheetOpen(false);
+                      goStep("checkout");
+                    }}
+                    disabled={cartRows.length === 0 || selectedStore?.status !== "open"}
+                    className="rounded-full bg-[var(--color-primary)] px-6 py-2 text-sm font-semibold text-white disabled:opacity-40"
+                  >
+                    去结算
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* 可用券悬浮入口 - 与购物栏同宽容器内左对齐，抽屉打开时隐藏 */}
+        {availableCouponCount > 0 && !cartSheetOpen && (
+          <div className="fixed bottom-[calc(6.5rem+env(safe-area-inset-bottom))] left-1/2 z-20 w-[calc(100%-2rem)] max-w-[358px] -translate-x-1/2">
             <button
               type="button"
               aria-label={`可用券 ${availableCouponCount} 张`}
@@ -566,10 +684,11 @@ export function StoreFlowScreen({ openActivity, entryContext }: StoreFlowScreenP
         {/* 底部悬浮购物栏 - fixed 定位，独立悬浮胶囊，与底部导航留有空隙 */}
         <button
           type="button"
-          onClick={() => goStep("cart")}
-          aria-label={`打开购物车，${cartCount} 件商品`}
+          onClick={() => cartCount > 0 && setCartSheetOpen((current) => !current)}
+          aria-label={`${cartSheetOpen ? "收起" : "打开"}购物车，${cartCount} 件商品`}
+          aria-expanded={cartSheetOpen}
           disabled={cartCount === 0}
-          className="fixed bottom-[calc(4.5rem+env(safe-area-inset-bottom))] left-1/2 z-20 flex min-h-14 w-[calc(100%-2rem)] max-w-[358px] -translate-x-1/2 items-center justify-between gap-3 rounded-[var(--radius-container)] bg-[var(--color-primary)] px-4 text-white shadow-lg disabled:opacity-50"
+          className="fixed bottom-[calc(4.5rem+env(safe-area-inset-bottom))] left-1/2 z-50 flex min-h-14 w-[calc(100%-2rem)] max-w-[358px] -translate-x-1/2 items-center justify-between gap-3 rounded-[var(--radius-container)] bg-[var(--color-primary)] px-4 text-white shadow-lg disabled:opacity-50"
         >
           <div className="flex items-center gap-2">
             <div className="relative">
@@ -585,7 +704,9 @@ export function StoreFlowScreen({ openActivity, entryContext }: StoreFlowScreenP
               <p className="text-base font-bold leading-tight">¥{cartTotal.toFixed(2)}</p>
             </div>
           </div>
-          <span className="rounded-full bg-white/20 px-4 py-1.5 text-sm font-semibold">去结算</span>
+          <span className="rounded-full bg-white/20 px-4 py-1.5 text-sm font-semibold">
+            {cartSheetOpen ? "收起" : "去结算"}
+          </span>
         </button>
       </>
     );
