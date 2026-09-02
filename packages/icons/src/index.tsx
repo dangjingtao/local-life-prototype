@@ -1,9 +1,10 @@
-import { ArrowLeft, Calendar, CheckCircle2, ChevronRight, CircleAlert, CircleHelp, Clock, FileText, Gift, Home, LayoutGrid, Menu, Plus, RefreshCw, Search, Settings, ShieldCheck, Sparkles, Ticket, TrendingUp, UserRound, X, type LucideProps } from "lucide-react";
+import { ArrowLeft, Calendar, CheckCircle2, ChevronRight, CircleAlert, CircleHelp, Clock, FileText, Gift, Home, LayoutGrid, Menu, Plus, RefreshCw, Search, Settings, ShieldCheck, ShoppingCart, Sparkles, Ticket, TrendingUp, UserRound, X, type LucideProps } from "lucide-react";
 
 const registry = {
   add: Plus,
   back: ArrowLeft,
   calendar: Calendar,
+  cart: ShoppingCart,
   chevron: ChevronRight,
   clock: Clock,
   close: X,

@@ -45,14 +45,14 @@ export const offlineStores: OfflineStore[] = [
 export const stores = offlineStores.filter((item) => legacyStoreIds.has(item.id));
 
 export const catalogProducts: Product[] = [
-  { id: "PRODUCT-SCALP-SET", name: "头皮养护套装", priceYuan: 129, originalPriceYuan: 159, memberPriceYuan: 119, category: "洗护", spec: "洗发露 300ml + 头皮精华 30ml", promotionLabel: "会员专享", scenes: ["store", "mall"], fulfillment: ["pickup", "home_delivery", "store_delivery"] },
-  { id: "PRODUCT-CLEAN-SET", name: "日常清洁组合", priceYuan: 69, category: "日用", spec: "洗手液 300ml + 湿巾 80 抽", scenes: ["store", "mall"], fulfillment: ["pickup", "home_delivery", "store_delivery"] },
-  { id: "PRODUCT-LIGHT-LIFE", name: "轻盈生活组合", priceYuan: 99, memberPriceYuan: 89, category: "生活方式", spec: "轻食杯 + 随行杯", promotionLabel: "本周推荐", scenes: ["store", "mall"], fulfillment: ["pickup", "home_delivery", "store_delivery"] },
-  { id: "PRODUCT-SKIN-TRIAL", name: "肌肤护理体验", priceYuan: 39, category: "护理", spec: "7 日体验装", scenes: ["mall", "care"], fulfillment: ["home_delivery", "store_delivery"] },
-  { id: "PRODUCT-OAT-LATTE", name: "燕麦拿铁", priceYuan: 13.9, memberPriceYuan: 11.9, category: "咖啡饮品", spec: "280ml", promotionLabel: "第二件 8 折", scenes: ["store"], fulfillment: ["pickup", "store_delivery"] },
-  { id: "PRODUCT-SPARKLING-WATER", name: "青柠气泡水", priceYuan: 6.5, category: "饮料", spec: "480ml", scenes: ["store"], fulfillment: ["pickup", "store_delivery"] },
-  { id: "PRODUCT-EGG-SANDWICH", name: "溏心蛋火腿三明治", priceYuan: 12.8, category: "鲜食", spec: "1 份", promotionLabel: "早餐热卖", scenes: ["store"], fulfillment: ["pickup", "store_delivery"] },
-  { id: "PRODUCT-COLLAGEN-DRINK", name: "胶原蛋白肽饮", priceYuan: 168, originalPriceYuan: 198, category: "营养健康", spec: "30ml × 10 瓶", promotionLabel: "商城包邮", scenes: ["mall"], fulfillment: ["home_delivery"] },
+  { id: "PRODUCT-SCALP-SET", name: "头皮养护套装", priceYuan: 129, originalPriceYuan: 159, memberPriceYuan: 119, category: "洗护", spec: "洗发露 300ml + 头皮精华 30ml", promotionLabel: "会员专享", type: "combo", scenes: ["store", "mall"], fulfillment: ["pickup", "home_delivery", "store_delivery"] },
+  { id: "PRODUCT-CLEAN-SET", name: "日常清洁组合", priceYuan: 69, category: "日用", spec: "洗手液 300ml + 湿巾 80 抽", type: "combo", scenes: ["store", "mall"], fulfillment: ["pickup", "home_delivery", "store_delivery"] },
+  { id: "PRODUCT-LIGHT-LIFE", name: "轻盈生活组合", priceYuan: 99, memberPriceYuan: 89, category: "生活方式", spec: "轻食杯 + 随行杯", promotionLabel: "本周推荐", type: "combo", scenes: ["store", "mall"], fulfillment: ["pickup", "home_delivery", "store_delivery"] },
+  { id: "PRODUCT-SKIN-TRIAL", name: "肌肤护理体验", priceYuan: 39, category: "护理", spec: "7 日体验装", type: "single", scenes: ["mall", "care"], fulfillment: ["home_delivery", "store_delivery"] },
+  { id: "PRODUCT-OAT-LATTE", name: "燕麦拿铁", priceYuan: 13.9, memberPriceYuan: 11.9, category: "咖啡饮品", spec: "280ml", promotionLabel: "第二件 8 折", type: "single", scenes: ["store"], fulfillment: ["pickup", "store_delivery"] },
+  { id: "PRODUCT-SPARKLING-WATER", name: "青柠气泡水", priceYuan: 6.5, category: "饮料", spec: "480ml", type: "single", scenes: ["store"], fulfillment: ["pickup", "store_delivery"] },
+  { id: "PRODUCT-EGG-SANDWICH", name: "溏心蛋火腿三明治", priceYuan: 12.8, category: "鲜食", spec: "1 份", promotionLabel: "早餐热卖", type: "single", scenes: ["store"], fulfillment: ["pickup", "store_delivery"] },
+  { id: "PRODUCT-COLLAGEN-DRINK", name: "胶原蛋白肽饮", priceYuan: 168, originalPriceYuan: 198, category: "营养健康", spec: "30ml × 10 瓶", promotionLabel: "商城包邮", type: "single", scenes: ["mall"], fulfillment: ["home_delivery"] },
 ];
 export const products = catalogProducts.filter((item) => legacyProductIds.has(item.id));
 

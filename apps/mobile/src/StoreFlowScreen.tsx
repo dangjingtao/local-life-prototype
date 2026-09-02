@@ -184,6 +184,8 @@ export function StoreFlowScreen({ openActivity, entryContext }: StoreFlowScreenP
   const [selectedProductId, setSelectedProductId] = useState(initialProductId);
   const [query, setQuery] = useState("");
   const [category, setCategory] = useState("全部");
+  const [browseMode, setBrowseMode] = useState<"single" | "combo">("single");
+  const [cartSheetOpen, setCartSheetOpen] = useState(false);
   const [carts, setCarts] = useState<CartState>(loadPersistedCarts);
   const [fulfillmentMode, setFulfillmentMode] = useState<FulfillmentMode>("pickup");
   const [pickupSlots] = useState<string[]>(buildPickupSlots);
@@ -209,7 +211,8 @@ export function StoreFlowScreen({ openActivity, entryContext }: StoreFlowScreenP
   const visibleProducts = storeProducts.filter((product) => {
     const matchesCategory = category === "全部" || product.category === category;
     const matchesQuery = !normalizedQuery || `${product.name} ${product.category} ${product.spec ?? ""}`.toLowerCase().includes(normalizedQuery);
-    return matchesCategory && matchesQuery;
+    const matchesMode = browseMode === "single" ? product.type === "single" || product.type === undefined : product.type === "combo";
+    return matchesCategory && matchesQuery && matchesMode;
   });
   const currentCart = selectedStore ? carts[selectedStore.id] ?? {} : {};
   const cartCount = Object.values(currentCart).reduce((sum, quantity) => sum + quantity, 0);
@@ -397,143 +400,312 @@ export function StoreFlowScreen({ openActivity, entryContext }: StoreFlowScreenP
   }
 
   if (step === "browse") {
+    const availableCouponCount = applicableCoupon ? 1 : 0;
     return (
       <>
-        <div className="space-y-4 pb-16">
-          <section className="rounded-[var(--radius-overlay)] bg-[var(--color-surface)] p-3">
-            <div className="flex items-start justify-between gap-3">
-              <div className="min-w-0">
-                <p className="text-[11px] font-semibold text-[var(--color-primary)]">当前门店</p>
-                <h2 className="mt-0.5 text-lg font-semibold">{selectedStore.name}</h2>
-                <p className="mt-1 text-xs leading-5 text-[var(--color-text-tertiary)]">距你 {selectedStore.distanceKm?.toFixed(1) ?? "--"} km · {selectedStore.businessHours}</p>
-              </div>
-              <button type="button" onClick={() => goStep("stores")} className="min-h-11 shrink-0 rounded-[var(--radius-control)] px-2 text-sm font-medium text-[var(--color-primary)]">切换门店</button>
+        {/* 双栏容器 - 撑满视口可用高度，-mx-4 抵消父容器 px-4 */}
+        <div className="-mx-4 flex h-[calc(100dvh-4rem-env(safe-area-inset-bottom)-env(safe-area-inset-top)-1.25rem)] flex-col">
+          {/* 顶部门店信息条 */}
+          <button type="button" onClick={() => goStep("stores")} aria-label={`切换门店，当前门店：${selectedStore.name}`} className="flex items-center justify-between gap-2 px-4 py-2 text-left">
+            <div className="min-w-0 flex-1">
+              <p className="text-xs text-[var(--color-text-tertiary)]">当前门店</p>
+              <p className="truncate text-sm font-semibold">{selectedStore.name}</p>
             </div>
-            <div className="mt-2"><StoreCapabilityTags storeId={selectedStore.id} /></div>
-          </section>
+            <span className="shrink-0 text-xs text-[var(--color-primary)]">切换 ›</span>
+          </button>
 
-          <div className="sticky top-[calc(3.5rem+env(safe-area-inset-top))] z-10 -mx-4 space-y-2 bg-[var(--color-background)]/95 px-4 py-2 backdrop-blur">
-            <div className="relative">
-              <span className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-[var(--color-text-tertiary)]"><PrototypeIcon name="search" size={18} /></span>
-              <input
-                value={query}
-                onChange={(event) => setQuery(event.target.value)}
-                aria-label="搜索当前门店商品"
-                placeholder="搜本店商品、分类或规格"
-                className="min-h-11 w-full rounded-[var(--radius-control)] border border-[var(--color-border)] bg-[var(--color-surface)] pl-10 pr-3 text-sm outline-none focus:border-[var(--color-primary)]"
-              />
-            </div>
-
-            <div className="-mx-4 flex gap-2 overflow-x-auto px-4 pb-0.5" aria-label="商品分类">
+          {/* 双栏主体 */}
+          <div className="relative flex flex-1 min-h-0">
+            {/* 左侧分类栏 */}
+            <nav className="w-20 shrink-0 overflow-y-auto bg-[var(--color-surface-subtle)]" aria-label="商品分类">
               {categories.map((item) => (
                 <button
                   key={item}
                   type="button"
                   aria-pressed={category === item}
                   onClick={() => setCategory(item)}
-                  className={`min-h-11 shrink-0 rounded-full px-4 text-sm font-medium ${category === item ? "bg-[var(--color-primary)] text-[var(--color-on-primary)]" : "border border-[var(--color-border)] bg-[var(--color-surface)] text-[var(--color-text-secondary)]"}`}
+                  className={`relative w-full py-3 px-2 text-center text-xs transition-colors ${
+                    category === item
+                      ? "bg-[var(--color-background)] font-semibold text-[var(--color-text-primary)]"
+                      : "text-[var(--color-text-secondary)]"
+                  }`}
                 >
+                  {category === item && <span className="absolute left-0 top-1/2 h-5 w-0.5 -translate-y-1/2 rounded-r bg-[var(--color-primary)]" aria-hidden="true" />}
                   {item}
                 </button>
               ))}
-            </div>
-          </div>
+            </nav>
 
-          {selectedStore.id === coreDemoStore.id && (
-            <button type="button" onClick={openActivity} className="w-full text-left" aria-label="查看便利店活动">
-              <div className="flex min-h-[84px] items-center gap-3 rounded-[var(--radius-overlay)] bg-[var(--color-brand-subtle)] p-3">
-                <ConvenienceProductArtwork productId="PRODUCT-OAT-LATTE" name="燕麦拿铁" className="h-16 w-16 shrink-0 bg-[var(--color-surface)]" />
-                <div className="min-w-0 flex-1">
-                  <p className="text-[11px] font-semibold text-[var(--color-primary-pressed)]">早餐推荐</p>
-                  <p className="mt-1 font-semibold">早八能量补给</p>
-                  <p className="mt-1 text-xs leading-5 text-[var(--color-text-secondary)]">咖啡 + 鲜食，会员价更轻松</p>
+            {/* 右侧商品区 */}
+            <div className="relative flex flex-1 flex-col min-w-0">
+              {/* 搜索 + 单品/套餐切换 */}
+              <div className="sticky top-0 z-10 space-y-2 bg-[var(--color-background)] px-3 pb-2 pt-1">
+                <div className="relative">
+                  <span className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-[var(--color-text-tertiary)]"><PrototypeIcon name="search" size={16} /></span>
+                  <input
+                    value={query}
+                    onChange={(event) => setQuery(event.target.value)}
+                    aria-label="搜索当前门店商品"
+                    placeholder="搜本店商品"
+                    className="h-9 w-full rounded-[var(--radius-control)] border border-[var(--color-border)] bg-[var(--color-surface)] pl-9 pr-3 text-xs outline-none focus:border-[var(--color-primary)]"
+                  />
                 </div>
-                <span className="shrink-0 text-[var(--color-primary)]" aria-hidden="true">›</span>
+                <div className="flex items-center gap-0.5 rounded-full bg-[var(--color-surface-subtle)] p-0.5 self-start">
+                  <button
+                    type="button"
+                    aria-pressed={browseMode === "single"}
+                    onClick={() => setBrowseMode("single")}
+                    className={`rounded-full px-3 py-1 text-xs font-medium transition-colors ${
+                      browseMode === "single" ? "bg-[var(--color-primary)] text-white" : "text-[var(--color-text-secondary)]"
+                    }`}
+                  >
+                    单品
+                  </button>
+                  <button
+                    type="button"
+                    aria-pressed={browseMode === "combo"}
+                    onClick={() => setBrowseMode("combo")}
+                    className={`rounded-full px-3 py-1 text-xs font-medium transition-colors ${
+                      browseMode === "combo" ? "bg-[var(--color-primary)] text-white" : "text-[var(--color-text-secondary)]"
+                    }`}
+                  >
+                    套餐
+                  </button>
+                </div>
               </div>
-            </button>
-          )}
 
-          <section aria-labelledby="store-products-title">
-            <div className="flex items-end justify-between gap-3">
-              <h3 id="store-products-title" className="text-base font-semibold">本店商品</h3>
-              <p className="text-xs text-[var(--color-text-tertiary)]">{visibleProducts.length} 件</p>
-            </div>
-
-            <div className="mt-2 overflow-hidden rounded-[var(--radius-overlay)] border border-[var(--color-border)] bg-[var(--color-surface)] divide-y divide-[var(--color-border)]">
-              {visibleProducts.length === 0 && (
-                <div className="p-5 text-center">
-                  <p className="font-semibold">本店没有匹配商品</p>
-                  <p className="mt-2 text-sm text-[var(--color-text-secondary)]">换个关键词或分类看看。</p>
-                </div>
+              {/* 活动窄条（仅核心演示店） */}
+              {selectedStore.id === coreDemoStore.id && (
+                <button type="button" onClick={openActivity} aria-label="查看便利店活动" className="mx-3 mb-2 flex items-center gap-2 rounded-lg bg-[var(--color-primary)] px-3 py-1.5 text-left text-xs text-white">
+                  <span className="font-semibold">早八能量补给</span>
+                  <span className="opacity-80">咖啡+鲜食 会员价</span>
+                  <span className="ml-auto">›</span>
+                </button>
               )}
-              {visibleProducts.map((product) => {
-                const availability = availabilityByProductId.get(product.id);
-                const quantity = currentCart[product.id] ?? 0;
-                const orderable = selectedStore.status === "open" && isOrderable(availability);
-                const displayPrice = availability?.priceYuan ?? product.priceYuan;
-                const memberPrice = availability?.memberPriceYuan ?? product.memberPriceYuan;
-                const promotionLabel = availability?.promotionLabel;
-                const showStock = availability?.status === "low_stock" || !orderable;
-                return (
-                  <article key={product.id} className={`p-3 ${orderable ? "" : "bg-[var(--color-surface-subtle)]"}`}>
-                    <div className="flex gap-3">
-                      <button type="button" onClick={() => openProduct(product.id)} className="relative h-24 w-24 shrink-0 rounded-[var(--radius-container)] text-left" aria-label={`查看商品：${product.name}`}>
-                        <ConvenienceProductArtwork productId={product.id} name={product.name} className={`h-24 w-24 ${orderable ? "" : "opacity-55 grayscale"}`} />
-                        {!orderable && (
-                          <span className="absolute inset-x-2 bottom-2 rounded-full bg-[var(--color-text-primary)]/80 px-2 py-1 text-center text-[10px] font-medium text-[var(--color-surface)]">
-                            {availability?.stockLabel ?? "暂不可售"}
-                          </span>
-                        )}
-                      </button>
 
-                      <div className="min-w-0 flex-1">
-                        <button type="button" onClick={() => openProduct(product.id)} className="min-h-11 w-full text-left" aria-label={`查看商品信息：${product.name}`}>
-                          <p className="truncate font-semibold">{product.name}</p>
-                          <p className="mt-0.5 truncate text-xs text-[var(--color-text-tertiary)]">{product.spec ?? product.category}</p>
-                        </button>
-
-                        <div className="mt-1.5 min-h-5">
-                          {promotionLabel && <span className="mr-2 text-[11px] font-medium text-[var(--color-success)]">{promotionLabel}</span>}
-                          {showStock && <span className="text-[11px] font-medium text-[var(--color-warning)]">{availability?.stockLabel ?? availabilityStatusLabels[availability?.status ?? "unavailable"]}</span>}
-                        </div>
-
-                        <div className="mt-1 flex items-end justify-between gap-2">
-                          <div className="min-w-0">
-                            {memberPrice !== undefined && memberPrice !== displayPrice && <p className="text-[10px] text-[var(--color-text-tertiary)] line-through">¥{displayPrice.toFixed(2)}</p>}
-                            <p className="whitespace-nowrap text-base font-semibold text-[var(--color-primary-pressed)]">¥{(memberPrice ?? displayPrice).toFixed(2)} {memberPrice !== undefined && <span className="text-[10px] font-normal text-[var(--color-text-tertiary)]">会员价</span>}</p>
+              {/* 商品列表 */}
+              <div className="flex-1 overflow-y-auto px-3 pb-4">
+                {visibleProducts.length === 0 && (
+                  <div className="py-8 text-center">
+                    <p className="text-sm font-medium text-[var(--color-text-secondary)]">暂无匹配商品</p>
+                    <p className="mt-1 text-xs text-[var(--color-text-tertiary)]">换个分类或关键词看看</p>
+                  </div>
+                )}
+                <div className="divide-y divide-[var(--color-border)]">
+                  {visibleProducts.map((product) => {
+                    const availability = availabilityByProductId.get(product.id);
+                    const quantity = currentCart[product.id] ?? 0;
+                    const orderable = selectedStore.status === "open" && isOrderable(availability);
+                    const displayPrice = availability?.priceYuan ?? product.priceYuan;
+                    const memberPrice = availability?.memberPriceYuan ?? product.memberPriceYuan;
+                    const promoLabel = availability?.promotionLabel ?? product.promotionLabel;
+                    const isMemberDeal = memberPrice !== undefined && memberPrice !== displayPrice;
+                    const statusLabel = availability?.status === "sold_out"
+                      ? availabilityStatusLabels.sold_out
+                      : availability?.status === "unavailable"
+                      ? availabilityStatusLabels.unavailable
+                      : undefined;
+                    return (
+                      <div key={product.id} className={`flex gap-2.5 py-2.5 ${orderable ? "" : "opacity-60"}`}>
+                        <button type="button" onClick={() => openProduct(product.id)} aria-label={`查看商品：${product.name}`} className="flex min-w-0 flex-1 items-start gap-2.5 text-left">
+                          <div className="relative shrink-0">
+                            <ConvenienceProductArtwork productId={product.id} name={product.name} className="h-16 w-16 rounded-[var(--radius-sm)] bg-[var(--color-surface)]" />
+                            {!orderable && (
+                              <span className="absolute inset-0 flex items-center justify-center rounded-[var(--radius-sm)] bg-black/40 text-[10px] font-semibold text-white">
+                                {statusLabel ?? "暂不可售"}
+                              </span>
+                            )}
                           </div>
-
+                          <div className="flex min-w-0 flex-1 flex-col justify-between">
+                            <div className="min-w-0">
+                              <p className="truncate text-sm font-medium leading-tight">{product.name}</p>
+                              <p className="mt-0.5 truncate text-[11px] text-[var(--color-text-tertiary)]">{product.spec ?? product.category}</p>
+                              {promoLabel && <span className="mt-1 inline-block rounded-sm bg-[var(--color-danger)] px-1.5 py-0.5 text-[10px] font-medium text-white">{promoLabel}</span>}
+                            </div>
+                            <div className="min-w-0">
+                              {isMemberDeal && <p className="text-[10px] text-[var(--color-text-tertiary)] line-through">¥{displayPrice.toFixed(2)}</p>}
+                              <p className="text-sm font-bold text-[var(--color-primary-pressed)] leading-tight">
+                                ¥{(memberPrice ?? displayPrice).toFixed(2)}
+                                {isMemberDeal && <span className="ml-0.5 text-[10px] font-normal text-[var(--color-text-tertiary)]">会员</span>}
+                              </p>
+                            </div>
+                          </div>
+                        </button>
+                        <div className="flex shrink-0 items-end">
                           {quantity > 0 ? (
-                            <div className="flex shrink-0 items-center gap-0.5" aria-label={`${product.name} 数量`}>
-                              <button type="button" aria-label={`减少${product.name}`} onClick={() => updateQuantity(product.id, -1)} className="flex min-h-11 min-w-11 items-center justify-center rounded-full border border-[var(--color-border)] bg-[var(--color-surface)]">−</button>
-                              <span className="min-w-6 text-center text-sm font-semibold">{quantity}</span>
-                              <button type="button" aria-label={`增加${product.name}`} onClick={() => updateQuantity(product.id, 1)} disabled={!orderable} className="flex min-h-11 min-w-11 items-center justify-center rounded-full bg-[var(--color-primary)] text-[var(--color-on-primary)] disabled:opacity-40">+</button>
+                            <div className="flex items-center gap-0.5" aria-label={`${product.name} 数量`}>
+                              <button type="button" aria-label={`减少${product.name}`} onClick={(e) => { e.stopPropagation(); updateQuantity(product.id, -1); }} className="flex h-6 w-6 items-center justify-center rounded-full border border-[var(--color-border)] bg-[var(--color-surface)] text-xs">−</button>
+                              <span className="min-w-5 text-center text-xs font-semibold">{quantity}</span>
+                              <button type="button" aria-label={`增加${product.name}`} onClick={(e) => { e.stopPropagation(); updateQuantity(product.id, 1); }} disabled={!orderable} className="flex h-6 w-6 items-center justify-center rounded-full bg-[var(--color-primary)] text-white text-xs disabled:opacity-40">+</button>
                             </div>
                           ) : (
-                            <button type="button" aria-label={`加入购物车：${product.name}`} onClick={() => updateQuantity(product.id, 1)} disabled={!orderable} className="flex min-h-11 min-w-11 shrink-0 items-center justify-center rounded-full bg-[var(--color-primary)] text-[var(--color-on-primary)] disabled:opacity-40">+</button>
+                            <button type="button" aria-label={`加入购物车：${product.name}`} onClick={(e) => { e.stopPropagation(); updateQuantity(product.id, 1); }} disabled={!orderable} className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-[var(--color-primary)] text-white text-xs disabled:opacity-40">+</button>
                           )}
                         </div>
                       </div>
-                    </div>
-                  </article>
-                );
-              })}
+                    );
+                  })}
+                </div>
+              </div>
             </div>
-          </section>
-
-          {selectedStore.id === coreDemoStore.id && (
-            <SecondaryButton className="w-full" onClick={() => goStep("legacyConfirm")}>选择此门店自提</SecondaryButton>
-          )}
+          </div>
         </div>
 
+        {/* 购物车抽屉遮罩 */}
+        {cartSheetOpen && cartCount > 0 && (
+          <div
+            className="fixed inset-0 z-30 bg-black/40"
+            onClick={() => setCartSheetOpen(false)}
+            aria-label="关闭购物车抽屉"
+          />
+        )}
+
+        {/* 购物车抽屉 */}
+        {cartCount > 0 && (
+          <div
+            className={`fixed inset-x-0 bottom-0 z-40 mx-auto max-w-[390px] transition-transform duration-300 ease-out ${
+              cartSheetOpen ? "translate-y-0" : "translate-y-full"
+            }`}
+          >
+            <div className="rounded-t-2xl bg-[var(--color-surface)] pb-[calc(9rem+env(safe-area-inset-bottom))]">
+              {/* 抽屉头部 */}
+              <div className="flex items-center justify-between px-4 pt-3 pb-2">
+                <div>
+                  <p className="text-sm font-semibold">购物车</p>
+                  <p className="text-xs text-[var(--color-text-tertiary)]">{selectedStore.name} · {cartCount} 件商品</p>
+                </div>
+                <button
+                  type="button"
+                  onClick={() => setCartSheetOpen(false)}
+                  aria-label="关闭购物车"
+                  className="flex h-8 w-8 items-center justify-center rounded-full text-[var(--color-text-tertiary)]"
+                >
+                  <PrototypeIcon name="close" size={18} />
+                </button>
+              </div>
+
+              {/* 抽屉商品列表 - 最大高度约为视口 40% */}
+              <div className="max-h-[40vh] overflow-y-auto px-4">
+                <div className="divide-y divide-[var(--color-border)]">
+                  {cartRows.map(({ product, quantity, unitPrice }) => {
+                    const availability = availabilityByProductId.get(product.id);
+                    const orderable = selectedStore.status === "open" && isOrderable(availability);
+                    return (
+                      <div key={product.id} className="flex gap-3 py-3">
+                        <button
+                          type="button"
+                          onClick={() => {
+                            setSelectedProductId(product.id);
+                            setCartSheetOpen(false);
+                            goStep("product");
+                          }}
+                          aria-label={`查看购物车商品：${product.name}`}
+                          className="flex min-w-0 flex-1 items-start gap-3 text-left"
+                        >
+                          <div className="relative shrink-0">
+                            <ConvenienceProductArtwork productId={product.id} name={product.name} className="h-14 w-14 rounded-[var(--radius-sm)] bg-[var(--color-surface-subtle)]" />
+                          </div>
+                          <div className="flex min-w-0 flex-1 flex-col justify-between">
+                            <div className="min-w-0">
+                              <p className="truncate text-sm font-medium">{product.name}</p>
+                              <p className="mt-0.5 truncate text-xs text-[var(--color-text-tertiary)]">{product.spec ?? product.category}</p>
+                            </div>
+                            <p className="text-sm font-semibold text-[var(--color-primary-pressed)]">¥{unitPrice.toFixed(2)}</p>
+                          </div>
+                        </button>
+                        <div className="flex shrink-0 items-end">
+                          <div className="flex items-center gap-0.5" aria-label={`${product.name} 数量`}>
+                            <button
+                              type="button"
+                              aria-label={`减少${product.name}`}
+                              onClick={(e) => { e.stopPropagation(); updateQuantity(product.id, -1); }}
+                              className="flex h-7 w-7 items-center justify-center rounded-full border border-[var(--color-border)] bg-[var(--color-background)] text-sm"
+                            >
+                              −
+                            </button>
+                            <span className="min-w-6 text-center text-sm font-semibold">{quantity}</span>
+                            <button
+                              type="button"
+                              aria-label={`增加${product.name}`}
+                              onClick={(e) => { e.stopPropagation(); updateQuantity(product.id, 1); }}
+                              disabled={!orderable}
+                              className="flex h-7 w-7 items-center justify-center rounded-full bg-[var(--color-primary)] text-white text-sm disabled:opacity-40"
+                            >
+                              +
+                            </button>
+                          </div>
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+              </div>
+
+              {/* 抽屉底部：合计 + 去结算 */}
+              <div className="border-t border-[var(--color-border)] px-4 pt-3 pb-2">
+                <div className="flex items-end justify-between">
+                  <div>
+                    <p className="text-xs text-[var(--color-text-tertiary)]">共 {cartCount} 件，合计</p>
+                    <p className="text-lg font-bold text-[var(--color-primary-pressed)]">¥{cartTotal.toFixed(2)}</p>
+                  </div>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setCartSheetOpen(false);
+                      goStep("checkout");
+                    }}
+                    disabled={cartRows.length === 0 || selectedStore?.status !== "open"}
+                    className="rounded-full bg-[var(--color-primary)] px-6 py-2 text-sm font-semibold text-white disabled:opacity-40"
+                  >
+                    去结算
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* 可用券悬浮入口 - 与购物栏同宽容器内左对齐，抽屉打开时隐藏 */}
+        {availableCouponCount > 0 && !cartSheetOpen && (
+          <div className="fixed bottom-[calc(8.5rem+env(safe-area-inset-bottom))] left-1/2 z-20 w-[calc(100%-2rem)] max-w-[358px] -translate-x-1/2">
+            <button
+              type="button"
+              aria-label={`可用券 ${availableCouponCount} 张`}
+              onClick={() => {}}
+              className="flex items-center gap-1 rounded-full bg-[var(--color-warning)] px-2.5 py-1 text-[11px] font-medium text-white shadow-md"
+            >
+              <PrototypeIcon name="coupon" size={14} />
+              <span>可用券 {availableCouponCount}</span>
+            </button>
+          </div>
+        )}
+
+        {/* 底部悬浮购物栏 - fixed 定位，独立悬浮胶囊，与底部导航留有空隙 */}
         <button
           type="button"
-          onClick={() => goStep("cart")}
-          aria-label={`打开购物车，${cartCount} 件商品`}
-          className="fixed bottom-[calc(4rem+env(safe-area-inset-bottom))] left-1/2 z-20 flex min-h-14 w-[calc(100%-2rem)] max-w-[358px] -translate-x-1/2 items-center justify-between rounded-[var(--radius-container)] bg-[var(--color-primary)] px-4 text-[var(--color-on-primary)] shadow-lg"
+          onClick={() => cartCount > 0 && setCartSheetOpen((current) => !current)}
+          aria-label={`${cartSheetOpen ? "收起" : "打开"}购物车，${cartCount} 件商品`}
+          aria-expanded={cartSheetOpen}
+          disabled={cartCount === 0}
+          className="fixed bottom-[calc(4.5rem+env(safe-area-inset-bottom))] left-1/2 z-50 flex min-h-14 w-[calc(100%-2rem)] max-w-[358px] -translate-x-1/2 items-center justify-between gap-3 rounded-[var(--radius-container)] bg-[var(--color-primary)] px-4 text-white shadow-lg disabled:opacity-50"
         >
-          <span className="font-semibold">购物车 {cartCount} 件</span>
-          <span className="text-sm">¥{cartTotal.toFixed(2)} · 查看 ›</span>
+          <div className="flex items-center gap-2">
+            <div className="relative">
+              <PrototypeIcon name="cart" size={20} />
+              {cartCount > 0 && (
+                <span className="absolute -right-1.5 -top-1.5 flex h-4 min-w-4 items-center justify-center rounded-full bg-white px-1 text-[10px] font-bold text-[var(--color-primary)]">
+                  {cartCount}
+                </span>
+              )}
+            </div>
+            <div className="text-left">
+              <p className="text-xs opacity-80">合计</p>
+              <p className="text-base font-bold leading-tight">¥{cartTotal.toFixed(2)}</p>
+            </div>
+          </div>
+          <span className="rounded-full bg-white/20 px-4 py-1.5 text-sm font-semibold">
+            {cartSheetOpen ? "收起" : "去结算"}
+          </span>
         </button>
       </>
     );
@@ -670,7 +842,7 @@ export function StoreFlowScreen({ openActivity, entryContext }: StoreFlowScreenP
   if (step === "checkout") {
     return (
       <>
-        <button type="button" onClick={() => goStep("cart")} className="inline-flex min-h-11 items-center gap-2 text-sm font-medium text-[var(--color-text-secondary)]">
+        <button type="button" onClick={() => { setCartSheetOpen(true); goStep("browse"); }} className="inline-flex min-h-11 items-center gap-2 text-sm font-medium text-[var(--color-text-secondary)]">
           <PrototypeIcon name="back" size={18} /> 返回购物车
         </button>
 

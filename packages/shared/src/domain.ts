@@ -112,6 +112,7 @@ export interface Product {
   category: string;
   scenes: BusinessScene[];
   fulfillment: Array<"pickup" | "home_delivery" | "store_delivery">;
+  type?: "single" | "combo";
   spec?: string;
   originalPriceYuan?: number;
   memberPriceYuan?: number;

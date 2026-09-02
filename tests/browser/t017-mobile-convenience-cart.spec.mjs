@@ -39,19 +39,19 @@ test.describe("T017 · Mobile convenience store browsing and independent cart", 
   test("each store keeps a separate cart and switching stores does not mix items", async ({ page }) => {
     await openConvenience(page);
     await page.getByRole("button", { name: "选择门店：云岭社区店" }).click();
-    await expect(page.getByRole("heading", { name: "云岭社区店" })).toBeVisible();
+    await expect(page.getByRole("button", { name: /切换门店，当前门店：云岭社区店/ })).toBeVisible();
     await expect(page.getByRole("button", { name: /打开购物车，3 件商品/ })).toBeVisible();
 
     await page.getByRole("button", { name: "加入购物车：青柠气泡水" }).click();
     await expect(page.getByRole("button", { name: /打开购物车，4 件商品/ })).toBeVisible();
 
-    await page.getByRole("button", { name: "切换门店" }).click();
+    await page.getByRole("button", { name: /切换门店，当前门店：云岭社区店/ }).click();
     await page.getByRole("button", { name: "选择门店：南岸生活馆" }).click();
     await expect(page.getByRole("button", { name: /打开购物车，1 件商品/ })).toBeVisible();
     await page.getByRole("button", { name: "加入购物车：青柠气泡水" }).click();
     await expect(page.getByRole("button", { name: /打开购物车，2 件商品/ })).toBeVisible();
 
-    await page.getByRole("button", { name: "切换门店" }).click();
+    await page.getByRole("button", { name: /切换门店，当前门店：南岸生活馆/ }).click();
     await page.getByRole("button", { name: "选择门店：云岭社区店" }).click();
     await expect(page.getByRole("button", { name: /打开购物车，4 件商品/ })).toBeVisible();
     await expectNoHorizontalOverflow(page);
@@ -67,7 +67,7 @@ test.describe("T017 · Mobile convenience store browsing and independent cart", 
     await navigation.getByRole("button", { name: "首页", exact: true }).click();
     await navigation.getByRole("button", { name: "便利店", exact: true }).click();
 
-    await expect(page.getByRole("heading", { name: "云岭社区店" })).toBeVisible();
+    await expect(page.getByRole("button", { name: /切换门店，当前门店：云岭社区店/ })).toBeVisible();
     await expect(page.getByRole("button", { name: /打开购物车，4 件商品/ })).toBeVisible();
     await expect(page.getByRole("heading", { name: "选择购买门店" })).toHaveCount(0);
     await expectNoHorizontalOverflow(page);
@@ -79,37 +79,57 @@ test.describe("T017 · Mobile convenience store browsing and independent cart", 
     await expect(page.getByRole("button", { name: "查看便利店活动" })).toContainText("早八能量补给");
     await expect(page.getByRole("button", { name: "查看便利店活动" })).not.toContainText(/mock|fixture/i);
 
-    await page.getByRole("button", { name: "切换门店" }).click();
+    await page.getByRole("button", { name: /切换门店，当前门店：云岭社区店/ }).click();
     await page.getByRole("button", { name: "选择门店：南岸生活馆" }).click();
     await expect(page.getByRole("button", { name: "查看便利店活动" })).toHaveCount(0);
   });
 
-  test("retail browse uses product artwork, compact rows and a persistent cart bar", async ({ page }) => {
+  test("T031 dual-column layout: left category sidebar, compact product rows, floating cart bar", async ({ page }) => {
     await openConvenience(page);
     await page.getByRole("button", { name: "选择门店：云岭社区店" }).click();
 
-    const artwork = page.getByRole("img", { name: /商品主图/ });
-    expect(await artwork.count()).toBeGreaterThanOrEqual(5);
-    expect(await page.locator("article").count()).toBeGreaterThanOrEqual(5);
+    // 左侧分类栏存在
+    const categoryNav = page.getByRole("navigation", { name: "商品分类" });
+    await expect(categoryNav).toBeVisible();
+    const categoryButtons = categoryNav.getByRole("button");
+    expect(await categoryButtons.count()).toBeGreaterThanOrEqual(3);
 
+    // 分类选中态
+    const firstCategory = categoryButtons.first();
+    await expect(firstCategory).toHaveAttribute("aria-pressed", "true");
+
+    // 商品行存在且数量充足
+    const productRows = page.getByRole("button", { name: /查看商品：/ });
+    expect(await productRows.count()).toBeGreaterThanOrEqual(3);
+
+    // 底部悬浮购物栏存在
     const cartBar = page.getByRole("button", { name: /打开购物车，3 件商品/ });
     await expect(cartBar).toBeVisible();
-    await expect(cartBar).toHaveCSS("position", "fixed");
+    await expect(cartBar).toContainText("合计");
+    await expect(cartBar).toContainText("去结算");
 
-    const nav = page.getByRole("navigation", { name: "一级导航" });
-    const [cartBox, navBox] = await Promise.all([cartBar.boundingBox(), nav.boundingBox()]);
-    expect(cartBox).not.toBeNull();
-    expect(navBox).not.toBeNull();
-    expect(cartBox.y + cartBox.height).toBeLessThanOrEqual(navBox.y + 1);
-
+    // 购物栏在商品列表上方悬浮（最后一个商品完整可见，不被遮挡）
+    const lastProduct = page.getByRole("button", { name: /加入购物车：/ }).last();
     await page.evaluate(() => window.scrollTo(0, document.body.scrollHeight));
-    await expect(cartBar).toBeVisible();
-    await expect(page.getByRole("textbox", { name: "搜索当前门店商品" })).toBeVisible();
+    const lastBox = await lastProduct.boundingBox();
+    const cartBox = await cartBar.boundingBox();
+    expect(lastBox).not.toBeNull();
+    expect(cartBox).not.toBeNull();
+    expect(lastBox.y + lastBox.height).toBeLessThanOrEqual(cartBox.y + 2);
 
+    // 加购后购物栏更新
     await page.getByRole("button", { name: "加入购物车：青柠气泡水" }).click();
     const updatedBar = page.getByRole("button", { name: /打开购物车，4 件商品/ });
     await expect(updatedBar).toBeVisible();
     await expect(updatedBar).toContainText("¥43.10");
+
+    // 单品/套餐切换存在
+    await expect(page.getByRole("button", { name: "单品", exact: true })).toBeVisible();
+    await expect(page.getByRole("button", { name: "套餐", exact: true })).toBeVisible();
+
+    // 可用券入口存在
+    await expect(page.getByRole("button", { name: /可用券/ })).toBeVisible();
+
     await expectNoHorizontalOverflow(page);
   });
 
@@ -132,12 +152,13 @@ test.describe("T017 · Mobile convenience store browsing and independent cart", 
     await expect(page.getByRole("button", { name: "加入购物车：燕麦拿铁" })).toBeDisabled();
   });
 
-  test("cart opens the T018 checkout with fulfillment selection without mixing carts", async ({ page }) => {
+  test("cart opens sheet then goes to T018 checkout without mixing carts", async ({ page }) => {
     await openConvenience(page);
     await page.getByRole("button", { name: "选择门店：云岭社区店" }).click();
+    // 点击购物栏打开抽屉
     await page.getByRole("button", { name: /打开购物车，3 件商品/ }).click();
-    await expect(page.getByRole("heading", { name: "门店独立购物车" })).toBeVisible();
-    await expect(page.getByText("商品合计")).toBeVisible();
+    await expect(page.getByText("购物车").first()).toBeVisible();
+    // 抽屉内点去结算
     await page.getByRole("button", { name: "去结算" }).click();
     await expect(page.getByRole("heading", { name: "选择履约方式并确认订单" })).toBeVisible();
     await expect(page.getByRole("button", { name: /到店自提/ })).toBeVisible();
