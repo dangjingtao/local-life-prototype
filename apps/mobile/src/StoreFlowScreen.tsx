@@ -842,7 +842,7 @@ export function StoreFlowScreen({ openActivity, entryContext }: StoreFlowScreenP
   if (step === "checkout") {
     return (
       <>
-        <button type="button" onClick={() => goStep("cart")} className="inline-flex min-h-11 items-center gap-2 text-sm font-medium text-[var(--color-text-secondary)]">
+        <button type="button" onClick={() => { setCartSheetOpen(true); goStep("browse"); }} className="inline-flex min-h-11 items-center gap-2 text-sm font-medium text-[var(--color-text-secondary)]">
           <PrototypeIcon name="back" size={18} /> 返回购物车
         </button>
 
