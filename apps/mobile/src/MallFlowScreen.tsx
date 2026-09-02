@@ -34,6 +34,7 @@ interface MallFlowScreenProps {
   carts: StorefrontCartState;
   setCarts: Dispatch<SetStateAction<StorefrontCartState>>;
   onStepChange?: (step: MallStep) => void;
+  onOpenGlobalSearch?: () => void;
 }
 
 const mallProducts = catalogProducts.filter((product) => product.scenes.includes("mall"));
@@ -84,7 +85,7 @@ function ProductVisual({ product, compact = false, home = false }: { product: Pr
   return <MallProductArtwork productId={product.id} name={product.name} className={sizeClass} />;
 }
 
-export function MallFlowScreen({ entryContext, carts, setCarts, onStepChange }: MallFlowScreenProps) {
+export function MallFlowScreen({ entryContext, carts, setCarts, onStepChange, onOpenGlobalSearch }: MallFlowScreenProps) {
   const entryProduct = entryContext?.entityType === "product"
     ? findById(catalogProducts, entryContext.entityId)
     : undefined;
@@ -397,22 +398,29 @@ export function MallFlowScreen({ entryContext, carts, setCarts, onStepChange }: 
 
     return (
       <div data-testid="mall-detail" className="relative -mx-4 bg-[var(--color-background)] pb-[88px]">
-        <header data-testid="mall-detail-topbar" className="sticky top-0 z-20 flex h-12 items-center justify-between border-b border-[var(--color-border)] bg-[var(--color-surface)]/95 px-2 backdrop-blur">
+        <header data-testid="mall-detail-topbar" className="sticky top-0 z-20 flex h-12 items-center border-b border-[var(--color-border)] bg-[var(--color-surface)]/95 px-2 backdrop-blur">
           <button type="button" aria-label="返回商城" onClick={() => goStep("home")} className="flex h-11 w-11 items-center justify-center rounded-full active:bg-[var(--color-surface-subtle)]">
             <PrototypeIcon name="back" size={21} />
           </button>
-          <p className="text-[15px] font-semibold">商品详情</p>
-          <button
-            type="button"
-            onClick={() => goStep("cart")}
-            aria-label={`商城购物车，共 ${cartCount} 件`}
-            className="relative flex h-11 w-11 items-center justify-center rounded-full active:bg-[var(--color-surface-subtle)]"
-          >
-            <PrototypeIcon name="cart" size={21} />
-            {cartCount > 0 && (
-              <span className="absolute right-0 top-0 flex min-h-5 min-w-5 items-center justify-center rounded-full bg-[var(--color-primary)] px-1 text-[10px] font-bold text-[var(--color-on-primary)]">{cartCount}</span>
+          <p className="pointer-events-none absolute left-1/2 -translate-x-1/2 text-[15px] font-semibold">商品详情</p>
+          <div className="ml-auto flex items-center">
+            {onOpenGlobalSearch && (
+              <button type="button" aria-label="打开全局搜索" onClick={onOpenGlobalSearch} className="flex h-11 w-11 items-center justify-center rounded-full active:bg-[var(--color-surface-subtle)]">
+                <PrototypeIcon name="search" size={20} />
+              </button>
             )}
-          </button>
+            <button
+              type="button"
+              onClick={() => goStep("cart")}
+              aria-label={`商城购物车，共 ${cartCount} 件`}
+              className="relative flex h-11 w-11 items-center justify-center rounded-full active:bg-[var(--color-surface-subtle)]"
+            >
+              <PrototypeIcon name="cart" size={21} />
+              {cartCount > 0 && (
+                <span className="absolute right-0 top-0 flex min-h-5 min-w-5 items-center justify-center rounded-full bg-[var(--color-primary)] px-1 text-[10px] font-bold text-[var(--color-on-primary)]">{cartCount}</span>
+              )}
+            </button>
+          </div>
         </header>
 
         <MallProductArtwork
@@ -453,7 +461,7 @@ export function MallFlowScreen({ entryContext, carts, setCarts, onStepChange }: 
         <section data-testid="mall-detail-shipping" className="flex h-[72px] items-center justify-between gap-4 border-b border-[var(--color-border)] bg-[var(--color-surface)] px-4">
           <div className="min-w-0">
             <p className="text-sm font-semibold">配送与包邮</p>
-            <p className="mt-1 truncate text-xs text-[var(--color-text-secondary)]">全国快递 · {freeShipping ? "当前商品包邮" : `满 ¥${freeShippingThreshold} 包邮，未满运费 ¥${standardShippingFee}`}</p>
+            <p className="mt-1 truncate text-xs text-[var(--color-text-secondary)]">全国快递 · 满 ¥{freeShippingThreshold} 包邮{freeShipping ? " · 当前商品已包邮" : `，未满运费 ¥${standardShippingFee}`}</p>
           </div>
           <span className="shrink-0 rounded-full bg-[var(--color-success-bg)] px-2.5 py-1 text-[10px] font-medium text-[var(--color-success)]">送货上门</span>
         </section>
