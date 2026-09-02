@@ -7,7 +7,7 @@ import { CampaignActivityScreen } from "./CampaignActivityScreen";
 import { CareFlowScreen } from "./CareFlowScreen";
 import { CareReportScreen } from "./CareReportScreen";
 import { GlobalSearchScreen, type SearchBusinessHandoff } from "./GlobalSearchScreen";
-import { MallFlowScreen, type StorefrontCartState } from "./MallFlowScreen";
+import { MallFlowScreen, type MallStep, type StorefrontCartState } from "./MallFlowScreen";
 import { MembershipCenterScreen } from "./MembershipCenterScreen";
 import { StoreFlowScreen } from "./StoreFlowScreen";
 import { V02HomeScreen } from "./V02HomeScreen";
@@ -101,6 +101,7 @@ export function App() {
   const [selectedCampaignId, setSelectedCampaignId] = useState<string | null>(null);
   const [searchHandoff, setSearchHandoff] = useState<SearchBusinessHandoff | null>(null);
   const [mallCarts, setMallCarts] = useState<StorefrontCartState>({});
+  const [mallStep, setMallStep] = useState<MallStep>("home");
   const [reportEntry, setReportEntry] = useState<ReportEntry | null>(null);
 
   const activeTab: Tab = screen === "search" || screen === "activity"
@@ -115,17 +116,20 @@ export function App() {
       : screen === "reports"
         ? "我的检测"
         : tabs.find((item) => item.id === activeTab)?.label ?? "首页";
+  const showGlobalHeader = screen !== "mall" || mallStep !== "home";
 
   const scrollTop = () => window.scrollTo({ top: 0, behavior: "smooth" });
 
   const go = (next: Screen) => {
     setSearchHandoff(null);
+    if (next === "mall") setMallStep("home");
     setScreen(next);
     scrollTop();
   };
 
   const openBusinessFromSearch = (handoff: SearchBusinessHandoff) => {
     setSearchHandoff(handoff);
+    if (handoff.domain === "mall") setMallStep(handoff.entityType === "product" ? "detail" : "home");
     setScreen(handoff.domain);
     scrollTop();
   };
@@ -180,24 +184,26 @@ export function App() {
 
   return (
     <div className="min-h-[100dvh] bg-[var(--color-background)] text-[var(--color-text-primary)]">
-      <header className="sticky top-0 z-20 border-b border-[var(--color-border)] bg-[var(--color-surface)]/95 pt-[env(safe-area-inset-top)] backdrop-blur">
-        <div className="mx-auto flex min-h-14 max-w-[390px] items-center justify-between px-4">
-          <div className="min-w-0">
-            <p className="text-[10px] font-semibold tracking-[0.14em] text-[var(--color-primary)]">LOCAL LIFE · V0.2 PREVIEW</p>
-            <h1 className="truncate text-base font-semibold">{title}</h1>
-          </div>
-          <div className="flex items-center gap-1">
-            {screen !== "search" && (
-              <button type="button" aria-label="打开全局搜索" onClick={() => openSearch()} className="flex min-h-11 min-w-11 items-center justify-center rounded-full active:bg-[var(--color-surface-subtle)]">
-                <PrototypeIcon name="search" size={19} />
+      {showGlobalHeader && (
+        <header className="sticky top-0 z-20 border-b border-[var(--color-border)] bg-[var(--color-surface)]/95 pt-[env(safe-area-inset-top)] backdrop-blur">
+          <div className="mx-auto flex min-h-14 max-w-[390px] items-center justify-between px-4">
+            <div className="min-w-0">
+              <p className="text-[10px] font-semibold tracking-[0.14em] text-[var(--color-primary)]">LOCAL LIFE · V0.2 PREVIEW</p>
+              <h1 className="truncate text-base font-semibold">{title}</h1>
+            </div>
+            <div className="flex items-center gap-1">
+              {screen !== "search" && (
+                <button type="button" aria-label="打开全局搜索" onClick={() => openSearch()} className="flex min-h-11 min-w-11 items-center justify-center rounded-full active:bg-[var(--color-surface-subtle)]">
+                  <PrototypeIcon name="search" size={19} />
+                </button>
+              )}
+              <button type="button" aria-label="活动中心" onClick={openActivityCenter} className="flex min-h-11 min-w-11 items-center justify-center rounded-full active:bg-[var(--color-surface-subtle)]">
+                <PrototypeIcon name="info" size={19} />
               </button>
-            )}
-            <button type="button" aria-label="活动中心" onClick={openActivityCenter} className="flex min-h-11 min-w-11 items-center justify-center rounded-full active:bg-[var(--color-surface-subtle)]">
-              <PrototypeIcon name="info" size={19} />
-            </button>
+            </div>
           </div>
-        </div>
-      </header>
+        </header>
+      )}
 
       <PrototypeState view={view}>
         <main className="mx-auto max-w-[390px] space-y-6 px-4 py-5 pb-28">
@@ -225,6 +231,7 @@ export function App() {
                 entryContext={searchHandoff?.domain === "mall" ? searchHandoff : undefined}
                 carts={mallCarts}
                 setCarts={setMallCarts}
+                onStepChange={setMallStep}
               />
             </>
           )}
