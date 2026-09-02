@@ -52,3 +52,8 @@ body { background: var(--color-background); }
   width: 10px;
   background: color-mix(in srgb, var(--mall-art-accent) 28%, transparent);
 }
+
+/* T019-R3: the prototype-state control must not cover the fixed checkout CTA. */
+body:has([data-testid="mall-cart"]) details:has(> summary[aria-label^="Prototype ·"]) {
+  bottom: calc(144px + env(safe-area-inset-bottom));
+}
