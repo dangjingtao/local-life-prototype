@@ -99,7 +99,7 @@ export function MallOrderView({ snapshot, status, onBack, onAdvance }: MallOrder
           const reached = index <= stage;
           const current = index === stage;
           return (
-            <div key={label} className="relative flex min-w-0 flex-1 flex-col items-center gap-1.5 text-center last:flex-none last:w-[72px] first:flex-none first:w-[72px]">
+            <div key={label} className="relative flex min-w-0 flex-1 flex-col items-center gap-1.5 text-center">
               {index < 2 && (
                 <span className={`absolute left-1/2 top-[11px] h-px w-full ${index < stage ? "bg-[var(--color-primary)]" : "bg-[var(--color-border)]"}`} />
               )}
