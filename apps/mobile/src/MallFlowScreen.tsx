@@ -13,6 +13,7 @@ import {
   type Product,
 } from "@prototype/shared";
 import type { SearchBusinessHandoff } from "./GlobalSearchScreen";
+import { MallCartView } from "./MallCartView";
 import { MallProductArtwork } from "./MallProductArtwork";
 
 export type MallStep = "home" | "detail" | "cart" | "checkout" | "order";
@@ -398,11 +399,11 @@ export function MallFlowScreen({ entryContext, carts, setCarts, onStepChange, on
 
     return (
       <div data-testid="mall-detail" className="relative -mx-4 bg-[var(--color-background)] pb-[88px]">
-        <header data-testid="mall-detail-topbar" className="sticky top-0 z-20 flex h-12 items-center border-b border-[var(--color-border)] bg-[var(--color-surface)]/95 px-2 backdrop-blur">
+        <header data-testid="mall-detail-topbar" className="sticky top-0 z-20 flex h-[calc(48px+env(safe-area-inset-top))] items-end border-b border-[var(--color-border)] bg-[var(--color-surface)]/95 px-2 pb-0 pt-[env(safe-area-inset-top)] backdrop-blur">
           <button type="button" aria-label="返回商城" onClick={() => goStep("home")} className="flex h-11 w-11 items-center justify-center rounded-full active:bg-[var(--color-surface-subtle)]">
             <PrototypeIcon name="back" size={21} />
           </button>
-          <p className="pointer-events-none absolute left-1/2 -translate-x-1/2 text-[15px] font-semibold">商品详情</p>
+          <p className="pointer-events-none absolute bottom-[14px] left-1/2 -translate-x-1/2 text-[15px] font-semibold">商品详情</p>
           <div className="ml-auto flex items-center">
             {onOpenGlobalSearch && (
               <button type="button" aria-label="打开全局搜索" onClick={onOpenGlobalSearch} className="flex h-11 w-11 items-center justify-center rounded-full active:bg-[var(--color-surface-subtle)]">
@@ -423,11 +424,16 @@ export function MallFlowScreen({ entryContext, carts, setCarts, onStepChange, on
           </div>
         </header>
 
-        <MallProductArtwork
-          productId={selectedProduct.id}
-          name={selectedProduct.name}
-          className="h-[286px] w-full"
-        />
+        <div className="relative h-[286px] w-full overflow-hidden bg-[var(--color-surface)]">
+          <MallProductArtwork
+            productId={selectedProduct.id}
+            name={selectedProduct.name}
+            className="h-full w-full"
+          />
+          <div className="pointer-events-none absolute inset-x-[14%] bottom-[24px] h-10 rounded-[50%] bg-[var(--color-text-primary)]/5 blur-xl" />
+          <div className="pointer-events-none absolute bottom-[30px] left-1/2 h-[118px] w-[118px] -translate-x-1/2 rounded-[32px] border border-[var(--color-surface)]/70 bg-[var(--color-surface)]/22 shadow-[0_24px_55px_rgba(15,23,42,0.08)] backdrop-blur-[1px]" />
+          <div className="pointer-events-none absolute bottom-[42px] left-1/2 h-[5px] w-[118px] -translate-x-1/2 rounded-full bg-[var(--color-primary)]/14" />
+        </div>
 
         <section data-testid="mall-detail-main-info" className="h-[132px] border-b border-[var(--color-border)] bg-[var(--color-surface)] px-4 py-3">
           <div className="flex min-w-0 items-center gap-2">
@@ -493,58 +499,19 @@ export function MallFlowScreen({ entryContext, carts, setCarts, onStepChange, on
 
   if (step === "cart") {
     return (
-      <>
-        <button type="button" onClick={() => goStep("home")} className="inline-flex min-h-11 items-center gap-2 text-sm font-medium text-[var(--color-text-secondary)]">
-          <PrototypeIcon name="back" size={18} /> 继续购物
-        </button>
-
-        <div>
-          <p className="text-sm text-[var(--color-text-secondary)]">{selectedStorefront.name} · 独立购物车</p>
-          <h2 className="mt-1 text-2xl font-semibold">购物车</h2>
-          <p className="mt-2 text-sm leading-6 text-[var(--color-text-secondary)]">当前购物车只属于线上 Storefront，不与任何便利店购物车混单。</p>
-        </div>
-
-        {cartRows.length === 0 ? (
-          <Card className="bg-[var(--color-surface-subtle)]">
-            <p className="font-semibold">购物车还是空的</p>
-            <p className="mt-1 text-sm text-[var(--color-text-secondary)]">先挑一件商品再来结算。</p>
-            <Button className="mt-4 w-full" onClick={() => goStep("home")}>去逛商城</Button>
-          </Card>
-        ) : (
-          <>
-            <div className="space-y-3">
-              {cartRows.map(({ product, quantity, unitPrice, subtotal: rowSubtotal }) => (
-                <Card key={product.id} className="p-4">
-                  <div className="flex gap-3">
-                    <ProductVisual product={product} compact />
-                    <div className="min-w-0 flex-1">
-                      <p className="font-semibold leading-5">{product.name}</p>
-                      <p className="mt-1 text-xs text-[var(--color-text-tertiary)]">{product.spec ?? product.category}</p>
-                      <p className="mt-2 font-semibold text-[var(--color-primary-pressed)]">¥{unitPrice.toFixed(2)}</p>
-                      <div className="mt-3 flex items-center justify-between gap-3">
-                        <div className="flex items-center rounded-full border border-[var(--color-border)]">
-                          <button type="button" aria-label={`减少${product.name}`} onClick={() => updateQuantity(product.id, -1)} className="flex min-h-11 min-w-11 items-center justify-center text-lg">−</button>
-                          <span className="min-w-8 text-center text-sm font-semibold">{quantity}</span>
-                          <button type="button" aria-label={`增加${product.name}`} onClick={() => updateQuantity(product.id, 1)} className="flex min-h-11 min-w-11 items-center justify-center text-lg">+</button>
-                        </div>
-                        <span className="text-sm font-semibold">¥{rowSubtotal.toFixed(2)}</span>
-                      </div>
-                    </div>
-                  </div>
-                </Card>
-              ))}
-            </div>
-
-            <Card>
-              <div className="flex items-center justify-between gap-3"><span className="text-sm text-[var(--color-text-secondary)]">商品小计</span><span className="font-semibold">¥{subtotal.toFixed(2)}</span></div>
-              <div className="mt-3 flex items-center justify-between gap-3 border-t border-[var(--color-border)] pt-3"><span className="text-sm text-[var(--color-text-secondary)]">预计运费</span><span className="font-semibold">{shippingFee === 0 ? "包邮" : `¥${shippingFee.toFixed(2)}`}</span></div>
-              {subtotal < freeShippingThreshold && <p className="mt-3 text-xs text-[var(--color-text-tertiary)]">再购 ¥{(freeShippingThreshold - subtotal).toFixed(2)} 可按当前 Mock 规则包邮。</p>}
-            </Card>
-
-            <Button className="w-full" onClick={() => goStep("checkout")}>去结算 · ¥{payable.toFixed(2)}</Button>
-          </>
-        )}
-      </>
+      <MallCartView
+        sourceLabel={storefrontConsumerName(selectedChannel.kind)}
+        sourceName={selectedStorefront.name}
+        cartCount={cartCount}
+        rows={cartRows}
+        subtotal={subtotal}
+        shippingFee={shippingFee}
+        payable={payable}
+        freeShippingThreshold={freeShippingThreshold}
+        onContinueShopping={() => goStep("home")}
+        onUpdateQuantity={updateQuantity}
+        onCheckout={() => goStep("checkout")}
+      />
     );
   }
 
