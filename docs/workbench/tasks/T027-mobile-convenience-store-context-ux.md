@@ -1,6 +1,6 @@
 # T027 · Mobile 便利店选店与门店上下文 UX 返工
 
-- Status: REVIEW
+- Status: PASS
 - Target version: 0.2.0
 - Impact: Mobile / UX
 - Owner: -
@@ -79,7 +79,7 @@ T017 已完成代码、CI 与功能性验收，但 2026-09-01 内部 UX 复审�
 
 ## Review
 
-- Reviewer: Codex + Experimental OpenCode PR Review + full Playwright quality gate
-- Result: REVIEW
-- Conclusion: T027 施工范围已完成并合入 `dev`，当前门店连续性、关闭门店表达与全局搜索 handoff 已达到任务合同；最终 PR head 的 Verify / Browser / OpenCode 均通过，没有未解决 P0-P2。按项目规则保持 `REVIEW`，不提前替 T030 做最终 UX PASS。
-- Follow-up: T028 可从最新 `dev` 接续；T030 最终复审时显式检查保留的 T018 traceable-mock 标记与两个非阻塞可访问性 / 边界项。
+- Reviewer: T030 UX 复审确认
+- Result: PASS
+- Conclusion: 经 T030 逐屏 UX 复审，门店连续性、关闭门店表达、切店购物车隔离、全局搜索 handoff 均达到 V0.2 质量标准，正常消费者路径无工程术语。便利店 UX 返工系列全部通过。
+- Follow-up: 便利店 V0.2 门店上下文收口完成。

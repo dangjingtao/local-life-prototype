@@ -6,7 +6,7 @@
 
 - Type: Mobile / UX
 
-- Status: REVIEW
+- Status: PASS
 
 - Target: 0.2.0
 
