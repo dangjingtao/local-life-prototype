@@ -43,7 +43,10 @@ test.describe("T016 · Mobile operations home and global search", () => {
       await expect(nav.getByRole("button", { name: label, exact: true })).toBeVisible();
     }
 
-    await expect(page.getByRole("button", { name: "打开全局搜索" }).first()).toBeVisible();
+    await expect(page.getByRole("heading", { name: "首页", exact: true })).toBeVisible();
+    await expect(page.getByRole("button", { name: "打开全局搜索" })).toHaveCount(1);
+    await expect(page.getByText("LOCAL LIFE · V0.2 PREVIEW", { exact: true })).toHaveCount(0);
+    await expect(page.getByText("搜索便利店、商城、智慧抗衰或活动", { exact: true })).toHaveCount(0);
     await expect(page.getByText("初秋轻生活计划")).toBeVisible();
     await expect(page.getByText("早八能量补给")).toBeVisible();
     await expect(page.getByText("秋日护理精选")).toBeVisible();
@@ -53,7 +56,7 @@ test.describe("T016 · Mobile operations home and global search", () => {
 
   test("global search returns store, mall, care and campaign entities", async ({ page }) => {
     await openMobile(page);
-    await page.getByRole("button", { name: "打开全局搜索" }).first().click();
+    await page.getByRole("button", { name: "打开全局搜索" }).click();
 
     await search(page, "燕麦");
     await expect(page.getByRole("button", { name: /便利店结果：燕麦拿铁/ })).toBeVisible();
@@ -71,7 +74,7 @@ test.describe("T016 · Mobile operations home and global search", () => {
 
   test("convenience search chooses an orderable store and enters the product naturally", async ({ page }) => {
     await openMobile(page);
-    await page.getByRole("button", { name: "打开全局搜索" }).first().click();
+    await page.getByRole("button", { name: "打开全局搜索" }).click();
     await search(page, "燕麦");
     await page.getByRole("button", { name: /便利店结果：燕麦拿铁/ }).click();
 
@@ -92,13 +95,13 @@ test.describe("T016 · Mobile operations home and global search", () => {
 
   test("mall and care results preserve the selected entity on domain handoff", async ({ page }) => {
     await openMobile(page);
-    await page.getByRole("button", { name: "打开全局搜索" }).first().click();
+    await page.getByRole("button", { name: "打开全局搜索" }).click();
     await search(page, "胶原");
     await page.getByRole("button", { name: /线上商城结果：胶原蛋白肽饮/ }).click();
     await expect(page.getByText("来自全局搜索", { exact: true })).toBeVisible();
     await expect(page.getByText("胶原蛋白肽饮", { exact: true }).first()).toBeVisible();
 
-    await page.getByRole("button", { name: "打开全局搜索" }).first().click();
+    await page.getByRole("button", { name: "打开全局搜索" }).click();
     await search(page, "基础状态检测");
     await page.getByRole("button", { name: "查看智慧抗衰结果：基础状态检测", exact: true }).click();
     await expect(page.getByText("来自全局搜索", { exact: true })).toBeVisible();
@@ -116,7 +119,7 @@ test.describe("T016 · Mobile operations home and global search", () => {
 
   test("search preserves its query across loading and error prototype states", async ({ page }) => {
     await openMobile(page);
-    await page.getByRole("button", { name: "打开全局搜索" }).first().click();
+    await page.getByRole("button", { name: "打开全局搜索" }).click();
     const input = await search(page, "护理");
     await expect(page.getByText(/找到 .* 条结果/)).toBeVisible();
 
