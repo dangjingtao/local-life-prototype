@@ -62,6 +62,7 @@
 | T028 | Mobile 便利店商品浏览与零售密度 UX 返工 | Mobile / UX | DOING | 0.2.0 | T027 | PR #16 施工中；商品主图 / 包装图、紧凑商品列表、消费者活动位、持续可达底部购物栏；Codex review 返工中 |
 | T029 | Mobile 便利店商详、购物车与链路收口 UX 返工 | Mobile / UX | TODO | 0.2.0 | T027、T028 | 商详信息层级、购物车收口、唯一购买主链、legacy 自提兼容入口迁出正常路径 |
 | T030 | Mobile 便利店 UX 复审与验收 | UX / QA | TODO | 0.2.0 | T027-T029 | 390×844 实屏复审、内部术语扫描、门店连续性 / 购物栏 / 唯一购买主链、T012/T017/T018 回归；UX PASS 后恢复 T017 PASS |
+| T033 | Mobile 顶栏、首页搜索与商城语义收口 | Mobile / UX / QA | REVIEW | 0.2.0 | T016、T019 | PR #27；首页只保留顶栏搜索，顶栏去英文 Preview；商城五屏增加线下门店语义硬回归；Verify #285 success，最终 head Browser / Verify 重跑中 |
 
 ## V0.1 收口记录
 
@@ -76,6 +77,7 @@
 - T017 因 2026-09-01 内部 UX 复审 `CHANGES_NEEDED` 重开为 `REVIEW`；新增 T027-T030 作为消费侧 UX 返工与独立复审链。
 - T019 商城 UX 返工已完成 R1-R4 施工与 R5 独立复审。R5 首轮真实五屏链在 Order 页发现 19px 横向溢出并修复；最终 Browser #98 中 R5 / R1-R4 / T019 商城链全部通过，五屏 artifact `9855267147` 已逐屏复审，无新的阻塞级 UX / Visual 缺陷。当前 R5 / T019 均保持 `REVIEW`，等待用户最终视觉确认。
 - T027 已完成施工、review gate 并合入 `dev`；T028 正在 PR #16 施工 / review。T028 → T029 → T030 继续串行，避免当前单体 `StoreFlowScreen.tsx` 产生语义 / 文件竞态。
+- T033 已完成本轮首页 / 顶栏 / 商城语义整改并进入 `REVIEW`，PR #27 等待最终 head 门禁后合入 `dev`。
 - Wave 3 PC 后台 T022、T023、T024 的业务前置仍已满足，可与消费侧 UX 返工 lane 并行施工；UX 返工不得改变 T018 / Shared 已确认业务语义。
 - T025 必须等待 T022-T024 的 PC 业务语义稳定后施工。
 - T026 除原前置外新增 T030 UX gate；T030 未 PASS 时，不得把 V0.2 便利店中高保真视觉视为完成；商城侧还需用户把 R5 / T019 正式确认 PASS。
