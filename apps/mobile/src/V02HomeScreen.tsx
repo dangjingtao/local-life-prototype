@@ -50,7 +50,7 @@ function MediaTile({ icon, eyebrow, title }: { icon: "home" | "modules" | "succe
 export function V02HomeScreen({ onOpenSearch, onOpenDomain, onOpenCampaign }: V02HomeScreenProps) {
   return (
     <>
-      <section className="space-y-4">
+      <section>
         <div className="flex items-end justify-between gap-3">
           <div>
             <p className="text-sm text-[var(--color-text-secondary)]">上午好，{coreDemoUser.displayName}</p>
@@ -61,17 +61,6 @@ export function V02HomeScreen({ onOpenSearch, onOpenDomain, onOpenCampaign }: V0
             <p className="mt-1">{coreDemoUser.pointsBalance} 积分</p>
           </div>
         </div>
-
-        <button
-          type="button"
-          onClick={() => onOpenSearch()}
-          className="flex min-h-12 w-full items-center gap-3 rounded-[var(--radius-container)] border border-[var(--color-border)] bg-[var(--color-surface)] px-4 text-left text-sm text-[var(--color-text-tertiary)] shadow-sm transition active:bg-[var(--color-surface-subtle)]"
-          aria-label="打开全局搜索"
-        >
-          <PrototypeIcon name="search" size={19} />
-          <span className="flex-1">搜索便利店、商城、智慧抗衰或活动</span>
-          <span className="text-xs">全局</span>
-        </button>
       </section>
 
       {heroCampaign && (
