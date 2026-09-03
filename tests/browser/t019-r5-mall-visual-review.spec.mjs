@@ -3,6 +3,7 @@ import { expect, test } from "@playwright/test";
 
 const MOBILE = "http://127.0.0.1:4173";
 const EVIDENCE_DIR = "test-results/t019-r5-visual-evidence";
+const OFFLINE_STORE_TERMS = /门店|到店自提|3\s*km|短配|门店配送|当前门店/i;
 
 async function screenshot(page, filename) {
   await page.evaluate(() => window.scrollTo(0, 0));
@@ -19,6 +20,22 @@ async function expectNoHorizontalOverflow(page) {
   expect(Math.max(metrics.html, metrics.body), JSON.stringify(metrics)).toBeLessThanOrEqual(metrics.viewport + 1);
 }
 
+async function expectNoOfflineStoreTerms(locator) {
+  const offendingTextNodes = await locator.evaluate((root, patternSource) => {
+    const pattern = new RegExp(patternSource, "i");
+    const walker = document.createTreeWalker(root, NodeFilter.SHOW_TEXT);
+    const matches = [];
+    let node = walker.nextNode();
+    while (node) {
+      const text = node.nodeValue?.trim() ?? "";
+      if (text && pattern.test(text)) matches.push(text);
+      node = walker.nextNode();
+    }
+    return matches;
+  }, OFFLINE_STORE_TERMS.source);
+  expect(offendingTextNodes).toEqual([]);
+}
+
 test.describe("T019-R5 · five-screen independent visual review evidence", () => {
   test.use({ viewport: { width: 390, height: 844 } });
 
@@ -33,6 +50,7 @@ test.describe("T019-R5 · five-screen independent visual review evidence", () =>
     const home = page.getByTestId("mall-home");
     await expect(home).toBeVisible();
     await expect(home).not.toContainText(/Storefront|Channel|Mock|T019|演示数据/i);
+    await expectNoOfflineStoreTerms(home);
     await expectNoHorizontalOverflow(page);
     await screenshot(page, "01-home.png");
 
@@ -41,7 +59,8 @@ test.describe("T019-R5 · five-screen independent visual review evidence", () =>
     const detail = page.getByTestId("mall-detail");
     await expect(detail).toBeVisible();
     await expect(page.getByRole("navigation", { name: "一级导航" })).toHaveCount(0);
-    await expect(detail).not.toContainText(/Storefront|Channel|Mock|T019|演示数据|到店自提|3\s*km/i);
+    await expect(detail).not.toContainText(/Storefront|Channel|Mock|T019|演示数据/i);
+    await expectNoOfflineStoreTerms(detail);
     await expectNoHorizontalOverflow(page);
     await screenshot(page, "02-detail.png");
 
@@ -53,7 +72,8 @@ test.describe("T019-R5 · five-screen independent visual review evidence", () =>
     const cart = page.getByTestId("mall-cart");
     await expect(cart).toBeVisible();
     await expect(page.getByRole("navigation", { name: "一级导航" })).toBeVisible();
-    await expect(cart).not.toContainText(/Storefront|Channel|Mock|T019|演示数据|到店自提|3\s*km/i);
+    await expect(cart).not.toContainText(/Storefront|Channel|Mock|T019|演示数据/i);
+    await expectNoOfflineStoreTerms(cart);
     await expectNoHorizontalOverflow(page);
     await screenshot(page, "03-cart.png");
 
@@ -62,7 +82,8 @@ test.describe("T019-R5 · five-screen independent visual review evidence", () =>
     await expect(checkout).toBeVisible();
     await expect(page.getByRole("navigation", { name: "一级导航" })).toHaveCount(0);
     await expect(checkout).toContainText("全国快递 · 送货上门");
-    await expect(checkout).not.toContainText(/Storefront|Channel|Mock|T019|演示数据|到店自提|3\s*km/i);
+    await expect(checkout).not.toContainText(/Storefront|Channel|Mock|T019|演示数据/i);
+    await expectNoOfflineStoreTerms(checkout);
     await expectNoHorizontalOverflow(page);
     await screenshot(page, "04-checkout.png");
 
@@ -71,7 +92,8 @@ test.describe("T019-R5 · five-screen independent visual review evidence", () =>
     await expect(order).toBeVisible();
     await expect(page.getByRole("navigation", { name: "一级导航" })).toHaveCount(0);
     await expect(order).toContainText("待发货");
-    await expect(order).not.toContainText(/Storefront|Channel|Mock|T019|演示数据|到店自提|3\s*km/i);
+    await expect(order).not.toContainText(/Storefront|Channel|Mock|T019|演示数据/i);
+    await expectNoOfflineStoreTerms(order);
     await expectNoHorizontalOverflow(page);
     await screenshot(page, "05-order.png");
   });
