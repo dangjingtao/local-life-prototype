@@ -56,7 +56,7 @@ async function expectPrototypeClearOfButton(page, button) {
 test.describe("T019-R4 · mall checkout and order approved UI", () => {
   test.use({ viewport: { width: 390, height: 844 } });
 
-  test("checkout follows Screen D geometry and consumer hierarchy", async ({ page }) => {
+  test("checkout keeps consumer hierarchy without storefront/source rows", async ({ page }) => {
     await openCheckoutWithTwoProducts(page);
 
     await expect(page.getByRole("navigation", { name: "一级导航" })).toHaveCount(0);
@@ -64,7 +64,7 @@ test.describe("T019-R4 · mall checkout and order approved UI", () => {
 
     await expectHeight(page.getByTestId("mall-checkout-topbar"), 52);
     await expectHeight(page.getByTestId("mall-checkout-address"), 104);
-    await expectHeight(page.getByTestId("mall-checkout-fulfillment"), 116);
+    await expectHeight(page.getByTestId("mall-checkout-fulfillment"), 78);
 
     const items = page.getByTestId("mall-checkout-item");
     expect(await items.count()).toBeGreaterThanOrEqual(2);
@@ -77,17 +77,17 @@ test.describe("T019-R4 · mall checkout and order approved UI", () => {
 
     const checkout = page.getByTestId("mall-checkout");
     await expect(checkout).toContainText("收货地址");
-    await expect(checkout).toContainText("店铺来源");
     await expect(checkout).toContainText("全国快递 · 送货上门");
     await expect(checkout).toContainText("订单备注");
     await expect(checkout).toContainText("应付金额");
+    await expect(checkout).not.toContainText(/店铺来源|精选店铺|官方商城|合作渠道专场/i);
     await expect(checkout).not.toContainText(/T019|Mock|演示数据|不发起真实支付|Storefront|Channel|外部平台/i);
 
     await expectPrototypeClearOfButton(page, page.getByRole("button", { name: "提交订单", exact: true }));
     await expectNoHorizontalOverflow(page);
   });
 
-  test("order follows Screen E geometry and progresses with consumer logistics copy", async ({ page }) => {
+  test("order keeps logistics hierarchy without storefront/source rows", async ({ page }) => {
     await openCheckoutWithTwoProducts(page);
     await page.getByRole("button", { name: "提交订单", exact: true }).click();
 
@@ -100,12 +100,13 @@ test.describe("T019-R4 · mall checkout and order approved UI", () => {
     await expectHeight(page.getByTestId("mall-order-number"), 44);
     await expectHeight(page.getByTestId("mall-order-progress"), 72);
     await expectHeight(page.getByTestId("mall-order-logistics"), 228);
-    await expectHeight(page.getByTestId("mall-order-info"), 136);
+    await expectHeight(page.getByTestId("mall-order-info"), 108);
     await expectHeight(page.getByTestId("mall-order-actionbar"), 72);
 
     const order = page.getByTestId("mall-order");
     await expect(order).toContainText("待发货");
     await expect(order).toContainText(/订单编号\s*LL\d+/);
+    await expect(order).not.toContainText(/店铺来源|精选店铺|官方商城|合作渠道专场/i);
     await expect(order).not.toContainText(/Mock|MOCK-|T019|演示物流|演示数据|Storefront|Channel/i);
     await expectNoHorizontalOverflow(page);
 
