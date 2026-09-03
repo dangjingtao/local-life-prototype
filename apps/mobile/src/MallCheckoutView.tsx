@@ -11,8 +11,6 @@ type MallCheckoutRow = {
 
 type MallCheckoutViewProps = {
   address: string;
-  sourceLabel: string;
-  sourceName: string;
   rows: MallCheckoutRow[];
   subtotal: number;
   shippingFee: number;
@@ -29,8 +27,6 @@ function money(value: number) {
 
 export function MallCheckoutView({
   address,
-  sourceLabel,
-  sourceName,
   rows,
   subtotal,
   shippingFee,
@@ -85,12 +81,8 @@ export function MallCheckoutView({
 
       <section
         data-testid="mall-checkout-fulfillment"
-        className="h-[116px] border-b border-[var(--color-border)] bg-[var(--color-surface)] px-4"
+        className="h-[78px] border-b border-[var(--color-border)] bg-[var(--color-surface)] px-4"
       >
-        <div className="flex h-[38px] items-center justify-between gap-4 border-b border-[var(--color-border)] text-[12px]">
-          <span className="shrink-0 text-[var(--color-text-secondary)]">店铺来源</span>
-          <span className="min-w-0 truncate font-medium">{sourceLabel} · {sourceName}</span>
-        </div>
         <div className="flex h-[39px] items-center justify-between gap-4 border-b border-[var(--color-border)] text-[12px]">
           <span className="shrink-0 text-[var(--color-text-secondary)]">配送方式</span>
           <span className="font-medium">全国快递 · 送货上门</span>
