@@ -1,6 +1,6 @@
 # T014 — 实验性 PR AI Review
 
-- Status: `REVIEW`
+- Status: `CANCELLED`
 - Type: CI / Review / AI Collaboration
 - Target version: `0.1.0`
 - Base branch: `dev`
@@ -59,7 +59,7 @@
 
 ## 当前施工结果
 
-已落地：
+历史已落地：
 
 - `.github/workflows/ai-pr-review.yml`
   - `review`：只读 OpenCode CLI review
@@ -72,7 +72,7 @@
 - `.gitignore` → `.ai/reviews/`
 - `docs/ai/skills.md` → 实验性 PR Review 权限边界
 
-已移除：
+历史已移除：
 
 - 直接 OpenRouter HTTP 调用
 - `scripts/ai-pr-review.mjs`
@@ -102,10 +102,10 @@
 
 同轮普通 `Verify Prototype` 继续触发，证明 review workflow 没有替代原有验证链路。
 
-## Review 结论
+## 最终结论 / 替代关系
 
-施工与 smoke test 已满足进入独立评审的条件，状态保持 `REVIEW`。
+2026-09-03，用户明确决定将当前 PR AI Review 切换为 CodeRabbit。
 
-默认模型现已按用户要求切换并实测为 `opencode-go/deepseek-v4-pro`。后续真实业务 PR 以该模型作为当前评审基线。
+因此 T014 结束为 `CANCELLED`，含义不是实验失败，而是该实验性自建 reviewer 不再继续作为当前方案维护。其 smoke test、历史 PR comment、CI 证据继续保留用于追溯。
 
-仍保持实验边界：OpenCode review 的 `NO_BLOCKING_FINDINGS` 不能把 T014 自动推进为 `PASS`；是否正式接受这套基础版由用户 / 独立评审决定。
+当前方案由 `T034 · CodeRabbit PR AI Review 迁移` 接替。T034 合入后，旧 `.github/workflows/ai-pr-review.yml`、OpenCode reviewer scripts、`review:pull` 本地收件箱链路均退出活跃合同。
