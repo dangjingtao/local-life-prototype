@@ -121,19 +121,19 @@
 - 每次状态变化至少留下一个可追踪证据：commit / PR / 页面路径 / 截图说明 / CI run / 明确评审结论之一。
 - 需求变化不得覆盖旧结论；保留变更记录并指出替代关系。
 
-## Experimental OpenCode PR Review
+## CodeRabbit PR Review
 
-规则见 `docs/ai/pr-review.md`。
+规则见 `docs/ai/pr-review.md`，仓库级配置见 `.coderabbit.yaml`。
 
 当当前分支存在一个目标为 `dev` 的 PR，并且用户要求继续施工、处理 review、修 review 或检查评审结果时：
 
-1. 先执行 `npm run review:pull`；如果无法从当前分支推断 PR，则执行 `npm run review:pull -- <PR_NUMBER>`。
-2. 读取 `.ai/reviews/latest.md`，确认其中的 PR、Head SHA 与当前工作分支对得上。
-3. 对每条 finding 回到当前代码与项目合同复核，不把模型意见直接当事实。
-4. 明确区分 Observation / Inference / Judgment；高置信缺陷才进入修复，证据不足的条目应说明并交给人工判断。
-5. 修复后 push 会触发新的 OpenCode review；本地处理时始终以最新带 `local-ai-review:v1` marker 的 review 为准，旧 review 只保留为历史证据。
-6. 实验 review 只作为独立评审证据，不得自动执行 GitHub APPROVE / REQUEST_CHANGES，不得据此把任务改成 `PASS`，不得自动 merge。
-7. `.ai/reviews/` 是本地 review 收件箱并被 gitignore；不要把同步副本提交到业务分支。
+1. 直接读取当前 PR 最新的 CodeRabbit review threads / comments，不再运行 `npm run review:pull` 或读取 `.ai/reviews/latest.md`。
+2. 先确认 finding 对应当前 PR latest head；旧 commit 上已经失效的 finding 不机械返工。
+3. 对每条 finding 回到当前代码、当前任务卡与产品合同复核，不把模型意见直接当事实。
+4. 明确区分 Observation / Inference / Judgment；高置信缺陷才进入修复，证据不足、纯偏好或与当前合同冲突的条目应说明并交给人工判断。
+5. 修复后 push 会触发 CodeRabbit 增量 review；处理时始终以 latest head 的 review 为准。
+6. CodeRabbit review 只作为独立评审证据，不得自动执行项目 `PASS` 或 merge，也不得替代真实浏览器 / UX / 产品验收。
+7. 历史 OpenCode review 继续作为既有任务 / PR 的历史证据保留，但不再作为当前 reviewer 合同。
 
 ## Daily Report Skill
 
