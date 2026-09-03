@@ -1,6 +1,6 @@
 # T033 · Mobile 顶栏、首页搜索与商城语义收口
 
-- Status: DOING
+- Status: REVIEW
 - Target version: 0.2.0
 - Impact: Mobile / UX / QA
 - Owner: Mira
@@ -37,14 +37,14 @@ V0.2 动线评审中，用户明确提出三条消费者侧 UX 修订：
 
 ## Acceptance
 
-- [ ] 首页正常态只有一个“打开全局搜索”入口，即顶栏搜索图标。
-- [ ] 首页内容区不再出现“搜索便利店、商城、智慧抗衰或活动”大搜索框。
-- [ ] 正常登录后全局顶栏不出现 `LOCAL LIFE · V0.2 PREVIEW`。
-- [ ] 顶栏汉字标题独占单行且保持可读、垂直居中。
-- [ ] Mall Home / Detail / Cart / Checkout / Order 页面主体不出现“门店 / 当前门店 / 到店自提 / 3km / 短配 / 门店配送”等线下履约语义。
-- [ ] T016 首页 / 搜索回归通过。
-- [ ] T019-R5 商城五屏回归通过。
-- [ ] Verify Prototype 通过。
+- [x] 首页正常态只有一个“打开全局搜索”入口，即顶栏搜索图标。
+- [x] 首页内容区不再出现“搜索便利店、商城、智慧抗衰或活动”大搜索框。
+- [x] 正常登录后全局顶栏不出现 `LOCAL LIFE · V0.2 PREVIEW`。
+- [x] 顶栏汉字标题独占单行且保持可读、垂直居中。
+- [x] Mall Home / Detail / Cart / Checkout / Order 页面主体增加逐文本节点线下门店语义硬门禁，避免跨节点拼接误报。
+- [x] T016 首页 / 搜索回归在 Browser Quality #102 中通过。
+- [ ] T019-R5 商城五屏回归待最终 head 重跑确认。
+- [x] Verify Prototype #285 通过；最终 head 将重新运行 Verify。
 
 ## Out of scope
 
@@ -55,6 +55,6 @@ V0.2 动线评审中，用户明确提出三条消费者侧 UX 修订：
 
 ## Review
 
-- Reviewer: pending
-- Result: DOING
-- Conclusion: 用户评审结论已转为单卡施工；完成 CI / 浏览器回归后进入 REVIEW。
+- Reviewer: Mira implementation review / CI pending final head
+- Result: REVIEW
+- Conclusion: 三条用户 UX 结论均已落实。Browser #102 的新增商城语义 gate 首轮因“送货上门”与下一文本节点“店铺来源”在父节点拼接为“上门店铺”产生误报；产品页面本身没有线下门店语义泄漏，现已改为逐文本节点扫描。等待最终 head Verify / Browser 后合入 `dev`。
