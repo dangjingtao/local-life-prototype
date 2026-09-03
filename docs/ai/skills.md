@@ -151,7 +151,7 @@ Seed 内置可供确认的 Skill：
 
 - Status: `CONFIRMED`
 - Confirmed at: 2026-08-27
-- Extended at: 2026-08-28（实验性 PR AI Review）
+- Extended at: 2026-08-28（实验性 OpenCode PR AI Review）；2026-09-03（切换 CodeRabbit PR Review）
 - Confirmed by: Tomz
 - Project name: `local-life`
 - Project title: `本地生活`
@@ -171,13 +171,13 @@ Seed 内置可供确认的 Skill：
 - Test / Regression
 - Code Review
 - Documentation
-- Experimental PR AI Review / CI integration
+- CodeRabbit PR AI Review / GitHub integration
 
 ### Allowed tools
 
 - Local repository, local browser visual validation, Prototype Runtime, Com Design system and Lucide icons
-- GitHub repository / Pull Request API and GitHub Actions for the experimental PR review flow
-- OpenCode CLI in the read-only GitHub Actions review job, authenticated with repository secret `OPENCODE_API_KEY`; GitHub-side publishing is isolated in a separate non-model job
+- GitHub repository / Pull Request API and existing GitHub Actions CI
+- CodeRabbit GitHub App for advisory PR review, configured by repository-root `.coderabbit.yaml`
 
 ### Allowed autonomous actions
 
@@ -185,24 +185,26 @@ Seed 内置可供确认的 Skill：
 - Create / update task cards and work ledger
 - Modify prototype code
 - Run local typecheck, build and browser validation
-- Configure and run the experimental OpenCode review workflow for same-repository PRs targeting `dev`
-- Post advisory OpenCode review output to the PR and expose it to local agents through the review inbox
+- Configure repository-side CodeRabbit review policy for PRs targeting `dev`
+- Read CodeRabbit review threads / comments and verify findings against current code and project contracts
 
 ### Requires explicit approval
 
-- `commit` / `push` outside the explicitly requested PR review setup work
+- `commit` / `push` outside the explicitly requested review setup or current task work
 - Deployment to preview or production
 - Changing confirmed business rules without user confirmation
-- Building production backend or real external integrations in V0.1
-- Automatic PR approval, `REQUEST_CHANGES`, merge, or task `PASS` based only on experimental AI review
+- Building production backend or real external integrations in V0.1 / V0.2 prototype scope
+- Automatic PR approval, `REQUEST_CHANGES`, merge, or task `PASS` based only on AI review
 
 ### Project-specific constraints
 
-- V0.1 focuses on concept prototype completeness, core flows, information architecture, cross-end semantics and visual direction.
+- V0.1 focuses on concept prototype completeness, core flows, information architecture, cross-end semantics and visual direction；V0.2 继续以中高保真原型与可验证业务闭环为目标。
 - Product display name is `本地生活`.
 - Mobile covers terminal user flows; PC covers store/partner, platform operations and dashboard concepts.
-- Experimental PR AI Review is advisory only: it may identify findings and hand them to local agents, but it must not silently change product acceptance state or merge code.
-- The experimental reviewer runs read-only: no code edit, shell execution, subagent launch, external web fetch/search, or shared OpenCode session.
+- CodeRabbit PR Review is advisory only: it may identify findings, but it must not silently change product acceptance state or merge code.
+- Agent 处理 CodeRabbit finding 时必须回到代码、任务卡和产品真相源复核；模型意见不是事实本身。
+- CI success and CodeRabbit success do not replace browser / UX / human product acceptance.
+- T014 OpenCode reviewer is historical evidence only after T034 migration; current PR reviewer contract is CodeRabbit.
 
 ### AI recommendations not yet confirmed
 
