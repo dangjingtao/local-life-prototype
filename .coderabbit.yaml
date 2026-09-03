@@ -1,0 +1,27 @@
+# yaml-language-server: $schema=https://coderabbit.ai/integrations/schema.v2.json
+language: "zh-CN"
+tone_instructions: "保持简洁、基于证据、可执行；区分观察、推断与判断，避免无关风格挑刺。"
+
+reviews:
+  profile: "chill"
+  request_changes_workflow: false
+  high_level_summary: true
+  poem: false
+  review_status: true
+  review_details: true
+  auto_review:
+    enabled: true
+    drafts: false
+    auto_incremental_review: true
+  path_instructions:
+    - path: "**/*"
+      instructions: |
+        先读取并遵守仓库根目录 AGENTS.md。若 PR 标题或正文包含 T###，同时读取对应 docs/workbench/tasks/ 任务卡，并以当前 Product Brief / PRD / Work Ledger 为产品合同依据。
+        优先报告高置信、可复现、会影响业务语义、交互闭环、数据一致性、可访问性、运行时错误或明确任务验收标准的 P0-P2 问题。
+        不要把纯风格偏好、低置信猜测或“可以更优雅”的建议伪装成阻塞缺陷；证据不足时明确标注为需要人工确认。
+        CI 通过不等于产品验收通过；不要据此建议自动 PASS、自动 merge 或替代真实浏览器 / 产品验收。
+        本项目是概念原型 / 中高保真原型，不要建议引入与当前任务无关的生产级后端、真实支付、真实配送、真实硬件或其他超出范围的基础设施。
+
+chat:
+  art: false
+  auto_reply: true
