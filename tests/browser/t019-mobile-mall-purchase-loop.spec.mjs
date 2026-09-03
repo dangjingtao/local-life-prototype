@@ -25,19 +25,16 @@ async function expectNoHorizontalOverflow(page) {
 test.describe("T019 · Mobile mall medium-high fidelity purchase loop", () => {
   test.use({ viewport: { width: 390, height: 844 } });
 
-  test("mall exposes multiple consumer-facing sources without convenience fulfillment", async ({ page }) => {
+  test("mall keeps storefront/channel implementation invisible to consumers", async ({ page }) => {
     await openMall(page);
 
-    const storefrontSwitches = page.getByRole("button", { name: /切换商城：/ });
-    expect(await storefrontSwitches.count()).toBeGreaterThanOrEqual(2);
-    await storefrontSwitches.nth(1).click();
-    await expect(storefrontSwitches.nth(1)).toHaveAttribute("aria-pressed", "true");
-
-    await expect(page.getByText("全国快递配送 · 送货上门", { exact: true })).toBeVisible();
     const mallHome = page.getByTestId("mall-home");
+    await expect(page.getByRole("button", { name: /切换商城：/ })).toHaveCount(0);
+    await expect(mallHome.getByText("精选店铺", { exact: true })).toHaveCount(0);
+    await expect(mallHome.getByText("店铺来源", { exact: true })).toHaveCount(0);
+    await expect(page.getByText("全国快递配送 · 送货上门", { exact: true })).toBeVisible();
     await expect(mallHome).not.toContainText(/Storefront|Channel|Mock|planned|integrationStatus|T019/i);
-    await expect(mallHome.getByText("门店自提", { exact: true })).toHaveCount(0);
-    await expect(mallHome.getByText(/3\s*公里短配|3\s*km\s*短配/i)).toHaveCount(0);
+    await expect(mallHome).not.toContainText(/门店|店铺来源|精选店铺|到店自提|3\s*公里短配|3\s*km\s*短配/i);
     await expectNoHorizontalOverflow(page);
   });
 
@@ -52,6 +49,8 @@ test.describe("T019 · Mobile mall medium-high fidelity purchase loop", () => {
     await expect(page.getByRole("heading", { name: "胶原蛋白肽饮", exact: true })).toBeVisible();
     await expect(page.getByRole("img", { name: "胶原蛋白肽饮 商品图", exact: true })).toBeVisible();
     await expect(page.getByRole("button", { name: "立即购买", exact: true })).toBeVisible();
+    await expect(page.getByText("官方商城", { exact: true })).toHaveCount(0);
+    await expect(page.getByText("合作渠道专场", { exact: true })).toHaveCount(0);
     await expectNoHorizontalOverflow(page);
   });
 
@@ -72,26 +71,18 @@ test.describe("T019 · Mobile mall medium-high fidelity purchase loop", () => {
     await expectNoHorizontalOverflow(page);
   });
 
-  test("storefront carts stay isolated and survive leaving the mall tab", async ({ page }) => {
+  test("mall cart survives leaving and returning to the mall tab", async ({ page }) => {
     await openMall(page);
 
-    const storefrontSwitches = page.getByRole("button", { name: /切换商城：/ });
-    const firstStorefrontName = await storefrontSwitches.first().getAttribute("aria-label");
     await page.getByRole("button", { name: /查看商品：/ }).first().click();
     await page.getByRole("button", { name: "加入购物车", exact: true }).click();
     await page.getByRole("button", { name: "返回商城", exact: true }).click();
     await expect(page.getByRole("button", { name: "商城购物车，共 1 件", exact: true })).toBeVisible();
 
-    await storefrontSwitches.nth(1).click();
-    await expect(page.getByRole("button", { name: "商城购物车，共 0 件", exact: true })).toBeVisible();
-    if (firstStorefrontName) {
-      await page.getByRole("button", { name: firstStorefrontName, exact: true }).click();
-      await expect(page.getByRole("button", { name: "商城购物车，共 1 件", exact: true })).toBeVisible();
-    }
-
     await page.getByRole("navigation", { name: "一级导航" }).getByRole("button", { name: "首页", exact: true }).click();
     await page.getByRole("navigation", { name: "一级导航" }).getByRole("button", { name: "商城", exact: true }).click();
     await expect(page.getByRole("button", { name: "商城购物车，共 1 件", exact: true })).toBeVisible();
+    await expect(page.getByRole("button", { name: /切换商城：/ })).toHaveCount(0);
     await expectNoHorizontalOverflow(page);
   });
 
@@ -103,7 +94,7 @@ test.describe("T019 · Mobile mall medium-high fidelity purchase loop", () => {
 
     const cart = page.getByTestId("mall-cart");
     await expect(page.getByRole("heading", { name: "购物车" })).toBeVisible();
-    await expect(cart).toContainText("全国快递");
+    await expect(cart).not.toContainText(/店铺来源|精选店铺|官方商城|合作渠道专场/i);
     await expect(cart).not.toContainText(/Storefront|Channel|Mock|不与任何便利店购物车混单|独立购物车模型/i);
     await expect(page.getByText(/预计运费/)).toBeVisible();
     await page.getByRole("button", { name: "去结算", exact: true }).click();
@@ -111,8 +102,8 @@ test.describe("T019 · Mobile mall medium-high fidelity purchase loop", () => {
     const checkout = page.getByTestId("mall-checkout");
     await expect(page.getByRole("heading", { name: "确认收货与订单" })).toBeVisible();
     await expect(checkout).toContainText("收货地址");
-    await expect(checkout).toContainText("店铺来源");
     await expect(checkout).toContainText("全国快递 · 送货上门");
+    await expect(checkout).not.toContainText(/店铺来源|精选店铺|官方商城|合作渠道专场/i);
     await expect(checkout).not.toContainText(/Mock|演示数据|Storefront|Channel|T019/i);
     await expectNoHorizontalOverflow(page);
   });
@@ -129,6 +120,7 @@ test.describe("T019 · Mobile mall medium-high fidelity purchase loop", () => {
     await expect(page.getByRole("heading", { name: "订单详情", exact: true })).toBeVisible();
     await expect(order).toContainText(/订单编号\s*LL\d+/);
     await expect(page.getByText("待发货", { exact: true }).first()).toBeVisible();
+    await expect(order).not.toContainText(/店铺来源|精选店铺|官方商城|合作渠道专场/i);
     await page.getByRole("button", { name: "刷新物流", exact: true }).click();
     await expect(page.getByText("运输中", { exact: true }).first()).toBeVisible();
     await expect(order).toContainText(/安心速运 · AN\d+/);
