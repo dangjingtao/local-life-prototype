@@ -10,8 +10,6 @@ type MallCartRow = {
 };
 
 type MallCartViewProps = {
-  sourceLabel: string;
-  sourceName: string;
   cartCount: number;
   rows: MallCartRow[];
   subtotal: number;
@@ -28,8 +26,6 @@ function money(value: number) {
 }
 
 export function MallCartView({
-  sourceLabel,
-  sourceName,
   cartCount,
   rows,
   subtotal,
@@ -63,15 +59,6 @@ export function MallCartView({
         <h2 className="pointer-events-none absolute bottom-[14px] left-1/2 -translate-x-1/2 text-[17px] font-semibold tracking-[-0.01em]">购物车</h2>
         <span className="ml-auto flex h-11 items-center px-3 text-xs text-[var(--color-text-tertiary)]">共 {cartCount} 件</span>
       </header>
-
-      <div
-        data-testid="mall-cart-source"
-        className="flex h-11 items-center gap-2 border-b border-[var(--color-border)] bg-[var(--color-surface)] px-4 text-xs"
-      >
-        <span className="shrink-0 font-semibold text-[var(--color-text-primary)]">{sourceLabel}</span>
-        <span className="min-w-0 flex-1 truncate text-[var(--color-text-secondary)]">{sourceName}</span>
-        <span className="shrink-0 rounded-full bg-[var(--color-success-bg)] px-2 py-1 text-[10px] font-medium text-[var(--color-success)]">全国快递</span>
-      </div>
 
       {rows.length === 0 ? (
         <div className="mx-4 mt-4 flex min-h-[240px] flex-col items-center justify-center rounded-[var(--radius-overlay)] border border-dashed border-[var(--color-border)] bg-[var(--color-surface)] px-6 text-center">

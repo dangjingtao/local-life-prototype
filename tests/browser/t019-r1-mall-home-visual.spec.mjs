@@ -44,7 +44,7 @@ test.describe("T019-R1 · mall home approved UI composition", () => {
     const search = page.getByTestId("mall-search");
     const banner = page.getByTestId("mall-campaign-banner");
     const categoryTrack = page.getByTestId("mall-category-track");
-    const source = page.getByTestId("mall-source-section");
+    const recommendTitle = page.getByTestId("mall-recommend-title");
 
     await expectHeight(header, 92);
     await expectHeight(search, 48);
@@ -56,16 +56,15 @@ test.describe("T019-R1 · mall home approved UI composition", () => {
     expect(headerBox).not.toBeNull();
     expect(Math.abs(headerBox.y), JSON.stringify(headerBox)).toBeLessThanOrEqual(1);
 
-    // Approved UI order: Header → Search → Banner → Category → Featured stores.
+    // Consumer mall order: Header → Search → Banner → Category → Recommendation.
     await expectVerticalGap(header, search, 12);
     await expectVerticalGap(search, banner, 12);
     await expectVerticalGap(banner, categoryTrack, 12);
-    await expectVerticalGap(categoryTrack, source, 16);
+    await expectVerticalGap(categoryTrack, recommendTitle, 16);
 
-    const sourceBox = await source.boundingBox();
-    expect(sourceBox).not.toBeNull();
-    expect(sourceBox.height).toBeGreaterThanOrEqual(104);
-    expect(sourceBox.height).toBeLessThanOrEqual(124);
+    await expect(page.getByTestId("mall-source-section")).toHaveCount(0);
+    await expect(page.getByText("精选店铺", { exact: true })).toHaveCount(0);
+    await expect(page.getByRole("button", { name: /切换商城：/ })).toHaveCount(0);
 
     const productCards = page.getByTestId("mall-product-grid").locator(":scope > button");
     expect(await productCards.count()).toBeGreaterThanOrEqual(2);
@@ -87,7 +86,7 @@ test.describe("T019-R1 · mall home approved UI composition", () => {
     await expectNoHorizontalOverflow(page);
   });
 
-  test("home expresses multi-store shopping as consumer store discovery", async ({ page }) => {
+  test("home is product-led and exposes no storefront discovery UI", async ({ page }) => {
     await openMall(page);
 
     const home = page.getByTestId("mall-home");
@@ -95,16 +94,11 @@ test.describe("T019-R1 · mall home approved UI composition", () => {
     await expect(home.getByRole("textbox", { name: "商城内搜索" })).toBeVisible();
     await expect(home.getByTestId("mall-campaign-banner")).toContainText("秋日护理精选");
     await expect(home.getByTestId("mall-category-track")).toBeVisible();
-    await expect(home.getByText("精选店铺", { exact: true })).toBeVisible();
-    await expect(home.getByText("选择商城来源", { exact: true })).toHaveCount(0);
+    await expect(home.getByText("精选店铺", { exact: true })).toHaveCount(0);
+    await expect(home.getByText("店铺来源", { exact: true })).toHaveCount(0);
     await expect(home.getByText("为你推荐", { exact: true })).toBeVisible();
     await expect(home.getByTestId("mall-shipping-strip")).toContainText("满 ¥99 包邮");
     await expect(home).not.toContainText(/Storefront|Channel|Mock|planned|integrationStatus|T019/i);
-
-    const storefrontSwitches = home.getByRole("button", { name: /切换商城：/ });
-    expect(await storefrontSwitches.count()).toBe(2);
-    await storefrontSwitches.nth(1).click();
-    await expect(storefrontSwitches.nth(1)).toHaveAttribute("aria-pressed", "true");
 
     const search = home.getByRole("textbox", { name: "商城内搜索" });
     await search.fill("胶原");

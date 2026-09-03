@@ -4,7 +4,6 @@ import { PrototypeIcon } from "@prototype/icons";
 import {
   campaigns,
   catalogProducts,
-  channels,
   coreDemoUser,
   coreUserV02Coupons,
   findById,
@@ -49,18 +48,6 @@ function productPrice(product: Product) {
   return product.memberPriceYuan ?? product.priceYuan;
 }
 
-function storefrontConsumerName(channelKind?: string) {
-  if (channelKind === "owned") return "官方商城";
-  if (channelKind === "douyin") return "合作渠道专场";
-  return "精选商城";
-}
-
-function storefrontConsumerMeta(channelKind?: string) {
-  if (channelKind === "owned") return "正品保障";
-  if (channelKind === "douyin") return "渠道精选";
-  return "优选好物";
-}
-
 function ProductVisual({ product, home = false }: { product: Product; home?: boolean }) {
   const sizeClass = home
     ? "h-[110px] w-full rounded-t-[var(--radius-container)]"
@@ -74,15 +61,13 @@ export function MallFlowScreen({ entryContext, carts, setCarts, onStepChange, on
     ? findById(catalogProducts, entryContext.entityId)
     : undefined;
   const [step, setStep] = useState<MallStep>(() => entryProduct ? "detail" : "home");
-  const [selectedStorefrontId, setSelectedStorefrontId] = useState(defaultStorefront?.id ?? "");
   const [selectedProductId, setSelectedProductId] = useState(entryProduct?.id ?? defaultProduct?.id ?? "");
   const [category, setCategory] = useState("全部");
   const [query, setQuery] = useState("");
   const [orderStatus, setOrderStatus] = useState<MallOrderStatus>("pending_fulfillment");
   const [orderSnapshot, setOrderSnapshot] = useState<MallOrderSnapshot | null>(null);
 
-  const selectedStorefront = findById(storefronts, selectedStorefrontId) ?? defaultStorefront;
-  const selectedChannel = selectedStorefront ? findById(channels, selectedStorefront.channelId) : undefined;
+  const selectedStorefront = defaultStorefront;
   const selectedProduct = findById(catalogProducts, selectedProductId) ?? defaultProduct;
   const currentCart = selectedStorefront ? carts[selectedStorefront.id] ?? {} : {};
   const cartCount = Object.values(currentCart).reduce((sum, quantity) => sum + quantity, 0);
@@ -106,12 +91,6 @@ export function MallFlowScreen({ entryContext, carts, setCarts, onStepChange, on
     setStep(next);
     onStepChange?.(next);
     scrollTop();
-  };
-
-  const switchStorefront = (storefrontId: string) => {
-    setSelectedStorefrontId(storefrontId);
-    setCategory("全部");
-    setQuery("");
   };
 
   const openProduct = (productId: string) => {
@@ -142,13 +121,11 @@ export function MallFlowScreen({ entryContext, carts, setCarts, onStepChange, on
   };
 
   const submitOrder = () => {
-    if (!selectedStorefront || !selectedChannel || cartRows.length === 0) return;
+    if (!selectedStorefront || cartRows.length === 0) return;
     const storefrontOrdinal = Math.max(1, activeStorefronts.findIndex((item) => item.id === selectedStorefront.id) + 1);
     const orderId = `LL260902${String(storefrontOrdinal).padStart(2, "0")}${String(cartCount).padStart(2, "0")}`;
     setOrderSnapshot({
       id: orderId,
-      storefrontName: selectedStorefront.name,
-      channelName: selectedChannel.name,
       itemCount: cartCount,
       subtotal,
       shippingFee,
@@ -164,11 +141,11 @@ export function MallFlowScreen({ entryContext, carts, setCarts, onStepChange, on
     setOrderStatus((current) => current === "pending_fulfillment" ? "shipping" : "completed");
   };
 
-  if (!selectedStorefront || !selectedChannel) {
+  if (!selectedStorefront) {
     return (
       <Card>
         <p className="font-semibold">商城暂不可用</p>
-        <p className="mt-2 text-sm leading-6 text-[var(--color-text-secondary)]">当前没有可用的线上商城来源，请稍后再试。</p>
+        <p className="mt-2 text-sm leading-6 text-[var(--color-text-secondary)]">当前暂无可购买商品，请稍后再试。</p>
       </Card>
     );
   }
@@ -266,41 +243,8 @@ export function MallFlowScreen({ entryContext, carts, setCarts, onStepChange, on
             })}
           </div>
 
-          <section data-testid="mall-source-section" className="mt-4 rounded-[var(--radius-overlay)] border border-[var(--color-border)] bg-[var(--color-surface)] p-3" aria-labelledby="mall-source-title">
-            <div className="flex items-center justify-between gap-3">
-              <h3 id="mall-source-title" className="text-[16px] font-semibold">精选店铺</h3>
-              <span className="text-[11px] text-[var(--color-text-tertiary)]">{storefronts.length} 家可选</span>
-            </div>
-            <div className="mt-2.5 grid grid-cols-2 gap-2">
-              {storefronts.map((storefront) => {
-                const channel = findById(channels, storefront.channelId);
-                const selected = storefront.id === selectedStorefront.id;
-                return (
-                  <button
-                    key={storefront.id}
-                    type="button"
-                    aria-label={`切换商城：${storefront.name}`}
-                    aria-pressed={selected}
-                    onClick={() => switchStorefront(storefront.id)}
-                    className={`flex h-[64px] min-w-0 items-center gap-2.5 rounded-[var(--radius-container)] border px-2.5 text-left transition ${selected ? "border-[var(--color-primary)] bg-[var(--color-brand-subtle)]" : "border-[var(--color-border)] bg-[var(--color-background)] active:bg-[var(--color-surface-subtle)]"}`}
-                  >
-                    <span className={`flex h-9 w-9 shrink-0 items-center justify-center rounded-full ${selected ? "bg-[var(--color-primary)] text-[var(--color-on-primary)]" : "bg-[var(--color-surface-subtle)] text-[var(--color-primary)]"}`}>
-                      <PrototypeIcon name={channel?.kind === "douyin" ? "store" : "success"} size={18} />
-                    </span>
-                    <span className="min-w-0 flex-1">
-                      <span className="block truncate text-[12px] font-semibold">{storefrontConsumerName(channel?.kind)}</span>
-                      <span className="mt-0.5 block truncate text-[10px] text-[var(--color-text-tertiary)]">{storefrontConsumerMeta(channel?.kind)}</span>
-                    </span>
-                    {selected && <PrototypeIcon name="success" size={14} className="shrink-0 text-[var(--color-primary)]" />}
-                  </button>
-                );
-              })}
-            </div>
-          </section>
-
-          <div data-testid="mall-recommend-title" className="mt-4 flex h-8 items-center justify-between">
+          <div data-testid="mall-recommend-title" className="mt-4 flex h-8 items-center">
             <h3 className="text-[18px] font-semibold tracking-[-0.01em]">为你推荐</h3>
-            <span className="max-w-[150px] truncate text-[11px] text-[var(--color-text-tertiary)]">{selectedStorefront.name}</span>
           </div>
 
           {visibleProducts.length > 0 ? (
@@ -422,7 +366,6 @@ export function MallFlowScreen({ entryContext, carts, setCarts, onStepChange, on
         <section data-testid="mall-detail-main-info" className="h-[132px] border-b border-[var(--color-border)] bg-[var(--color-surface)] px-4 py-3">
           <div className="flex min-w-0 items-center gap-2">
             <span className="rounded-full bg-[var(--color-brand-subtle)] px-2 py-1 text-[10px] font-semibold text-[var(--color-primary-pressed)]">{selectedProduct.category}</span>
-            <span className="truncate rounded-full bg-[var(--color-surface-subtle)] px-2 py-1 text-[10px] text-[var(--color-text-secondary)]">{storefrontConsumerName(selectedChannel.kind)}</span>
             {isSearchHandoff && <span className="ml-auto shrink-0 text-[10px] text-[var(--color-text-tertiary)]">来自全局搜索</span>}
           </div>
           <h2 className="mt-2 line-clamp-1 text-[21px] font-semibold leading-7 tracking-[-0.02em]">{selectedProduct.name}</h2>
@@ -484,8 +427,6 @@ export function MallFlowScreen({ entryContext, carts, setCarts, onStepChange, on
   if (step === "cart") {
     return (
       <MallCartView
-        sourceLabel={storefrontConsumerName(selectedChannel.kind)}
-        sourceName={selectedStorefront.name}
         cartCount={cartCount}
         rows={cartRows}
         subtotal={subtotal}
@@ -503,8 +444,6 @@ export function MallFlowScreen({ entryContext, carts, setCarts, onStepChange, on
     return (
       <MallCheckoutView
         address={demoAddress}
-        sourceLabel={storefrontConsumerName(selectedChannel.kind)}
-        sourceName={selectedStorefront.name}
         rows={cartRows}
         subtotal={subtotal}
         shippingFee={shippingFee}

@@ -5,8 +5,6 @@ export type MallOrderStatus = Extract<OrderStatus, "pending_fulfillment" | "ship
 
 export type MallOrderSnapshot = {
   id: string;
-  storefrontName: string;
-  channelName: string;
   itemCount: number;
   subtotal: number;
   shippingFee: number;
@@ -139,12 +137,8 @@ export function MallOrderView({ snapshot, status, onBack, onAdvance }: MallOrder
 
       <section
         data-testid="mall-order-info"
-        className="h-[136px] border-b border-[var(--color-border)] bg-[var(--color-surface)] px-4 py-1"
+        className="h-[108px] border-b border-[var(--color-border)] bg-[var(--color-surface)] px-4 py-1"
       >
-        <div className="flex h-7 items-center justify-between gap-3 text-[11px]">
-          <span className="text-[var(--color-text-secondary)]">店铺来源</span>
-          <span className="max-w-[230px] truncate font-medium">{snapshot.storefrontName} · {snapshot.channelName}</span>
-        </div>
         <div className="flex h-7 items-center justify-between text-[11px]">
           <span className="text-[var(--color-text-secondary)]">商品数量</span>
           <span className="font-medium">{snapshot.itemCount} 件</span>
