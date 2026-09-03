@@ -53,7 +53,7 @@ test.describe("T019-R3 · mall cart approved UI", () => {
     await expect(nav).toBeVisible();
 
     await expectHeight(page.getByTestId("mall-cart-title"), 56);
-    await expectHeight(page.getByTestId("mall-cart-source"), 44);
+    await expect(page.getByTestId("mall-cart-source")).toHaveCount(0);
 
     const rows = page.getByTestId("mall-cart-row");
     expect(await rows.count()).toBeGreaterThanOrEqual(2);
@@ -89,6 +89,7 @@ test.describe("T019-R3 · mall cart approved UI", () => {
     await expect(cart).toContainText("商品小计");
     await expect(cart).toContainText("预计运费");
     await expect(cart).toContainText("满 ¥99");
+    await expect(cart).not.toContainText(/店铺来源|精选店铺|官方商城|合作渠道专场/i);
     await expect(cart).not.toContainText(/Storefront|Channel|Mock|独立购物车模型|不与任何便利店购物车混单/i);
     await expectNoHorizontalOverflow(page);
   });
@@ -113,14 +114,15 @@ test.describe("T019-R3 · mall cart approved UI", () => {
     await expectNoHorizontalOverflow(page);
   });
 
-  test("checkout bar hands off to the existing checkout without changing order semantics", async ({ page }) => {
+  test("checkout bar hands off without exposing storefront semantics", async ({ page }) => {
     await openMall(page);
     await page.getByRole("button", { name: /查看商品：/ }).first().click();
     await page.getByRole("button", { name: "立即购买", exact: true }).click();
 
     await page.getByRole("button", { name: "去结算", exact: true }).click();
+    const checkout = page.getByTestId("mall-checkout");
     await expect(page.getByRole("heading", { name: "确认收货与订单", exact: true })).toBeVisible();
-    await expect(page.getByText("店铺来源", { exact: true })).toBeVisible();
+    await expect(checkout).not.toContainText(/店铺来源|精选店铺|官方商城|合作渠道专场/i);
     await expect(page.getByText(/满 ¥99 包邮|¥8\.00/).first()).toBeVisible();
     await expectNoHorizontalOverflow(page);
   });
