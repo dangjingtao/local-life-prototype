@@ -193,9 +193,8 @@ export function App() {
       {showGlobalHeader && (
         <header className="sticky top-0 z-20 border-b border-[var(--color-border)] bg-[var(--color-surface)]/95 pt-[env(safe-area-inset-top)] backdrop-blur">
           <div className="mx-auto flex min-h-14 max-w-[390px] items-center justify-between px-4">
-            <div className="min-w-0">
-              <p className="text-[10px] font-semibold tracking-[0.14em] text-[var(--color-primary)]">LOCAL LIFE · V0.2 PREVIEW</p>
-              <h1 className="truncate text-base font-semibold">{title}</h1>
+            <div className="flex min-h-11 min-w-0 items-center">
+              <h1 className="truncate text-lg font-semibold">{title}</h1>
             </div>
             <div className="flex items-center gap-1">
               {screen !== "search" && (
