@@ -13,6 +13,8 @@ reviews:
     enabled: true
     drafts: false
     auto_incremental_review: true
+    # Repository default branch is dev. CodeRabbit always includes the default branch;
+    # base_branches only adds extra targets, so leaving it unset keeps prod out of auto-review.
   path_instructions:
     - path: "**/*"
       instructions: |
