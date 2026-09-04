@@ -45,7 +45,7 @@
 | T011 | PC 数据驾驶舱 | PC | PASS | 0.1.0 | T002、T008 | PR #3 merge `8b068c5`；用户验收通过 |
 | T012 | 关键状态、可访问性与原型质量 | QA / Shared | PASS | 0.1.0 | T003-T011 | PR #9 merge `5ddd6c6`；Verify #119、Browser Quality #9、OpenCode #47 success |
 | T013 | 跨端演示串联与 V0.1 验收准备 | Review / Docs | CANCELLED | 0.1.0 | T002-T012 | 被 2026-08-31 用户直接总体验收取代；不属于失败或 V0.2 阻塞 |
-| T014 | 实验性 PR AI Review | CI / Review | REVIEW | 0.1.0 | GitHub Actions、`OPENCODE_API_KEY` | 独立实验性 Review，不阻塞产品版本 |
+| T014 | 实验性 PR AI Review | CI / Review | CANCELLED | 0.1.0 | GitHub Actions、`OPENCODE_API_KEY` | OpenCode 实验历史证据保留；2026-09-03 用户决定切换 CodeRabbit，由 T034 接替当前 reviewer |
 | T015 | V0.2 共享领域模型与 Mock Fixtures | Shared | PASS | 0.2.0 | V0.2 PRD | PR #10 已合入 `dev`；Verify #151、Browser Quality #10、关系校验通过；2026-09-01 用户授权按台账证据验收 |
 | T016 | Mobile 运营首页、一级 IA 与全局搜索 | Mobile | PASS | 0.2.0 | T015 | PR #11 已合入 `dev`；Verify #172、Browser Quality #31、Codex 返工闭环；2026-09-01 用户授权按台账证据验收 |
 | T017 | Mobile 便利店门店页、商品浏览与独立购物车 | Mobile | REVIEW | 0.2.0 | T015、T016 | 原 PR #12 / CI / AI Review 功能证据保留；2026-09-01 内部 UX 复审 `CHANGES_NEEDED`，拆 T027-T030 返工后再恢复 PASS |
@@ -63,13 +63,14 @@
 | T029 | Mobile 便利店商详、购物车与链路收口 UX 返工 | Mobile / UX | TODO | 0.2.0 | T027、T028 | 商详信息层级、购物车收口、唯一购买主链、legacy 自提兼容入口迁出正常路径 |
 | T030 | Mobile 便利店 UX 复审与验收 | UX / QA | TODO | 0.2.0 | T027-T029 | 390×844 实屏复审、内部术语扫描、门店连续性 / 购物栏 / 唯一购买主链、T012/T017/T018 回归；UX PASS 后恢复 T017 PASS |
 | T033 | Mobile 顶栏、首页搜索与商城语义收口 | Mobile / UX / QA | REVIEW | 0.2.0 | T016、T019 | PR #27 已 merge `dev`；用户预览后明确否决商城“精选店铺 / 官方商城 / 合作渠道”模块。PR #28 follow-up 删除消费端店铺 / 来源 / 切换心智，Storefront / Channel 仅保留内部数据模型；等待 final head Verify / Browser / review |
+| T034 | CodeRabbit PR AI Review 迁移 | CI / Review | REVIEW | 0.2.0 | GitHub / CodeRabbit App | 仓库侧 `.coderabbit.yaml`、协作合同与旧 OpenCode reviewer 退役已施工；待 CodeRabbit App 仓库授权 + 首个真实 PR smoke |
 
 ## V0.1 收口记录
 
 - T002-T012 已全部 `PASS`。
 - 2026-08-31 用户明确确认 V0.1 完结；据此 T001 记录为 `PASS`。
 - T013 原本只是 V0.1 总体验收前的准备卡。由于用户已直接完成总体验收，该卡记录为 `CANCELLED`，避免把未单独执行的准备工作伪装为已完成。
-- T014 继续作为实验性 PR AI Review 独立观察，不阻塞 V0.2。
+- T014 的 OpenCode PR AI Review 实验历史完整保留；2026-09-03 用户决定停止维护该方案并切换 CodeRabbit，因此 T014 记为 `CANCELLED`，当前 reviewer 由 T034 接替。
 
 ## V0.2 当前进度
 
@@ -78,6 +79,7 @@
 - T019 商城 UX 返工已完成 R1-R4 施工与 R5 独立复审。R5 首轮真实五屏链在 Order 页发现 19px 横向溢出并修复；最终 Browser #98 中 R5 / R1-R4 / T019 商城链全部通过，五屏 artifact `9855267147` 已逐屏复审，无新的阻塞级 UX / Visual 缺陷。当前 R5 / T019 均保持 `REVIEW`，等待用户最终视觉确认。
 - T027 已完成施工、review gate 并合入 `dev`；T028 正在 PR #16 施工 / review。T028 → T029 → T030 继续串行，避免当前单体 `StoreFlowScreen.tsx` 产生语义 / 文件竞态。
 - T033 PR #27 已合入 `dev`；用户在部署预览中进一步明确商城前台不应出现店铺 / 来源选择心智。PR #28 正在删除 Home / Detail / Cart / Checkout / Order 的显式 Storefront / Channel 表达并重跑五屏门禁。
+- T034 已完成 CodeRabbit 仓库侧迁移施工：当前规则改由 `.coderabbit.yaml` + `AGENTS.md` 驱动，旧 OpenCode workflow / local review inbox 退出活跃合同；待 CodeRabbit GitHub App 授权仓库并完成真实 PR smoke。
 - Wave 3 PC 后台 T022、T023、T024 的业务前置仍已满足，可与消费侧 UX 返工 lane 并行施工；UX 返工不得改变 T018 / Shared 已确认业务语义。
 - T025 必须等待 T022-T024 的 PC 业务语义稳定后施工。
 - T026 除原前置外新增 T030 UX gate；T030 未 PASS 时，不得把 V0.2 便利店中高保真视觉视为完成；商城侧还需用户把 R5 / T019 正式确认 PASS。
@@ -142,9 +144,11 @@
 
 `docs/workbench/archive/00-work-ledger-before-2026-08-31-acceptance.md`
 
+2026-09-03 起，当前 PR AI Review 合同切换为 CodeRabbit；旧 OpenCode 记录只作为历史证据，不回写替换。
+
 ## 下一步
 
-1. T033 PR #28 完成 final head Verify / Browser / review 后合入 `dev`，由用户复看商城五屏不再出现店铺 / 来源心智。
+1. T034 合入 `dev` 后完成 CodeRabbit GitHub App 仓库授权，并以首个真实非 draft PR -> `dev` 验证自动 review + incremental review。
 2. T019-R5 在 PR #28 重新生成五屏证据后继续等待用户最终视觉确认；确认后再把 R5 / T019 恢复 `PASS`。
 3. T028 完成 PR #16 review / 回归并合入 `dev` 后，再进入 T029；后续按 T029 → T030 串行。
 4. T022 / T023 / T024 仍可与消费侧 UX lane 并行推进；不得因为 UX reopen 回滚已经确认的 Shared / T018 业务事实。

@@ -1,142 +1,81 @@
-# Experimental OpenCode PR Review
+# CodeRabbit PR Review
 
-Status: `EXPERIMENTAL`
+Status: `ACTIVE_AFTER_APP_INSTALL`
 
 ## Goal
 
-When a same-repository pull request targets `dev`, run a lightweight independent review through OpenCode and hand the result back to both GitHub and local coding agents.
+对目标为 `dev` 的非 draft PR 使用 CodeRabbit 做独立 AI Review，并在新 commit push 后进行增量复审。
 
-This is a review aid only. It does not approve the PR, request changes through GitHub review state, merge code, move a work item to `PASS`, or replace browser/product validation.
+AI Review 只作为独立评审证据。它不替代 Verify / Browser Quality / 真实浏览器检查 / 产品验收，也不能单独把任务推进到 `PASS` 或触发 merge。
 
-## Trigger
+## Current implementation
 
-Workflow: `.github/workflows/ai-pr-review.yml`
+仓库根目录：
 
-The workflow runs for non-draft, same-repository pull requests targeting `dev` on:
+- `.coderabbit.yaml`
 
-- opened
-- synchronize (new commits pushed)
-- reopened
-- ready_for_review
+CodeRabbit 通过 GitHub App 工作，不再由本仓库 GitHub Actions 自行安装模型 CLI、读取模型 Key 或发布 review comment。
 
-Fork pull requests are intentionally skipped in V1 so repository secrets are never exposed to untrusted code.
+因此旧的以下链路已退役：
 
-## OpenCode configuration
-
-Required repository secret:
-
+- `.github/workflows/ai-pr-review.yml`
+- `scripts/opencode-pr-review.mjs`
+- `scripts/pull-ai-review.mjs`
+- `npm run review:pull`
 - `OPENCODE_API_KEY`
-
-Store it only under GitHub repository Settings → Secrets and variables → Actions → Repository secrets.
-
-Default review model:
-
-- `opencode-go/deepseek-v4-pro`
-
-The model can be changed without editing the workflow by setting the repository Actions variable:
-
 - `OPENCODE_REVIEW_MODEL`
 
-The value uses OpenCode's `provider/model` format. This project uses an OpenCode Go subscription, so Go models must use the `opencode-go/<model-id>` provider prefix. The current default is DeepSeek V4 Pro through OpenCode Go. The free `opencode/mimo-v2.5-free` model was used only to complete the initial smoke test before the Go subscription path was corrected.
+T014 及历史 PR 中的 OpenCode review 证据继续作为历史记录保留，不回写、不抹除。
 
-## Security boundary
+## CodeRabbit configuration
 
-The workflow deliberately separates model execution from GitHub publishing.
+`.coderabbit.yaml` 当前约束：
 
-### `review` job
+- Review language: `zh-CN`
+- Profile: `chill`
+- Automatic review: enabled
+- Draft PR review: disabled
+- Incremental review after new commits: enabled
+- `request_changes_workflow`: disabled
+- Review output优先高置信、可复现、可执行的 P0-P2 问题
+- 避免把纯风格偏好或低置信猜测伪装成阻塞 finding
+- 先读取并遵守 `AGENTS.md`
+- PR 含 `T###` 时，读取对应任务卡并以 Product Brief / PRD / Work Ledger 为合同上下文
+- CI 通过不等于产品验收通过
+- 不建议引入当前原型范围之外的生产级基础设施
 
-- checks out the PR head with persisted Git credentials disabled
-- receives only `contents: read`
-- loads the trusted reviewer script from the PR base branch (`dev`), not from the PR branch
-- installs the OpenCode CLI and runs non-interactive `opencode run`
-- gives OpenCode no GitHub write token
-- denies OpenCode `edit`, `bash`, `task`, `webfetch`, and `websearch`
-- produces `ai-review.md` and uploads it as a short-lived artifact
+CodeRabbit 官方会把 `AGENTS.md` 识别为 coding guideline 文档，因此当前项目不需要再维护一套重复的 reviewer prompt。
 
-### `publish` job
+## Activation dependency
 
-- does not run OpenCode
-- checks out the trusted base branch only for the local-handoff helper
-- receives PR/issue write permission only to create or update the review conversation comment
-- keeps one marked review comment current instead of appending a new comment on every synchronize event
-- runs the same local handoff script after publishing and verifies that `.ai/reviews/latest.md` contains the current PR Head SHA and review marker
+`.coderabbit.yaml` 只负责仓库内配置，不能自行安装第三方 GitHub App。
 
-This separation keeps the model-side review read-only even though the publishing stage needs GitHub write permission.
+要真正启用 review，仓库所有者必须让 CodeRabbit GitHub App 获得 `dangjingtao/local-life-prototype` 的访问权限。
 
-## Review input and output contract
+激活后的 smoke 标准：
 
-`scripts/opencode-pr-review.mjs` supplies OpenCode with:
+1. 一个真实、非 draft PR 目标为 `dev`。
+2. CodeRabbit 自动产生 review / walkthrough。
+3. push 新 commit 后产生增量复审。
+4. 既有 Verify / Browser / deploy workflow 正常运行。
+5. CodeRabbit 不自动制造项目 `PASS` / merge 结论。
 
-- PR title/body/base/head metadata
-- changed filenames and PR diff
-- `AGENTS.md`
-- Product Brief
-- Work Ledger
-- matching `T###` task card when the task id is visible in PR metadata
+## Agent handling rules
 
-Large diffs are capped and must be treated as an explicit review gap.
+当用户要求“检查 AI review / 修 review / 继续处理 PR”时：
 
-The final review must contain exactly one:
+1. 直接读取当前 PR 最新的 CodeRabbit review threads / comments；不再运行本地 `review:pull`。
+2. 确认 review 对应当前 PR latest head；旧 commit 上已经失效的 finding 不继续机械返工。
+3. 对每条 finding 回到当前代码、`AGENTS.md`、任务卡与产品真相源复核。
+4. 明确区分 Observation / Inference / Judgment；模型意见不是事实本身。
+5. 高置信缺陷才进入修复；证据不足、与当前合同冲突或纯偏好项应明确拒绝或交人工判断。
+6. 修复后 push，等待 CodeRabbit 对新 head 做增量复审。
+7. AI Review 不能单独触发 GitHub APPROVE / REQUEST_CHANGES、任务 `PASS` 或自动 merge。
 
-`<!-- local-ai-review:v1 -->`
+## Historical migration
 
-The review uses these advisory verdicts:
+2026-09-03，用户明确要求将 PR AI Review 从自建 OpenCode + DeepSeek GitHub Actions 方案切换为 CodeRabbit。
 
-- `NO_BLOCKING_FINDINGS`
-- `CHANGES_NEEDED`
-- `HUMAN_CHECK_NEEDED`
+迁移任务：`T034`。
 
-Findings separate Observation / Inference / Judgment and use P0-P3 severity. The experiment should normally surface only actionable P0-P2 findings.
-
-## Local agent handoff
-
-From a local checkout on the PR branch, run:
-
-```bash
-npm run review:pull
-```
-
-If the current branch cannot be mapped automatically, pass the PR number:
-
-```bash
-npm run review:pull -- 123
-```
-
-It writes:
-
-- `.ai/reviews/pr-123.md`
-- `.ai/reviews/latest.md`
-
-The local copy records repository, PR, base/head branch, current Head SHA, review source and full marked review. `.ai/reviews/` is gitignored.
-
-Local agents should read `.ai/reviews/latest.md`, reject stale output whose Head SHA does not match the current PR, then verify every finding against current code and project contracts before fixing, rejecting, or escalating it.
-
-The GitHub Actions `publish` job runs this same handoff script after every successful review and validates the Head SHA + marker, so local-agent consumability is continuously smoke-tested rather than documented only on paper.
-
-## Current boundaries
-
-- No direct OpenRouter integration.
-- No automatic merge.
-- No automatic GitHub approval or change request.
-- No automatic task `PASS`.
-- No model-side code modification or shell execution.
-- No secret exposure to fork PRs.
-- No claim that CI success equals product acceptance.
-
-## Smoke-test evidence
-
-PR #1 (`test: T014 OpenCode PR review smoke`) exercised the real `pull_request -> dev` path.
-
-Validated behavior:
-
-- `OPENCODE_API_KEY` was present and accepted by OpenCode.
-- OpenCode generated the initial successful smoke review with `opencode/mimo-v2.5-free`.
-- the review and publisher jobs succeeded independently.
-- repeated synchronize events updated the existing marked PR comment rather than creating a comment stream.
-- review metadata tracked the current PR Head SHA.
-- the publisher successfully ran `scripts/pull-ai-review.mjs` and verified `.ai/reviews/latest.md` against the current Head SHA and marker.
-- normal `Verify Prototype` continued to run successfully alongside the review workflow.
-
-PR #2 was added specifically to validate DeepSeek V4 Pro. Its first run intentionally exposed a provider mismatch: `opencode/deepseek-v4-pro` routed to Zen metered billing and returned `Insufficient balance`. The configuration was corrected to the Go provider prefix `opencode-go/deepseek-v4-pro`; the retry is the authoritative DeepSeek V4 Pro smoke test.
-
-This keeps T014 at `REVIEW`; the experimental reviewer still cannot mark itself `PASS`.
+旧方案任务：`T014`，保留其 smoke test 与历史证据，但不再作为当前 reviewer。
