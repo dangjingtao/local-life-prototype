@@ -1,6 +1,6 @@
 # T022 · PC 便利店订单、履约与核销后台
 
-- Status: DOING
+- Status: REVIEW
 - Target version: 0.2.0
 - Impact: PC / Shared / Mobile（仅演示订单 ID 唯一性）
 - Owner: -
@@ -39,13 +39,13 @@ V0.2 明确要求 PC 必须承接 Mobile 新增的便利店自提和短距配送
 
 ## Acceptance
 
-- [ ] 店主可查看本店自提与短配订单并区分状态。
-- [ ] 自提订单可演示扫码核销至完成。
-- [ ] 短配订单可演示备货 → 配送中 → 送达。
-- [ ] 平台运营可看到门店商品可售关系和履约能力配置概念。
-- [ ] PC 与 Mobile 同一订单 ID / 门店 / 状态关系一致。
-- [ ] 1024px 与 1440px 浏览器下达到中高保真后台信息密度，无明显溢出。
-- [ ] `npm run typecheck`、`npm run build` 通过。
+- [x] 店主可查看本店自提与短配订单并区分状态。
+- [x] 自提订单可演示扫码核销至完成。
+- [x] 短配订单可演示备货 → 配送中 → 送达。
+- [x] 平台运营可看到门店商品可售关系和履约能力配置概念。
+- [x] PC 与 Mobile 同一订单 ID / 门店 / 状态关系一致。
+- [x] 1024px 与 1440px 浏览器下达到中高保真后台信息密度，无明显溢出。
+- [x] `npm run typecheck`、`npm run build` 通过。
 
 ## Risks / Dependencies
 
@@ -60,14 +60,14 @@ V0.2 明确要求 PC 必须承接 Mobile 新增的便利店自提和短距配送
 
 ## Verification evidence
 
-- CI: PR #33 final-head gates running；DOING 状态证据以 PR #33 为准。
+- CI: Verify run `33972580481` success（version / typecheck / build）；Browser run `33972580470` 执行 90 项，82 passed / 8 failed。
 - Page / Route: PC `?role=merchant` →「便利店履约」；PC `?role=operator` →「便利店履约」。
-- Screenshot / Browser result: T022 自动化写入 `test-results/t022-visual-evidence/`；final-head Browser 待收口。
-- Other evidence: Codex 首轮 2×P1 + 1×P2 已按当前 head 修复；CodeRabbit 首轮状态持久化意见已识别为 Addressed。
+- Screenshot / Browser result: T022 专项 5/5 passed；1024 / 1440 overflow 检查通过；`test-results/t022-visual-evidence/` 已进入 Browser report artifact `9971397023`。全量 8 个失败均为既有 T017/T018/T032 checkout 旧断言，不含 T022。
+- Other evidence: Codex 2×P1 + 1×P2 已修复并 resolve；CodeRabbit 3 项首轮 finding 已修复 / resolve；Shared relation guard 继续由 T034 fixture relation test 验证通过。
 
 ## Review
 
-- Reviewer:
-- Result: REVIEW / PASS / BLOCKED
-- Conclusion:
-- Follow-up:
+- Reviewer: Codex + CodeRabbit + Browser Quality gate
+- Result: REVIEW
+- Conclusion: T022 自身验收项和专项浏览器证据均满足；全量 Browser 仅保留 8 个进入本卡前已存在的 checkout 基线债，不由 T022 扩卡修复。
+- Follow-up: 等待用户产品验收；用户确认后方可将 T022 标为 PASS / 合并 PR #33。
