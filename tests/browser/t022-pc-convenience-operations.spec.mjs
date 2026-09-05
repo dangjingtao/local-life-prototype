@@ -141,6 +141,7 @@ test.describe("T022 · PC convenience fulfillment operations", () => {
     await expect(page.getByText("云岭社区店").first()).toBeVisible();
     await expect(page.getByText("门店正在备货", { exact: true })).toBeVisible();
     await expect(page.getByText("应付 ¥26.60", { exact: false })).toBeVisible();
+    await expect(page.getByText("PK-8888", { exact: true })).toBeVisible();
 
     await openMerchantFulfillment(page, 1024, 768);
     const pickup = page.getByTestId("t022-order-CONV-YUNLING-8888-PICKUP");
@@ -148,6 +149,7 @@ test.describe("T022 · PC convenience fulfillment operations", () => {
     await expect(pickup).toContainText("备货中");
     await expect(pickup).toContainText("¥26.60");
     await expect(pickup).toContainText("溏心蛋火腿三明治");
+    await expect(pickup).toContainText("PK-8888");
     await expectNoHorizontalOverflow(page);
   });
 
