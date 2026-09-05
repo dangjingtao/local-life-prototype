@@ -3,7 +3,7 @@ import { Card, SecondaryButton, Section, StatusTag } from "@prototype/design-sys
 import { PrototypeIcon, type PrototypeIconName } from "@prototype/icons";
 import { getPrototypeView, PrototypePanel, PrototypeState, setPrototypeView } from "@prototype/runtime";
 import { OperatorConvenienceOperations } from "./ConvenienceOperations";
-import { OperatorSmartCareOperations, type CareAppointmentOverrides, type CareSlotAvailabilityOverrides } from "./SmartCareOperations";
+import { OperatorSmartCareOperations, type CareAppointmentOverrides, type CareScanOverrides, type CareSlotAvailabilityOverrides } from "./SmartCareOperations";
 import {
   CORE_DEMO_IDS,
   businessSceneLabels,
@@ -23,7 +23,6 @@ import {
   services,
   stores,
   users,
-  type AppointmentStatus,
   type BusinessScene,
   type PcRole,
   type RedemptionRecord,
@@ -151,8 +150,10 @@ function ModuleContent({
   setScene,
   careAppointmentOverrides,
   careSlotAvailabilityOverrides,
-  onCareAppointmentStatusChange,
+  careScanOverrides,
   onCareSlotAvailabilityChange,
+  onCareScanStart,
+  onCareScanComplete,
   onResetCare,
 }: {
   module: OperatorModule;
@@ -160,8 +161,10 @@ function ModuleContent({
   setScene: (scene: SceneFilter) => void;
   careAppointmentOverrides: CareAppointmentOverrides;
   careSlotAvailabilityOverrides: CareSlotAvailabilityOverrides;
-  onCareAppointmentStatusChange: (appointmentId: string, status: AppointmentStatus) => void;
+  careScanOverrides: CareScanOverrides;
   onCareSlotAvailabilityChange: (slotId: string, available: boolean) => void;
+  onCareScanStart: (appointmentId: string) => void;
+  onCareScanComplete: (appointmentId: string) => void;
   onResetCare: () => void;
 }) {
   if (module === "users") return <UsersModule />;
@@ -169,7 +172,7 @@ function ModuleContent({
   if (module === "catalog") return <CatalogModule scene={scene} setScene={setScene} />;
   if (module === "orders") return <OrdersModule scene={scene} setScene={setScene} />;
   if (module === "convenience") return <OperatorConvenienceOperations />;
-  if (module === "care") return <OperatorSmartCareOperations appointmentOverrides={careAppointmentOverrides} slotAvailabilityOverrides={careSlotAvailabilityOverrides} onAppointmentStatusChange={onCareAppointmentStatusChange} onSlotAvailabilityChange={onCareSlotAvailabilityChange} onReset={onResetCare} />;
+  if (module === "care") return <OperatorSmartCareOperations appointmentOverrides={careAppointmentOverrides} slotAvailabilityOverrides={careSlotAvailabilityOverrides} scanOverrides={careScanOverrides} onSlotAvailabilityChange={onCareSlotAvailabilityChange} onScanStart={onCareScanStart} onScanComplete={onCareScanComplete} onReset={onResetCare} />;
   if (module === "membership") return <MembershipModule />;
   return <MarketingModule scene={scene} setScene={setScene} />;
 }
@@ -180,20 +183,30 @@ export function OperatorConsole() {
   const [scene, setScene] = useState<SceneFilter>("all");
   const [careAppointmentOverrides, setCareAppointmentOverrides] = useState<CareAppointmentOverrides>({});
   const [careSlotAvailabilityOverrides, setCareSlotAvailabilityOverrides] = useState<CareSlotAvailabilityOverrides>({});
+  const [careScanOverrides, setCareScanOverrides] = useState<CareScanOverrides>({});
   const activeMeta = active === "overview" ? null : moduleMeta[active];
   const pageTitle = activeMeta?.label ?? "运营总览";
   const currentDescription = activeMeta?.description ?? "统一浏览核心运营模块与三大业务场景。";
-  const updateCareAppointment = (appointmentId: string, status: AppointmentStatus) => {
-    setCareAppointmentOverrides((currentOverrides) => ({ ...currentOverrides, [appointmentId]: status }));
-  };
   const updateCareSlotAvailability = (slotId: string, available: boolean) => {
     setCareSlotAvailabilityOverrides((currentOverrides) => ({ ...currentOverrides, [slotId]: available }));
+  };
+  const startCareScan = (appointmentId: string) => {
+    setCareScanOverrides((currentOverrides) => ({ ...currentOverrides, [appointmentId]: true }));
+  };
+  const completeCareScan = (appointmentId: string) => {
+    setCareAppointmentOverrides((currentOverrides) => ({ ...currentOverrides, [appointmentId]: "checked_in" }));
+    setCareScanOverrides((currentOverrides) => {
+      const next = { ...currentOverrides };
+      delete next[appointmentId];
+      return next;
+    });
   };
   const resetCare = () => {
     setCareAppointmentOverrides({});
     setCareSlotAvailabilityOverrides({});
+    setCareScanOverrides({});
   };
   const navItems = useMemo(() => [{ id: "overview" as const, label: "运营总览", icon: "home" as PrototypeIconName }, ...moduleOrder.map((module) => ({ id: module, label: moduleMeta[module].label, icon: moduleMeta[module].icon }))], []);
 
-  return <div className="flex min-h-screen bg-[var(--color-background)] text-[var(--color-text-primary)]"><aside className="hidden w-64 shrink-0 border-r border-[var(--color-border)] bg-[var(--color-surface)] p-5 lg:flex lg:flex-col"><div><p className="text-xs font-semibold tracking-wide text-[var(--color-primary)]">LOCAL LIFE · V0.2</p><h1 className="mt-1 text-xl font-semibold">本地生活</h1><p className="mt-2 text-xs leading-5 text-[var(--color-text-tertiary)]">平台运营中台 · 概念原型</p></div><div className="mt-7"><p className="mb-2 text-xs font-medium text-[var(--color-text-tertiary)]">概念角色</p><div className="space-y-1">{(["merchant", "operator", "management"] as PcRole[]).map((role) => <button key={role} type="button" onClick={() => role === "operator" ? setActive("overview") : switchRole(role)} className={`min-h-10 w-full rounded-[var(--radius-control)] px-3 text-left text-sm ${role === "operator" ? "bg-[var(--color-brand-subtle)] font-medium text-[var(--color-primary-pressed)]" : "text-[var(--color-text-secondary)] hover:bg-[var(--color-surface-subtle)]"}`}>{role === "merchant" ? "店主 / 合作商" : role === "operator" ? "平台运营" : "平台管理层"}</button>)}</div></div><nav className="mt-7 space-y-1">{navItems.map((item) => <button key={item.id} type="button" onClick={() => setActive(item.id)} className={`flex min-h-11 w-full items-center gap-3 rounded-[var(--radius-control)] px-3 text-sm ${active === item.id ? "bg-[var(--color-brand-subtle)] font-medium text-[var(--color-primary-pressed)]" : "text-[var(--color-text-secondary)] hover:bg-[var(--color-surface-subtle)]"}`}><PrototypeIcon name={item.icon} size={18} />{item.label}</button>)}</nav><div className="mt-auto border-t border-[var(--color-border)] pt-4"><StatusTag tone="success">平台授权范围</StatusTag><p className="mt-2 text-xs leading-5 text-[var(--color-text-tertiary)]">V0.2 仅使用共享 Mock 和原型状态；真实写入、库存、配送、扫码硬件、检测设备、AI 报告生成、审批和外部接口均未接入。</p></div></aside><div className="min-w-0 flex-1"><header className="border-b border-[var(--color-border)] bg-[var(--color-surface)] px-5 py-3 md:px-8"><div className="flex min-h-12 flex-wrap items-center justify-between gap-3"><div><h2 className="font-semibold">{pageTitle}</h2><p className="mt-1 text-xs text-[var(--color-text-tertiary)]">平台运营 · {pcDataScopeLabels.authorized_platform} · {currentDescription}</p></div><div className="flex items-center gap-2"><StatusTag>平台运营</StatusTag><StatusTag tone="success">模拟数据</StatusTag></div></div><div className="mt-3 flex gap-2 overflow-x-auto lg:hidden">{navItems.map((item) => <button key={item.id} type="button" onClick={() => setActive(item.id)} className={`shrink-0 rounded-[var(--radius-control)] px-3 py-2 text-sm ${active === item.id ? "bg-[var(--color-brand-subtle)] font-medium text-[var(--color-primary-pressed)]" : "text-[var(--color-text-secondary)]"}`}>{item.label}</button>)}</div></header>{view === "permission" ? <PermissionState /> : <PrototypeState view={view}><main className="mx-auto max-w-7xl space-y-7 p-5 md:p-8">{active === "overview" ? <Overview onOpen={setActive} /> : <><div className="flex flex-wrap items-end justify-between gap-3"><div><p className="text-sm text-[var(--color-text-secondary)]">{activeMeta?.fr} · 平台运营</p><h2 className="mt-1 text-2xl font-semibold">{activeMeta?.label}</h2></div><StatusTag tone="warning">概念管理 · 无真实写入</StatusTag></div><ModuleContent module={active} scene={scene} setScene={setScene} careAppointmentOverrides={careAppointmentOverrides} careSlotAvailabilityOverrides={careSlotAvailabilityOverrides} onCareAppointmentStatusChange={updateCareAppointment} onCareSlotAvailabilityChange={updateCareSlotAvailability} onResetCare={resetCare} /></>}</main></PrototypeState>}</div><PrototypePanel /></div>;
+  return <div className="flex min-h-screen bg-[var(--color-background)] text-[var(--color-text-primary)]"><aside className="hidden w-64 shrink-0 border-r border-[var(--color-border)] bg-[var(--color-surface)] p-5 lg:flex lg:flex-col"><div><p className="text-xs font-semibold tracking-wide text-[var(--color-primary)]">LOCAL LIFE · V0.2</p><h1 className="mt-1 text-xl font-semibold">本地生活</h1><p className="mt-2 text-xs leading-5 text-[var(--color-text-tertiary)]">平台运营中台 · 概念原型</p></div><div className="mt-7"><p className="mb-2 text-xs font-medium text-[var(--color-text-tertiary)]">概念角色</p><div className="space-y-1">{(["merchant", "operator", "management"] as PcRole[]).map((role) => <button key={role} type="button" onClick={() => role === "operator" ? setActive("overview") : switchRole(role)} className={`min-h-10 w-full rounded-[var(--radius-control)] px-3 text-left text-sm ${role === "operator" ? "bg-[var(--color-brand-subtle)] font-medium text-[var(--color-primary-pressed)]" : "text-[var(--color-text-secondary)] hover:bg-[var(--color-surface-subtle)]"}`}>{role === "merchant" ? "店主 / 合作商" : role === "operator" ? "平台运营" : "平台管理层"}</button>)}</div></div><nav className="mt-7 space-y-1">{navItems.map((item) => <button key={item.id} type="button" onClick={() => setActive(item.id)} className={`flex min-h-11 w-full items-center gap-3 rounded-[var(--radius-control)] px-3 text-sm ${active === item.id ? "bg-[var(--color-brand-subtle)] font-medium text-[var(--color-primary-pressed)]" : "text-[var(--color-text-secondary)] hover:bg-[var(--color-surface-subtle)]"}`}><PrototypeIcon name={item.icon} size={18} />{item.label}</button>)}</nav><div className="mt-auto border-t border-[var(--color-border)] pt-4"><StatusTag tone="success">平台授权范围</StatusTag><p className="mt-2 text-xs leading-5 text-[var(--color-text-tertiary)]">V0.2 仅使用共享 Mock 和原型状态；真实写入、库存、配送、扫码硬件、检测设备、AI 报告生成、审批和外部接口均未接入。</p></div></aside><div className="min-w-0 flex-1"><header className="border-b border-[var(--color-border)] bg-[var(--color-surface)] px-5 py-3 md:px-8"><div className="flex min-h-12 flex-wrap items-center justify-between gap-3"><div><h2 className="font-semibold">{pageTitle}</h2><p className="mt-1 text-xs text-[var(--color-text-tertiary)]">平台运营 · {pcDataScopeLabels.authorized_platform} · {currentDescription}</p></div><div className="flex items-center gap-2"><StatusTag>平台运营</StatusTag><StatusTag tone="success">模拟数据</StatusTag></div></div><div className="mt-3 flex gap-2 overflow-x-auto lg:hidden">{navItems.map((item) => <button key={item.id} type="button" onClick={() => setActive(item.id)} className={`shrink-0 rounded-[var(--radius-control)] px-3 py-2 text-sm ${active === item.id ? "bg-[var(--color-brand-subtle)] font-medium text-[var(--color-primary-pressed)]" : "text-[var(--color-text-secondary)]"}`}>{item.label}</button>)}</div></header>{view === "permission" ? <PermissionState /> : <PrototypeState view={view}><main className="mx-auto max-w-7xl space-y-7 p-5 md:p-8">{active === "overview" ? <Overview onOpen={setActive} /> : <><div className="flex flex-wrap items-end justify-between gap-3"><div><p className="text-sm text-[var(--color-text-secondary)]">{activeMeta?.fr} · 平台运营</p><h2 className="mt-1 text-2xl font-semibold">{activeMeta?.label}</h2></div><StatusTag tone="warning">概念管理 · 无真实写入</StatusTag></div><ModuleContent module={active} scene={scene} setScene={setScene} careAppointmentOverrides={careAppointmentOverrides} careSlotAvailabilityOverrides={careSlotAvailabilityOverrides} careScanOverrides={careScanOverrides} onCareSlotAvailabilityChange={updateCareSlotAvailability} onCareScanStart={startCareScan} onCareScanComplete={completeCareScan} onResetCare={resetCare} /></>}</main></PrototypeState>}</div><PrototypePanel /></div>;
 }
