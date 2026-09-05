@@ -9,9 +9,9 @@ import {
   corePickupOrder,
   coreUserV02Coupons,
   findById,
+  getConvenienceBrowseSections,
   getStoreAvailability,
   getStoreDeliveryAddresses,
-  getStoreProducts,
   getUserConvenienceCarts,
   isStoreDeliveryAddressInRange,
   offlineStores,
@@ -184,7 +184,6 @@ export function StoreFlowScreen({ openActivity, entryContext }: StoreFlowScreenP
   const [selectedProductId, setSelectedProductId] = useState(initialProductId);
   const [query, setQuery] = useState("");
   const [category, setCategory] = useState("全部");
-  const [browseMode, setBrowseMode] = useState<"single" | "combo">("single");
   const [cartSheetOpen, setCartSheetOpen] = useState(false);
   const [carts, setCarts] = useState<CartState>(loadPersistedCarts);
   const [fulfillmentMode, setFulfillmentMode] = useState<FulfillmentMode>("pickup");
@@ -207,15 +206,21 @@ export function StoreFlowScreen({ openActivity, entryContext }: StoreFlowScreenP
   const availabilityByProductId = new Map(storeAvailability.map((item) => [item.productId, item]));
   const selectedProduct = selectedProductId ? findById(catalogProducts, selectedProductId) : undefined;
   const selectedAvailability = selectedProduct ? availabilityByProductId.get(selectedProduct.id) : undefined;
-  const storeProducts = selectedStore ? getStoreProducts(selectedStore.id) : [];
-  const categories = ["全部", ...Array.from(new Set(storeProducts.map((product) => product.category)))];
+  const browseSections = selectedStore ? getConvenienceBrowseSections(selectedStore.id) : [];
+  const categories = ["全部", ...browseSections.map((section) => section.category.label)];
   const normalizedQuery = query.trim().toLowerCase();
-  const visibleProducts = storeProducts.filter((product) => {
-    const matchesCategory = category === "全部" || product.category === category;
-    const matchesQuery = !normalizedQuery || `${product.name} ${product.category} ${product.spec ?? ""}`.toLowerCase().includes(normalizedQuery);
-    const matchesMode = browseMode === "single" ? product.type === "single" || product.type === undefined : product.type === "combo";
-    return matchesCategory && matchesQuery && matchesMode;
-  });
+  const scopedBrowseSections = (category === "全部"
+    ? browseSections
+    : browseSections.filter((section) => section.category.label === category))
+    .map((section) => {
+      const matchesQuery = (product: Product) =>
+        !normalizedQuery || `${product.name} ${product.category} ${product.spec ?? ""}`.toLowerCase().includes(normalizedQuery);
+      const single = section.single.filter(matchesQuery);
+      const combo = section.combo.filter(matchesQuery);
+      return { ...section, single, combo, products: [...single, ...combo] };
+    })
+    .filter((section) => section.products.length > 0);
+  const visibleProducts = scopedBrowseSections.flatMap((section) => section.products);
 
   // 测试用：监听 legacyPickup 自定义事件，直接跳转 legacy 自提确认页
   // 正常用户路径无此入口，仅用于 T012 回归测试
