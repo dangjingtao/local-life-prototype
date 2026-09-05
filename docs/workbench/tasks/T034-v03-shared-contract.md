@@ -1,6 +1,6 @@
 # T034 · V0.3 Shared 合同与 Mock
 
-- Status: TODO
+- Status: DOING
 - Target version: 0.3.0
 - Type: Shared / Product Contract
 - Predecessors: V0.2 Shared 基线（T015）、便利店商品 type 基线（T031）、自提语义（T018）
@@ -45,6 +45,12 @@
 - [ ] 未确认积分规则保持 Candidate / Unknown。
 - [ ] `validateDemoFixtureRelations()` 返回 `[]`。
 - [ ] `npm run typecheck`、`npm run build` 通过。
+
+## Execution baseline
+
+- Branch: `task/T034-v03-shared-contract`
+- Started from: `dev@f42a3e97672e7daed6184997ad44babb33775013`
+- Started at: 2026-09-05
 
 ## Evidence required
 
