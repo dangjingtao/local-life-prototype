@@ -62,7 +62,8 @@ test.describe("T023 · PC smart care operations", () => {
 
     await page.getByTestId("t023-slot-SLOT-YUNLING-0901-1500").getByRole("button", { name: "恢复开放" }).click();
     await expect(page.getByTestId("t023-slot-SLOT-YUNLING-0901-1500")).toContainText("可约");
-    await expect(page.getByText("南岸生活馆")).toHaveCount(0);
+    await expect(page.getByTestId("t023-project-CARE-PROJECT-SOOTHING")).toHaveCount(0);
+    await expect(page.getByTestId("t023-slot-SLOT-NANAN-0901-1400")).toHaveCount(0);
     await expectNoHorizontalOverflow(page);
   });
 
