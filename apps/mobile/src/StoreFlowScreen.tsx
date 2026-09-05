@@ -280,7 +280,7 @@ export function StoreFlowScreen({ openActivity, entryContext }: StoreFlowScreenP
         return;
       }
 
-      if (pendingLabel === lastLabel && atBottom) {
+      if (atBottom) {
         programmaticCategoryRef.current = null;
         setCategory(pendingLabel);
         return;
@@ -311,7 +311,7 @@ export function StoreFlowScreen({ openActivity, entryContext }: StoreFlowScreenP
     }
 
     const scrollRect = scroll.getBoundingClientRect();
-    const activationLine = scrollRect.top + 8;
+    const activationLine = scrollRect.top + scroll.clientHeight * 0.25;
     let activeLabel = browseSections[0]?.category.label ?? "全部";
 
     for (const section of browseSections) {
