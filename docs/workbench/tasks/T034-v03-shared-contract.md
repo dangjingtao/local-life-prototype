@@ -1,6 +1,6 @@
 # T034 · V0.3 Shared 合同与 Mock
 
-- Status: REVIEW
+- Status: PASS
 - Target version: 0.3.0
 - Type: Shared / Product Contract
 - Predecessors: V0.2 Shared 基线（T015）、便利店商品 type 基线（T031）、自提语义（T018）
@@ -96,5 +96,11 @@
 
 ## Review
 
-- Result: REVIEW
-- Conclusion: T034 的 7 项 AC 已有直接证据；全仓浏览器 workflow 仍因既有 8 项便利店旧基线失败显示 failure，但 T034 专项 3/3 通过，未发现本卡引入的新回归。按项目规则不据此自行 PASS / merge。
+- Result: PASS
+- Merge: PR #30 squash merge `18ea9e8b442ebcda85500dcc2ad7c337d407c8a8` → `dev`
+- AI Review: Codex 在 reviewed head `63c0d7afe3` 提出 2 个 P2，均复核成立并修复：① 凭证 active 必须受订单 `pending_pickup / ready_for_pickup` 与时段共同约束；② 7 天社群提示频控必须按用户全局生效而非 user × community。两个 thread 已回复并 resolve。
+- Self review: 额外发现“订单仍备货但取货时段已结束”应为 `expired` 而非 `inactive`，已修复并补回归。
+- Final candidate: `d1cb656fd06cd067b30ea887fd7eaa94d774abc5`
+- Final Verify Prototype #314: **success**。
+- Final T012 Browser Quality #115: **73/81**；T034 专项 **3/3 passed**，`validateDemoFixtureRelations()` 返回 `[]`；8 个失败仍全部为进入本卡前已存在的 T017 / T018 / T032 旧基线断言，本卡未修改 Mobile / PC。
+- Conclusion: 用户在 2026-09-05 明确授权“AI review；无阻塞则自行 review merge”。AI findings 已闭环，自审无剩余阻塞，按授权合并并记录 PASS。
