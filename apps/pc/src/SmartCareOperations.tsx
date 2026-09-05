@@ -26,7 +26,6 @@ type CareOperationsProps = {
   appointmentOverrides: CareAppointmentOverrides;
   slotAvailabilityOverrides: CareSlotAvailabilityOverrides;
   scanOverrides: CareScanOverrides;
-  onAppointmentStatusChange: (appointmentId: string, status: AppointmentStatus) => void;
   onSlotAvailabilityChange: (slotId: string, available: boolean) => void;
   onScanStart: (appointmentId: string) => void;
   onScanComplete: (appointmentId: string) => void;
@@ -328,7 +327,6 @@ function CareOperations({
   appointmentOverrides,
   slotAvailabilityOverrides,
   scanOverrides,
-  onAppointmentStatusChange,
   onSlotAvailabilityChange,
   onScanStart,
   onScanComplete,
