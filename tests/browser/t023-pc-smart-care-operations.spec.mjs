@@ -62,6 +62,7 @@ test.describe("T023 · PC smart care operations", () => {
 
     await page.getByTestId("t023-slot-SLOT-YUNLING-0901-1500").getByRole("button", { name: "恢复开放" }).click();
     await expect(page.getByTestId("t023-slot-SLOT-YUNLING-0901-1500")).toContainText("可约");
+    await expect(page.getByTestId("t023-project-CARE-PROJECT-BASIC")).not.toContainText("南岸生活馆");
     await expect(page.getByTestId("t023-project-CARE-PROJECT-SOOTHING")).toHaveCount(0);
     await expect(page.getByTestId("t023-slot-SLOT-NANAN-0901-1400")).toHaveCount(0);
     await expectNoHorizontalOverflow(page);
@@ -73,14 +74,18 @@ test.describe("T023 · PC smart care operations", () => {
     const scheduled = page.getByTestId("t023-appointment-APPOINTMENT-8888-01");
     await expect(scheduled).toContainText("已预约");
     await expect(page.getByTestId("t023-appointment-detail")).toContainText("CARE-APPT-8888");
-    await expect(page.getByTestId("t023-appointment-detail")).toContainText("待核销");
+    await expect(page.getByTestId("t023-appointment-detail")).toContainText("核销前 · 待扫码");
 
     await page.getByRole("button", { name: "扫码核销 CARE-APPT-8888" }).click();
-    await expect(page.getByTestId("t023-appointment-detail")).toContainText("已到店");
-    await expect(page.getByTestId("t023-appointment-detail")).toContainText("已核销");
+    await expect(page.getByTestId("t023-appointment-detail")).toContainText("核销中");
+    await expect(page.getByTestId("t023-appointment-APPOINTMENT-8888-01")).toContainText("已预约");
 
     await page.getByRole("button", { name: "工作台", exact: true }).first().click();
     await page.getByRole("button", { name: "智慧抗衰运营", exact: true }).first().click();
+    await expect(page.getByTestId("t023-appointment-detail")).toContainText("核销中");
+
+    await page.getByRole("button", { name: "完成模拟核销" }).click();
+    await expect(page.getByTestId("t023-appointment-detail")).toContainText("核销成功");
     await expect(page.getByTestId("t023-appointment-APPOINTMENT-8888-01")).toContainText("已到店");
     await expectNoHorizontalOverflow(page);
   });
