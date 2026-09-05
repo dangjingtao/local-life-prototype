@@ -56,7 +56,7 @@
 | T019 | Mobile 线上商城中高保真购买闭环 | Mobile / UX | REVIEW | 0.2.0 | T015、T016 | 原 PR #13 / CI / 2026-08-31 验收证据保留；2026-09-02 用户视觉验收重开。R1-R4 已整合；R5 PR #26 完成五屏 390×844 独立视觉复审，首轮发现并修复订单进度横向溢出；最终 artifact `9855267147` 五屏齐全，R5 结论 `PASS FOR HUMAN / REVIEW`。父卡等待用户最终视觉确认，不自行恢复 PASS |
 | T020 | Mobile 智慧抗衰项目、预约与二维码核销 | Mobile | PASS | 0.2.0 | T015、T016 | PR #14 merge `3297f1c`；`a2f68b1` 记录验收；`npm run verify` success；Playwright 390px 全量 45 项通过（T020 专项 4 项）；7 项验收标准全部满足 |
 | T021 | Mobile 智慧抗衰检测报告、转化与历史对比 | Mobile | PASS | 0.2.0 | T015、T020 | `6adfc0d` 记录验收；8 项标准全部满足；假按钮与返回导航问题已修复回归；typecheck / build / 全量 40 浏览器用例通过 |
-| T022 | PC 便利店订单、履约与核销后台 | PC | DOING | 0.2.0 | T015、T018 | `task/T022-pc-convenience-operations` 已开工；自提 / 短配订单、核销、门店可售关系、履约配置 mock |
+| T022 | PC 便利店订单、履约与核销后台 | PC | DOING | 0.2.0 | T015、T018 | PR #33；`?role=merchant` → 便利店履约、`?role=operator` → 便利店履约；final-head 门禁收口中 |
 | T023 | PC 智慧抗衰预约、核销与报告运营后台 | PC | TODO | 0.2.0 | T015、T020、T021 | 项目 / 时段 / 预约 / 核销 / 报告 / 转化配置 |
 | T024 | PC 商城渠道、活动与搜索运营后台 | PC | TODO | 0.2.0 | T015、T016、T019 | Storefront / Channel、商城订单、活动 / 推荐位、搜索关联 |
 | T025 | PC V0.2 数据驾驶舱升级 | PC / Data | TODO | 0.2.0 | T015、T022-T024 | 自提 / 短配 / 商城 / 预约 / 核销 / 转化的增量数据视角 |
