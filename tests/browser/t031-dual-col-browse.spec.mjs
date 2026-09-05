@@ -55,21 +55,18 @@ test.describe("T031 · Dual-column convenience browse UX", () => {
     await expect(page.getByText("第二件 8 折").first()).toBeVisible();
   });
 
-  test("single/combo mode switch with single as default", async ({ page }) => {
+  test("single/combo product types remain visible in the continuous browse structure", async ({ page }) => {
     await openConvenience(page);
     await page.getByRole("button", { name: "选择门店：云岭社区店" }).click();
 
-    const singleBtn = page.getByRole("button", { name: "单品", exact: true });
-    const comboBtn = page.getByRole("button", { name: "套餐", exact: true });
+    await expect(page.getByRole("button", { name: "单品", exact: true })).toHaveCount(0);
+    await expect(page.getByRole("button", { name: "套餐", exact: true })).toHaveCount(0);
 
-    await expect(singleBtn).toBeVisible();
-    await expect(comboBtn).toBeVisible();
-    await expect(singleBtn).toHaveAttribute("aria-pressed", "true");
-    await expect(comboBtn).toHaveAttribute("aria-pressed", "false");
-
-    await comboBtn.click();
-    await expect(comboBtn).toHaveAttribute("aria-pressed", "true");
-    await expect(singleBtn).toHaveAttribute("aria-pressed", "false");
+    const fresh = page.getByTestId("convenience-section-CONV-CAT-FRESH");
+    await expect(fresh.getByText("单品", { exact: true })).toBeVisible();
+    await expect(fresh.getByText("套餐", { exact: true })).toBeVisible();
+    await expect(fresh.getByRole("button", { name: "查看商品：溏心蛋火腿三明治" })).toBeVisible();
+    await expect(fresh.getByRole("button", { name: "查看商品：早餐能量组合" })).toBeVisible();
   });
 
   test("floating cart bar updates on add", async ({ page }) => {
