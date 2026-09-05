@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState, type UIEvent } from "react";
 import { Button, Card, SecondaryButton, Section, StatusTag } from "@prototype/design-system";
 import { PrototypeIcon } from "@prototype/icons";
 import {
@@ -184,6 +184,7 @@ export function StoreFlowScreen({ openActivity, entryContext }: StoreFlowScreenP
   const [selectedProductId, setSelectedProductId] = useState(initialProductId);
   const [query, setQuery] = useState("");
   const [category, setCategory] = useState("全部");
+  const browseScrollRef = useRef<HTMLDivElement | null>(null);
   const [cartSheetOpen, setCartSheetOpen] = useState(false);
   const [carts, setCarts] = useState<CartState>(loadPersistedCarts);
   const [fulfillmentMode, setFulfillmentMode] = useState<FulfillmentMode>("pickup");
@@ -209,9 +210,7 @@ export function StoreFlowScreen({ openActivity, entryContext }: StoreFlowScreenP
   const browseSections = selectedStore ? getConvenienceBrowseSections(selectedStore.id) : [];
   const categories = ["全部", ...browseSections.map((section) => section.category.label)];
   const normalizedQuery = query.trim().toLowerCase();
-  const scopedBrowseSections = (category === "全部"
-    ? browseSections
-    : browseSections.filter((section) => section.category.label === category))
+  const scopedBrowseSections = browseSections
     .map((section) => {
       const matchesQuery = (product: Product) =>
         !normalizedQuery || `${product.name} ${product.category} ${product.spec ?? ""}`.toLowerCase().includes(normalizedQuery);
@@ -221,6 +220,49 @@ export function StoreFlowScreen({ openActivity, entryContext }: StoreFlowScreenP
     })
     .filter((section) => section.products.length > 0);
   const visibleProducts = scopedBrowseSections.flatMap((section) => section.products);
+
+  const selectBrowseCategory = (label: string) => {
+    setCategory(label);
+    const scroll = browseScrollRef.current;
+    if (!scroll || normalizedQuery) return;
+
+    if (label === "全部") {
+      scroll.scrollTo({ top: 0, behavior: "auto" });
+      return;
+    }
+
+    const section = browseSections.find((item) => item.category.label === label);
+    if (!section) return;
+    const target = document.getElementById(section.anchorId);
+    if (!target) return;
+
+    const scrollRect = scroll.getBoundingClientRect();
+    const targetRect = target.getBoundingClientRect();
+    const top = scroll.scrollTop + targetRect.top - scrollRect.top;
+    scroll.scrollTo({ top, behavior: "auto" });
+  };
+
+  const syncBrowseCategoryFromScroll = (event: UIEvent<HTMLDivElement>) => {
+    if (normalizedQuery) return;
+    const scroll = event.currentTarget;
+    if (scroll.scrollTop <= 1) {
+      setCategory((current) => current === "全部" ? current : "全部");
+      return;
+    }
+
+    const scrollRect = scroll.getBoundingClientRect();
+    const activationLine = scrollRect.top + 8;
+    let activeLabel = browseSections[0]?.category.label ?? "全部";
+
+    for (const section of browseSections) {
+      const target = document.getElementById(section.anchorId);
+      if (!target) continue;
+      if (target.getBoundingClientRect().top <= activationLine) activeLabel = section.category.label;
+      else break;
+    }
+
+    setCategory((current) => current === activeLabel ? current : activeLabel);
+  };
 
   // 测试用：监听 legacyPickup 自定义事件，直接跳转 legacy 自提确认页
   // 正常用户路径无此入口，仅用于 T012 回归测试
@@ -497,7 +539,7 @@ export function StoreFlowScreen({ openActivity, entryContext }: StoreFlowScreenP
                   key={item}
                   type="button"
                   aria-pressed={category === item}
-                  onClick={() => setCategory(item)}
+                  onClick={() => selectBrowseCategory(item)}
                   className={`relative w-full py-3 px-2 text-center text-xs transition-colors ${
                     category === item
                       ? "bg-[var(--color-background)] font-semibold text-[var(--color-text-primary)]"
@@ -537,7 +579,9 @@ export function StoreFlowScreen({ openActivity, entryContext }: StoreFlowScreenP
 
               {/* 商品列表：默认按大类连续排布；搜索时保持扁平结果，避免重复分组。 */}
               <div
+                ref={browseScrollRef}
                 data-testid="convenience-product-scroll"
+                onScroll={syncBrowseCategoryFromScroll}
                 className="flex-1 overflow-y-auto px-3 pb-[calc(9rem+env(safe-area-inset-bottom))]"
               >
                 {visibleProducts.length === 0 && (
