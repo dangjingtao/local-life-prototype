@@ -109,9 +109,11 @@ test.describe("T017 · Mobile convenience store browsing and independent cart", 
     // 去结算为独立按钮
     await expect(page.getByLabel("去结算")).toBeVisible();
 
-    // 购物栏在商品列表上方悬浮（最后一个商品完整可见，不被遮挡）
+    // T035 后商品使用内层连续滚动；滚到底后最后一个商品仍应完整位于购物栏上方
     const lastProduct = page.getByRole("button", { name: /加入购物车：/ }).last();
-    await page.evaluate(() => window.scrollTo(0, document.body.scrollHeight));
+    const productScroll = page.getByTestId("convenience-product-scroll");
+    await productScroll.evaluate((node) => { node.scrollTop = node.scrollHeight; });
+    await expect(lastProduct).toBeVisible();
     const lastBox = await lastProduct.boundingBox();
     const cartBox = await cartBar.boundingBox();
     expect(lastBox).not.toBeNull();
