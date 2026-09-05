@@ -24,7 +24,7 @@ async function openOperatorFulfillment(page, width = 1440, height = 900) {
   await page.setViewportSize({ width, height });
   await page.goto(`${PC}/?role=operator`);
   await page.getByRole("button", { name: "便利店履约", exact: true }).first().click();
-  await expect(page.getByRole("heading", { name: "便利店履约", exact: true })).toBeVisible();
+  await expect(page.getByRole("main").getByRole("heading", { name: "便利店履约", exact: true })).toBeVisible();
 }
 
 async function openMobileShortDelivery(page) {
