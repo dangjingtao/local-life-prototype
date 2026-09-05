@@ -109,9 +109,11 @@ test.describe("T017 · Mobile convenience store browsing and independent cart", 
     // 去结算为独立按钮
     await expect(page.getByLabel("去结算")).toBeVisible();
 
-    // 购物栏在商品列表上方悬浮（最后一个商品完整可见，不被遮挡）
+    // T035 后商品使用内层连续滚动；滚到底后最后一个商品仍应完整位于购物栏上方
     const lastProduct = page.getByRole("button", { name: /加入购物车：/ }).last();
-    await page.evaluate(() => window.scrollTo(0, document.body.scrollHeight));
+    const productScroll = page.getByTestId("convenience-product-scroll");
+    await productScroll.evaluate((node) => { node.scrollTop = node.scrollHeight; });
+    await expect(lastProduct).toBeVisible();
     const lastBox = await lastProduct.boundingBox();
     const cartBox = await cartBar.boundingBox();
     expect(lastBox).not.toBeNull();
@@ -124,9 +126,12 @@ test.describe("T017 · Mobile convenience store browsing and independent cart", 
     await expect(updatedBar).toBeVisible();
     await expect(updatedBar).toContainText("¥43.10");
 
-    // 单品/套餐切换存在
-    await expect(page.getByRole("button", { name: "单品", exact: true })).toBeVisible();
-    await expect(page.getByRole("button", { name: "套餐", exact: true })).toBeVisible();
+    // V0.3 连续浏览：单品/套餐不再作为过滤按钮，两类内容默认同时存在
+    await expect(page.getByRole("button", { name: "单品", exact: true })).toHaveCount(0);
+    await expect(page.getByRole("button", { name: "套餐", exact: true })).toHaveCount(0);
+    const fresh = page.getByTestId("convenience-section-CONV-CAT-FRESH");
+    await expect(fresh.getByText("单品", { exact: true })).toBeVisible();
+    await expect(fresh.getByText("套餐", { exact: true })).toBeVisible();
 
     // 可用券入口存在
     await expect(page.getByRole("button", { name: /可用券/ })).toBeVisible();

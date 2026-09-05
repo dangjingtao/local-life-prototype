@@ -1,6 +1,6 @@
 # T035 · Mobile 便利店连续浏览结构
 
-- Status: TODO
+- Status: DOING
 - Target version: 0.3.0
 - Type: Mobile / UX
 - Predecessors: T034、T031
@@ -36,6 +36,12 @@
 - [ ] 390×844 无横向溢出。
 - [ ] T031 / T032 关键购物链路无回归。
 - [ ] typecheck / build / 本卡 browser test 通过。
+
+## Execution baseline
+
+- Branch: `task/T035-mobile-convenience-continuous-browse`
+- Started from: `dev@72a8c06efe39d8007c1e6d0efeab02a69944038c`
+- Started at: 2026-09-05
 
 ## Evidence required
 

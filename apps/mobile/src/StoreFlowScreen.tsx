@@ -9,9 +9,9 @@ import {
   corePickupOrder,
   coreUserV02Coupons,
   findById,
+  getConvenienceBrowseSections,
   getStoreAvailability,
   getStoreDeliveryAddresses,
-  getStoreProducts,
   getUserConvenienceCarts,
   isStoreDeliveryAddressInRange,
   offlineStores,
@@ -184,7 +184,6 @@ export function StoreFlowScreen({ openActivity, entryContext }: StoreFlowScreenP
   const [selectedProductId, setSelectedProductId] = useState(initialProductId);
   const [query, setQuery] = useState("");
   const [category, setCategory] = useState("全部");
-  const [browseMode, setBrowseMode] = useState<"single" | "combo">("single");
   const [cartSheetOpen, setCartSheetOpen] = useState(false);
   const [carts, setCarts] = useState<CartState>(loadPersistedCarts);
   const [fulfillmentMode, setFulfillmentMode] = useState<FulfillmentMode>("pickup");
@@ -207,15 +206,21 @@ export function StoreFlowScreen({ openActivity, entryContext }: StoreFlowScreenP
   const availabilityByProductId = new Map(storeAvailability.map((item) => [item.productId, item]));
   const selectedProduct = selectedProductId ? findById(catalogProducts, selectedProductId) : undefined;
   const selectedAvailability = selectedProduct ? availabilityByProductId.get(selectedProduct.id) : undefined;
-  const storeProducts = selectedStore ? getStoreProducts(selectedStore.id) : [];
-  const categories = ["全部", ...Array.from(new Set(storeProducts.map((product) => product.category)))];
+  const browseSections = selectedStore ? getConvenienceBrowseSections(selectedStore.id) : [];
+  const categories = ["全部", ...browseSections.map((section) => section.category.label)];
   const normalizedQuery = query.trim().toLowerCase();
-  const visibleProducts = storeProducts.filter((product) => {
-    const matchesCategory = category === "全部" || product.category === category;
-    const matchesQuery = !normalizedQuery || `${product.name} ${product.category} ${product.spec ?? ""}`.toLowerCase().includes(normalizedQuery);
-    const matchesMode = browseMode === "single" ? product.type === "single" || product.type === undefined : product.type === "combo";
-    return matchesCategory && matchesQuery && matchesMode;
-  });
+  const scopedBrowseSections = (category === "全部"
+    ? browseSections
+    : browseSections.filter((section) => section.category.label === category))
+    .map((section) => {
+      const matchesQuery = (product: Product) =>
+        !normalizedQuery || `${product.name} ${product.category} ${product.spec ?? ""}`.toLowerCase().includes(normalizedQuery);
+      const single = section.single.filter(matchesQuery);
+      const combo = section.combo.filter(matchesQuery);
+      return { ...section, single, combo, products: [...single, ...combo] };
+    })
+    .filter((section) => section.products.length > 0);
+  const visibleProducts = scopedBrowseSections.flatMap((section) => section.products);
 
   // 测试用：监听 legacyPickup 自定义事件，直接跳转 legacy 自提确认页
   // 正常用户路径无此入口，仅用于 T012 回归测试
@@ -359,6 +364,60 @@ export function StoreFlowScreen({ openActivity, entryContext }: StoreFlowScreenP
     });
   };
 
+  const renderBrowseProduct = (product: Product) => {
+    const availability = availabilityByProductId.get(product.id);
+    const quantity = currentCart[product.id] ?? 0;
+    const orderable = selectedStore?.status === "open" && isOrderable(availability);
+    const displayPrice = availability?.priceYuan ?? product.priceYuan;
+    const memberPrice = availability?.memberPriceYuan ?? product.memberPriceYuan;
+    const promoLabel = availability?.promotionLabel ?? product.promotionLabel;
+    const isMemberDeal = memberPrice !== undefined && memberPrice !== displayPrice;
+    const statusLabel = availability?.status === "sold_out"
+      ? availabilityStatusLabels.sold_out
+      : availability?.status === "unavailable"
+      ? availabilityStatusLabels.unavailable
+      : undefined;
+    return (
+      <div key={product.id} data-product-id={product.id} className={`flex gap-2.5 py-2.5 ${orderable ? "" : "opacity-60"}`}>
+        <button type="button" onClick={() => openProduct(product.id)} aria-label={`查看商品：${product.name}`} className="flex min-w-0 flex-1 items-start gap-2.5 text-left">
+          <div className="relative shrink-0">
+            <ConvenienceProductArtwork productId={product.id} name={product.name} className="h-16 w-16 rounded-[var(--radius-sm)] bg-[var(--color-surface)]" />
+            {!orderable && (
+              <span className="absolute inset-0 flex items-center justify-center rounded-[var(--radius-sm)] bg-black/40 text-[10px] font-semibold text-white">
+                {statusLabel ?? "暂不可售"}
+              </span>
+            )}
+          </div>
+          <div className="flex min-w-0 flex-1 flex-col justify-between">
+            <div className="min-w-0">
+              <p className="truncate text-sm font-medium leading-tight">{product.name}</p>
+              <p className="mt-0.5 truncate text-[11px] text-[var(--color-text-tertiary)]">{product.spec ?? product.category}</p>
+              {promoLabel && <span className="mt-1 inline-block rounded-sm bg-[var(--color-danger)] px-1.5 py-0.5 text-[10px] font-medium text-white">{promoLabel}</span>}
+            </div>
+            <div className="min-w-0">
+              {isMemberDeal && <p className="text-[10px] text-[var(--color-text-tertiary)] line-through">¥{displayPrice.toFixed(2)}</p>}
+              <p className="text-sm font-bold text-[var(--color-primary-pressed)] leading-tight">
+                ¥{(memberPrice ?? displayPrice).toFixed(2)}
+                {isMemberDeal && <span className="ml-0.5 text-[10px] font-normal text-[var(--color-text-tertiary)]">会员</span>}
+              </p>
+            </div>
+          </div>
+        </button>
+        <div className="flex shrink-0 items-end">
+          {quantity > 0 ? (
+            <div className="flex items-center gap-0.5" aria-label={`${product.name} 数量`}>
+              <button type="button" aria-label={`减少${product.name}`} onClick={(event) => { event.stopPropagation(); updateQuantity(product.id, -1); }} className="flex h-6 w-6 items-center justify-center rounded-full border border-[var(--color-border)] bg-[var(--color-surface)] text-xs">−</button>
+              <span className="min-w-5 text-center text-xs font-semibold">{quantity}</span>
+              <button type="button" aria-label={`增加${product.name}`} onClick={(event) => { event.stopPropagation(); updateQuantity(product.id, 1); }} disabled={!orderable} className="flex h-6 w-6 items-center justify-center rounded-full bg-[var(--color-primary)] text-white text-xs disabled:opacity-40">+</button>
+            </div>
+          ) : (
+            <button type="button" aria-label={`加入购物车：${product.name}`} onClick={(event) => { event.stopPropagation(); updateQuantity(product.id, 1); }} disabled={!orderable} className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-[var(--color-primary)] text-white text-xs disabled:opacity-40">+</button>
+          )}
+        </div>
+      </div>
+    );
+  };
+
   if (step === "stores") {
     return (
       <>
@@ -453,8 +512,8 @@ export function StoreFlowScreen({ openActivity, entryContext }: StoreFlowScreenP
 
             {/* 右侧商品区 */}
             <div className="relative flex flex-1 flex-col min-w-0">
-              {/* 搜索 + 单品/套餐切换 */}
-              <div className="sticky top-0 z-10 space-y-2 bg-[var(--color-background)] px-3 pb-2 pt-1">
+              {/* 搜索保持独立；单品 / 套餐不再作为过滤器。 */}
+              <div className="sticky top-0 z-10 bg-[var(--color-background)] px-3 pb-2 pt-1">
                 <div className="relative">
                   <span className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-[var(--color-text-tertiary)]"><PrototypeIcon name="search" size={16} /></span>
                   <input
@@ -464,28 +523,6 @@ export function StoreFlowScreen({ openActivity, entryContext }: StoreFlowScreenP
                     placeholder="搜本店商品"
                     className="h-9 w-full rounded-[var(--radius-control)] border border-[var(--color-border)] bg-[var(--color-surface)] pl-9 pr-3 text-xs outline-none focus:border-[var(--color-primary)]"
                   />
-                </div>
-                <div className="inline-flex items-center gap-0.5 rounded-full bg-[var(--color-surface-subtle)] p-0.5">
-                  <button
-                    type="button"
-                    aria-pressed={browseMode === "single"}
-                    onClick={() => setBrowseMode("single")}
-                    className={`rounded-full px-3 py-1 text-xs font-medium transition-colors ${
-                      browseMode === "single" ? "bg-[var(--color-primary)] text-white" : "text-[var(--color-text-secondary)]"
-                    }`}
-                  >
-                    单品
-                  </button>
-                  <button
-                    type="button"
-                    aria-pressed={browseMode === "combo"}
-                    onClick={() => setBrowseMode("combo")}
-                    className={`rounded-full px-3 py-1 text-xs font-medium transition-colors ${
-                      browseMode === "combo" ? "bg-[var(--color-primary)] text-white" : "text-[var(--color-text-secondary)]"
-                    }`}
-                  >
-                    套餐
-                  </button>
                 </div>
               </div>
 
@@ -498,69 +535,59 @@ export function StoreFlowScreen({ openActivity, entryContext }: StoreFlowScreenP
                 </button>
               )}
 
-              {/* 商品列表 */}
-              <div className="flex-1 overflow-y-auto px-3 pb-4">
+              {/* 商品列表：默认按大类连续排布；搜索时保持扁平结果，避免重复分组。 */}
+              <div
+                data-testid="convenience-product-scroll"
+                className="flex-1 overflow-y-auto px-3 pb-[calc(9rem+env(safe-area-inset-bottom))]"
+              >
                 {visibleProducts.length === 0 && (
                   <div className="py-8 text-center">
                     <p className="text-sm font-medium text-[var(--color-text-secondary)]">暂无匹配商品</p>
                     <p className="mt-1 text-xs text-[var(--color-text-tertiary)]">换个分类或关键词看看</p>
                   </div>
                 )}
-                <div className="divide-y divide-[var(--color-border)]">
-                  {visibleProducts.map((product) => {
-                    const availability = availabilityByProductId.get(product.id);
-                    const quantity = currentCart[product.id] ?? 0;
-                    const orderable = selectedStore.status === "open" && isOrderable(availability);
-                    const displayPrice = availability?.priceYuan ?? product.priceYuan;
-                    const memberPrice = availability?.memberPriceYuan ?? product.memberPriceYuan;
-                    const promoLabel = availability?.promotionLabel ?? product.promotionLabel;
-                    const isMemberDeal = memberPrice !== undefined && memberPrice !== displayPrice;
-                    const statusLabel = availability?.status === "sold_out"
-                      ? availabilityStatusLabels.sold_out
-                      : availability?.status === "unavailable"
-                      ? availabilityStatusLabels.unavailable
-                      : undefined;
-                    return (
-                      <div key={product.id} className={`flex gap-2.5 py-2.5 ${orderable ? "" : "opacity-60"}`}>
-                        <button type="button" onClick={() => openProduct(product.id)} aria-label={`查看商品：${product.name}`} className="flex min-w-0 flex-1 items-start gap-2.5 text-left">
-                          <div className="relative shrink-0">
-                            <ConvenienceProductArtwork productId={product.id} name={product.name} className="h-16 w-16 rounded-[var(--radius-sm)] bg-[var(--color-surface)]" />
-                            {!orderable && (
-                              <span className="absolute inset-0 flex items-center justify-center rounded-[var(--radius-sm)] bg-black/40 text-[10px] font-semibold text-white">
-                                {statusLabel ?? "暂不可售"}
-                              </span>
-                            )}
-                          </div>
-                          <div className="flex min-w-0 flex-1 flex-col justify-between">
-                            <div className="min-w-0">
-                              <p className="truncate text-sm font-medium leading-tight">{product.name}</p>
-                              <p className="mt-0.5 truncate text-[11px] text-[var(--color-text-tertiary)]">{product.spec ?? product.category}</p>
-                              {promoLabel && <span className="mt-1 inline-block rounded-sm bg-[var(--color-danger)] px-1.5 py-0.5 text-[10px] font-medium text-white">{promoLabel}</span>}
-                            </div>
-                            <div className="min-w-0">
-                              {isMemberDeal && <p className="text-[10px] text-[var(--color-text-tertiary)] line-through">¥{displayPrice.toFixed(2)}</p>}
-                              <p className="text-sm font-bold text-[var(--color-primary-pressed)] leading-tight">
-                                ¥{(memberPrice ?? displayPrice).toFixed(2)}
-                                {isMemberDeal && <span className="ml-0.5 text-[10px] font-normal text-[var(--color-text-tertiary)]">会员</span>}
-                              </p>
-                            </div>
-                          </div>
-                        </button>
-                        <div className="flex shrink-0 items-end">
-                          {quantity > 0 ? (
-                            <div className="flex items-center gap-0.5" aria-label={`${product.name} 数量`}>
-                              <button type="button" aria-label={`减少${product.name}`} onClick={(e) => { e.stopPropagation(); updateQuantity(product.id, -1); }} className="flex h-6 w-6 items-center justify-center rounded-full border border-[var(--color-border)] bg-[var(--color-surface)] text-xs">−</button>
-                              <span className="min-w-5 text-center text-xs font-semibold">{quantity}</span>
-                              <button type="button" aria-label={`增加${product.name}`} onClick={(e) => { e.stopPropagation(); updateQuantity(product.id, 1); }} disabled={!orderable} className="flex h-6 w-6 items-center justify-center rounded-full bg-[var(--color-primary)] text-white text-xs disabled:opacity-40">+</button>
-                            </div>
-                          ) : (
-                            <button type="button" aria-label={`加入购物车：${product.name}`} onClick={(e) => { e.stopPropagation(); updateQuantity(product.id, 1); }} disabled={!orderable} className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-[var(--color-primary)] text-white text-xs disabled:opacity-40">+</button>
-                          )}
+
+                {normalizedQuery ? (
+                  <div data-testid="convenience-search-results" className="divide-y divide-[var(--color-border)]">
+                    {visibleProducts.map(renderBrowseProduct)}
+                  </div>
+                ) : (
+                  <div data-testid="convenience-continuous-sections">
+                    {scopedBrowseSections.map((section) => (
+                      <section
+                        key={section.category.id}
+                        id={section.anchorId}
+                        data-testid={`convenience-section-${section.category.id}`}
+                        className="scroll-mt-12"
+                        aria-labelledby={`convenience-section-title-${section.category.id}`}
+                      >
+                        <div className="sticky top-0 z-[5] -mx-3 border-y border-[var(--color-border)] bg-[var(--color-surface-subtle)] px-3 py-2">
+                          <h3 id={`convenience-section-title-${section.category.id}`} className="text-xs font-semibold text-[var(--color-text-primary)]">
+                            {section.category.label}
+                          </h3>
                         </div>
-                      </div>
-                    );
-                  })}
-                </div>
+
+                        {section.single.length > 0 && (
+                          <div data-testid={`convenience-segment-${section.category.id}-single`}>
+                            <div className="py-1.5 text-[11px] font-medium text-[var(--color-text-tertiary)]">单品</div>
+                            <div className="divide-y divide-[var(--color-border)]">
+                              {section.single.map(renderBrowseProduct)}
+                            </div>
+                          </div>
+                        )}
+
+                        {section.combo.length > 0 && (
+                          <div data-testid={`convenience-segment-${section.category.id}-combo`}>
+                            <div className="border-t border-[var(--color-border)] py-1.5 text-[11px] font-medium text-[var(--color-text-tertiary)]">套餐</div>
+                            <div className="divide-y divide-[var(--color-border)]">
+                              {section.combo.map(renderBrowseProduct)}
+                            </div>
+                          </div>
+                        )}
+                      </section>
+                    ))}
+                  </div>
+                )}
               </div>
             </div>
           </div>
