@@ -538,7 +538,7 @@ export function StoreFlowScreen({ openActivity, entryContext }: StoreFlowScreenP
               {/* 商品列表：默认按大类连续排布；搜索时保持扁平结果，避免重复分组。 */}
               <div
                 data-testid="convenience-product-scroll"
-                className="flex-1 overflow-y-auto px-3 pb-4"
+                className="flex-1 overflow-y-auto px-3 pb-[calc(9rem+env(safe-area-inset-bottom))]"
               >
                 {visibleProducts.length === 0 && (
                   <div className="py-8 text-center">
