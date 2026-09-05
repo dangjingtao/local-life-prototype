@@ -55,6 +55,7 @@ test.describe("T022 · PC convenience fulfillment operations", () => {
     await openMerchantFulfillment(page, 1024, 768);
 
     const pickup = page.getByTestId("t022-order-LL-1024");
+    const newPickup = page.getByTestId("t022-order-CONV-YUNLING-8888-PICKUP");
     const delivery = page.getByTestId("t022-order-CONV-YUNLING-8888-DELIVERY");
 
     await expect(pickup).toContainText("云岭社区店");
@@ -68,6 +69,13 @@ test.describe("T022 · PC convenience fulfillment operations", () => {
     await expect(pickup).toContainText("已完成");
     await expect(pickup.getByRole("button", { name: "已完成核销" })).toBeDisabled();
 
+    await expect(newPickup).toContainText("备货中");
+    await expect(newPickup).toContainText("PK-8888");
+    await newPickup.getByRole("button", { name: "备货完成 CONV-YUNLING-8888-PICKUP" }).click();
+    await expect(newPickup).toContainText("待取货");
+    await newPickup.getByRole("button", { name: "扫码核销 CONV-YUNLING-8888-PICKUP" }).click();
+    await expect(newPickup).toContainText("已完成");
+
     await delivery.getByRole("button", { name: "开始配送 CONV-YUNLING-8888-DELIVERY" }).click();
     await expect(delivery).toContainText("配送中");
     await delivery.getByRole("button", { name: "确认送达 CONV-YUNLING-8888-DELIVERY" }).click();
@@ -80,6 +88,7 @@ test.describe("T022 · PC convenience fulfillment operations", () => {
     await expect(page.getByText("演示业务日 2026-09-05")).toBeVisible();
     await page.getByRole("button", { name: "便利店履约", exact: true }).first().click();
     await expect(page.getByTestId("t022-order-LL-1024")).toContainText("已完成");
+    await expect(page.getByTestId("t022-order-CONV-YUNLING-8888-PICKUP")).toContainText("已完成");
     await expect(page.getByTestId("t022-order-CONV-YUNLING-8888-DELIVERY")).toContainText("已完成");
 
     await mkdir("test-results/t022-visual-evidence", { recursive: true });
