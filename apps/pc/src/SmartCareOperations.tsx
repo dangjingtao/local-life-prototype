@@ -19,13 +19,17 @@ import {
 
 export type CareAppointmentOverrides = Partial<Record<string, AppointmentStatus>>;
 export type CareSlotAvailabilityOverrides = Partial<Record<string, boolean>>;
+export type CareScanOverrides = Partial<Record<string, boolean>>;
 
 type CareOperationsProps = {
   scopeStoreId?: string;
   appointmentOverrides: CareAppointmentOverrides;
   slotAvailabilityOverrides: CareSlotAvailabilityOverrides;
+  scanOverrides: CareScanOverrides;
   onAppointmentStatusChange: (appointmentId: string, status: AppointmentStatus) => void;
   onSlotAvailabilityChange: (slotId: string, available: boolean) => void;
+  onScanStart: (appointmentId: string) => void;
+  onScanComplete: (appointmentId: string) => void;
   onReset: () => void;
 };
 
@@ -119,7 +123,7 @@ function CareProjectsSection({ scopeStoreId }: { scopeStoreId?: string }) {
           <div><span className="text-[var(--color-text-tertiary)]">时长</span><strong className="mt-1 block">{project.durationMinutes} 分钟</strong></div>
           <div><span className="text-[var(--color-text-tertiary)]">原型价</span><strong className="mt-1 block">¥{project.priceYuan}</strong></div>
         </div>
-        <p className="mt-4 text-xs leading-5 text-[var(--color-text-tertiary)]">适用门店：{project.storeIds.map(storeName).join("、")}</p>
+        <p className="mt-4 text-xs leading-5 text-[var(--color-text-tertiary)]">适用门店：{(scopeStoreId ? project.storeIds.filter((storeId) => storeId === scopeStoreId) : project.storeIds).map(storeName).join("、")}</p>
       </Card>)}
     </div>
   </Section>;
@@ -188,11 +192,15 @@ function SlotsSection({
 function AppointmentDetail({
   appointment,
   status,
-  onScan,
+  scanInProgress,
+  onScanStart,
+  onScanComplete,
 }: {
   appointment: Appointment;
   status: AppointmentStatus;
-  onScan: () => void;
+  scanInProgress: boolean;
+  onScanStart: () => void;
+  onScanComplete: () => void;
 }) {
   const record = detectionRecords.find((item) => item.appointmentId === appointment.id);
   const report = record?.reportId ? detectionReports.find((item) => item.id === record.reportId) : undefined;
@@ -208,12 +216,21 @@ function AppointmentDetail({
     <div className="mt-5 grid gap-4 border-t border-[var(--color-border)] pt-4 sm:grid-cols-2 xl:grid-cols-4">
       <div><p className="text-xs text-[var(--color-text-tertiary)]">预约时间</p><p className="mt-1 text-sm font-medium">{formatDateTime(appointment.scheduledAt)}</p></div>
       <div><p className="text-xs text-[var(--color-text-tertiary)]">预约二维码 / 码</p><p className="mt-1 break-all font-mono text-sm font-medium">{appointment.qrCode ?? "历史记录无预约码"}</p></div>
-      <div><p className="text-xs text-[var(--color-text-tertiary)]">核销状态</p><p className="mt-1 text-sm font-medium">{status === "checked_in" || status === "completed" ? "已核销" : status === "scheduled" ? "待核销" : "不可核销"}</p></div>
+      <div><p className="text-xs text-[var(--color-text-tertiary)]">核销状态</p><p className="mt-1 text-sm font-medium">{status === "checked_in" || status === "completed" ? "核销成功" : scanInProgress ? "核销中" : status === "scheduled" ? "核销前 · 待扫码" : "不可核销"}</p></div>
       <div><p className="text-xs text-[var(--color-text-tertiary)]">时段 ID</p><p className="mt-1 break-all font-mono text-sm font-medium">{appointment.slotId ?? "历史记录未绑定时段"}</p></div>
     </div>
     {status === "scheduled" && appointment.qrCode && <div className="mt-5 flex flex-wrap items-center justify-between gap-3 rounded-[var(--radius-container)] bg-[var(--color-brand-subtle)] p-4">
-      <div><p className="font-medium">店员扫码核销 Mock</p><p className="mt-1 text-sm text-[var(--color-text-secondary)]">扫描 {appointment.qrCode} 后，将预约状态推进为“已到店 / 已核销”。</p></div>
-      <SecondaryButton onClick={onScan}>{`扫码核销 ${appointment.qrCode}`}</SecondaryButton>
+      <div>
+        <p className="font-medium">{scanInProgress ? "核销中" : "店员扫码核销 Mock"}</p>
+        <p className="mt-1 text-sm text-[var(--color-text-secondary)]">
+          {scanInProgress
+            ? `正在校验 ${appointment.qrCode} 与当前用户、门店、项目、预约关系；确认后写入本次原型会话状态。`
+            : `扫描 ${appointment.qrCode} 后先进入“核销中”，确认成功后再推进为“已到店 / 核销成功”。`}
+        </p>
+      </div>
+      <SecondaryButton onClick={scanInProgress ? onScanComplete : onScanStart}>
+        {scanInProgress ? "完成模拟核销" : `扫码核销 ${appointment.qrCode}`}
+      </SecondaryButton>
     </div>}
     <div className="mt-5 grid gap-3 border-t border-[var(--color-border)] pt-4 md:grid-cols-2">
       <div className="rounded-[var(--radius-container)] bg-[var(--color-surface-subtle)] p-4">
@@ -231,8 +248,10 @@ function AppointmentDetail({
 function AppointmentsSection({
   scopeStoreId,
   appointmentOverrides,
-  onAppointmentStatusChange,
-}: Pick<CareOperationsProps, "scopeStoreId" | "appointmentOverrides" | "onAppointmentStatusChange">) {
+  scanOverrides,
+  onScanStart,
+  onScanComplete,
+}: Pick<CareOperationsProps, "scopeStoreId" | "appointmentOverrides" | "scanOverrides" | "onScanStart" | "onScanComplete">) {
   const scoped = appointments.filter((appointment) => !scopeStoreId || appointment.storeId === scopeStoreId);
   const [selectedId, setSelectedId] = useState(() => scoped.find((appointment) => appointment.id === CORE_DEMO_IDS.appointment)?.id ?? scoped[0]?.id ?? "");
   const selected = scoped.find((appointment) => appointment.id === selectedId) ?? scoped[0];
@@ -257,7 +276,9 @@ function AppointmentsSection({
     {selected && <AppointmentDetail
       appointment={selected}
       status={effectiveCareAppointmentStatus(selected, appointmentOverrides)}
-      onScan={() => onAppointmentStatusChange(selected.id, "checked_in")}
+      scanInProgress={Boolean(scanOverrides[selected.id])}
+      onScanStart={() => onScanStart(selected.id)}
+      onScanComplete={() => onScanComplete(selected.id)}
     />}
   </Section>;
 }
@@ -306,8 +327,11 @@ function CareOperations({
   scopeStoreId,
   appointmentOverrides,
   slotAvailabilityOverrides,
+  scanOverrides,
   onAppointmentStatusChange,
   onSlotAvailabilityChange,
+  onScanStart,
+  onScanComplete,
   onReset,
 }: CareOperationsProps) {
   const scopedAppointments = appointments.filter((appointment) => !scopeStoreId || appointment.storeId === scopeStoreId);
@@ -319,7 +343,7 @@ function CareOperations({
     { label: "已完成", value: String(statuses.filter((status) => status === "completed").length), note: "历史检测 / 服务完成" },
     { label: "检测报告", value: String(scopedReports.length), note: "报告与转化配置" },
   ];
-  const hasOverrides = Object.keys(appointmentOverrides).length > 0 || Object.keys(slotAvailabilityOverrides).length > 0;
+  const hasOverrides = Object.keys(appointmentOverrides).length > 0 || Object.keys(slotAvailabilityOverrides).length > 0 || Object.keys(scanOverrides).length > 0;
 
   return <>
     <div className="flex flex-wrap items-end justify-between gap-3">
@@ -345,7 +369,7 @@ function CareOperations({
 
     <CareProjectsSection scopeStoreId={scopeStoreId} />
     <SlotsSection scopeStoreId={scopeStoreId} slotAvailabilityOverrides={slotAvailabilityOverrides} onSlotAvailabilityChange={onSlotAvailabilityChange} />
-    <AppointmentsSection scopeStoreId={scopeStoreId} appointmentOverrides={appointmentOverrides} onAppointmentStatusChange={onAppointmentStatusChange} />
+    <AppointmentsSection scopeStoreId={scopeStoreId} appointmentOverrides={appointmentOverrides} scanOverrides={scanOverrides} onScanStart={onScanStart} onScanComplete={onScanComplete} />
     <ReportsSection scopeStoreId={scopeStoreId} />
   </>;
 }
