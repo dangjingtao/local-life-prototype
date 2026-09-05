@@ -159,12 +159,6 @@ export function MerchantConvenienceOperations() {
   const [fulfillmentOverrides, setFulfillmentOverrides] = useState<FulfillmentOverrides>({});
   const [redemptionOverrides, setRedemptionOverrides] = useState<RedemptionOverrides>({});
 
-  const pickupOrder = convenienceOrders.find((order) => order.fulfillmentDetail?.mode === "pickup");
-  const shortDeliveryOrder = convenienceOrders.find((order) => order.fulfillmentDetail?.mode === "short_delivery");
-  const pickupRedemption = pickupOrder
-    ? redemptions.find((record) => record.targetType === "order" && record.targetId === pickupOrder.id)
-    : undefined;
-
   const statuses = convenienceOrders.map((order) => effectiveFulfillmentStatus(order, fulfillmentOverrides));
   const metrics = [
     { label: "今日便利店订单", value: String(convenienceOrders.length), note: "仅当前授权门店" },
@@ -175,7 +169,8 @@ export function MerchantConvenienceOperations() {
 
   const completePickup = (order: Order) => {
     setFulfillmentOverrides((current) => ({ ...current, [order.id]: "completed" }));
-    if (pickupRedemption) setRedemptionOverrides((current) => ({ ...current, [pickupRedemption.id]: "completed" }));
+    const redemption = redemptions.find((record) => record.targetType === "order" && record.targetId === order.id);
+    if (redemption) setRedemptionOverrides((current) => ({ ...current, [redemption.id]: "completed" }));
   };
 
   const advanceDelivery = (order: Order) => {
@@ -219,20 +214,19 @@ export function MerchantConvenienceOperations() {
 
     <Section title="本店便利店订单">
       <div className="grid gap-4">
-        {pickupOrder && <ConvenienceOrderCard
-          order={pickupOrder}
-          status={effectiveFulfillmentStatus(pickupOrder, fulfillmentOverrides)}
-          redemptionCompleted={Boolean(pickupRedemption && redemptionOverrides[pickupRedemption.id] === "completed")}
-          onPickupRedeem={() => completePickup(pickupOrder)}
-          onAdvanceDelivery={() => undefined}
-        />}
-        {shortDeliveryOrder && <ConvenienceOrderCard
-          order={shortDeliveryOrder}
-          status={effectiveFulfillmentStatus(shortDeliveryOrder, fulfillmentOverrides)}
-          redemptionCompleted={false}
-          onPickupRedeem={() => undefined}
-          onAdvanceDelivery={() => advanceDelivery(shortDeliveryOrder)}
-        />}
+        {convenienceOrders.map((order) => {
+          const redemption = order.fulfillmentDetail?.mode === "pickup"
+            ? redemptions.find((record) => record.targetType === "order" && record.targetId === order.id)
+            : undefined;
+          return <ConvenienceOrderCard
+            key={order.id}
+            order={order}
+            status={effectiveFulfillmentStatus(order, fulfillmentOverrides)}
+            redemptionCompleted={Boolean(redemption && redemptionOverrides[redemption.id] === "completed")}
+            onPickupRedeem={() => completePickup(order)}
+            onAdvanceDelivery={() => advanceDelivery(order)}
+          />;
+        })}
       </div>
     </Section>
 
