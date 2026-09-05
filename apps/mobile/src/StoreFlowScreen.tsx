@@ -91,7 +91,7 @@ function buildPickupSlots(): string[] {
 }
 
 function buildPickupCode() {
-  return `${pickupCodePrefix}-${Math.floor(1000 + Math.random() * 9000)}`;
+  return `${pickupCodePrefix}-${coreDemoUser.id.replace("LL-", "")}`;
 }
 
 function buildInitialCarts(): CartState {
@@ -299,7 +299,7 @@ export function StoreFlowScreen({ openActivity, entryContext }: StoreFlowScreenP
 
   const submitCheckout = () => {
     if (!canSubmitCheckout || !selectedStore) return;
-    const orderId = `CONV-${selectedStore.id.replace("STORE-", "")}-${coreDemoUser.id.replace("LL-", "")}`;
+    const orderId = `CONV-${selectedStore.id.replace("STORE-", "")}-${coreDemoUser.id.replace("LL-", "")}-${fulfillmentMode === "pickup" ? "PICKUP" : "DELIVERY"}`;
     const snapshot: StoreOrderSnapshot = {
       id: orderId,
       storeId: selectedStore.id,

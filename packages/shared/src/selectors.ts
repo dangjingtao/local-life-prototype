@@ -356,6 +356,18 @@ export function validateDemoFixtureRelations(): string[] {
     if (!fulfillmentModes.has(requiredMode)) issues.push(`fixture:missing-fulfillment-sample:${requiredMode}`);
   }
 
+  const coreStoreConvenienceModes = new Set(
+    v02Orders
+      .filter((order) => order.scene === "store" && order.storeId === CORE_DEMO_IDS.store)
+      .map((order) => order.fulfillmentDetail?.mode)
+      .filter(Boolean),
+  );
+  for (const requiredMode of ["pickup", "short_delivery"] as const) {
+    if (!coreStoreConvenienceModes.has(requiredMode)) {
+      issues.push(`fixture:store:${CORE_DEMO_IDS.store}:missing-convenience-mode:${requiredMode}`);
+    }
+  }
+
   for (const order of v02Orders) {
     if (!userIds.has(order.userId)) issues.push(`order:${order.id}:missing-user:${order.userId}`);
     if (order.storeId && !storeIds.has(order.storeId)) issues.push(`order:${order.id}:missing-store:${order.storeId}`);
