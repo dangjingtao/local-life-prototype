@@ -364,6 +364,60 @@ export function StoreFlowScreen({ openActivity, entryContext }: StoreFlowScreenP
     });
   };
 
+  const renderBrowseProduct = (product: Product) => {
+    const availability = availabilityByProductId.get(product.id);
+    const quantity = currentCart[product.id] ?? 0;
+    const orderable = selectedStore?.status === "open" && isOrderable(availability);
+    const displayPrice = availability?.priceYuan ?? product.priceYuan;
+    const memberPrice = availability?.memberPriceYuan ?? product.memberPriceYuan;
+    const promoLabel = availability?.promotionLabel ?? product.promotionLabel;
+    const isMemberDeal = memberPrice !== undefined && memberPrice !== displayPrice;
+    const statusLabel = availability?.status === "sold_out"
+      ? availabilityStatusLabels.sold_out
+      : availability?.status === "unavailable"
+      ? availabilityStatusLabels.unavailable
+      : undefined;
+    return (
+      <div key={product.id} data-product-id={product.id} className={`flex gap-2.5 py-2.5 ${orderable ? "" : "opacity-60"}`}>
+        <button type="button" onClick={() => openProduct(product.id)} aria-label={`查看商品：${product.name}`} className="flex min-w-0 flex-1 items-start gap-2.5 text-left">
+          <div className="relative shrink-0">
+            <ConvenienceProductArtwork productId={product.id} name={product.name} className="h-16 w-16 rounded-[var(--radius-sm)] bg-[var(--color-surface)]" />
+            {!orderable && (
+              <span className="absolute inset-0 flex items-center justify-center rounded-[var(--radius-sm)] bg-black/40 text-[10px] font-semibold text-white">
+                {statusLabel ?? "暂不可售"}
+              </span>
+            )}
+          </div>
+          <div className="flex min-w-0 flex-1 flex-col justify-between">
+            <div className="min-w-0">
+              <p className="truncate text-sm font-medium leading-tight">{product.name}</p>
+              <p className="mt-0.5 truncate text-[11px] text-[var(--color-text-tertiary)]">{product.spec ?? product.category}</p>
+              {promoLabel && <span className="mt-1 inline-block rounded-sm bg-[var(--color-danger)] px-1.5 py-0.5 text-[10px] font-medium text-white">{promoLabel}</span>}
+            </div>
+            <div className="min-w-0">
+              {isMemberDeal && <p className="text-[10px] text-[var(--color-text-tertiary)] line-through">¥{displayPrice.toFixed(2)}</p>}
+              <p className="text-sm font-bold text-[var(--color-primary-pressed)] leading-tight">
+                ¥{(memberPrice ?? displayPrice).toFixed(2)}
+                {isMemberDeal && <span className="ml-0.5 text-[10px] font-normal text-[var(--color-text-tertiary)]">会员</span>}
+              </p>
+            </div>
+          </div>
+        </button>
+        <div className="flex shrink-0 items-end">
+          {quantity > 0 ? (
+            <div className="flex items-center gap-0.5" aria-label={`${product.name} 数量`}>
+              <button type="button" aria-label={`减少${product.name}`} onClick={(event) => { event.stopPropagation(); updateQuantity(product.id, -1); }} className="flex h-6 w-6 items-center justify-center rounded-full border border-[var(--color-border)] bg-[var(--color-surface)] text-xs">−</button>
+              <span className="min-w-5 text-center text-xs font-semibold">{quantity}</span>
+              <button type="button" aria-label={`增加${product.name}`} onClick={(event) => { event.stopPropagation(); updateQuantity(product.id, 1); }} disabled={!orderable} className="flex h-6 w-6 items-center justify-center rounded-full bg-[var(--color-primary)] text-white text-xs disabled:opacity-40">+</button>
+            </div>
+          ) : (
+            <button type="button" aria-label={`加入购物车：${product.name}`} onClick={(event) => { event.stopPropagation(); updateQuantity(product.id, 1); }} disabled={!orderable} className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-[var(--color-primary)] text-white text-xs disabled:opacity-40">+</button>
+          )}
+        </div>
+      </div>
+    );
+  };
+
   if (step === "stores") {
     return (
       <>
