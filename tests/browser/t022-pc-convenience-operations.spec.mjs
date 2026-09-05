@@ -73,7 +73,7 @@ test.describe("T022 · PC convenience fulfillment operations", () => {
     await expect(newPickup).toContainText("PK-8888");
     await newPickup.getByRole("button", { name: "备货完成 CONV-YUNLING-8888-PICKUP" }).click();
     await expect(newPickup).toContainText("待取货");
-    await newPickup.getByRole("button", { name: "扫码核销 CONV-YUNLING-8888-PICKUP" }).click();
+    await newPickup.getByRole("button", { name: "扫码核销 PK-8888" }).click();
     await expect(newPickup).toContainText("已完成");
 
     await delivery.getByRole("button", { name: "开始配送 CONV-YUNLING-8888-DELIVERY" }).click();
