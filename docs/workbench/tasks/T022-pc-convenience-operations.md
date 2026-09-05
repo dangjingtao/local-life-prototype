@@ -2,7 +2,7 @@
 
 - Status: DOING
 - Target version: 0.2.0
-- Impact: PC / Shared
+- Impact: PC / Shared / Mobile（仅演示订单 ID 唯一性）
 - Owner: -
 
 ## Background
@@ -29,11 +29,13 @@ V0.2 明确要求 PC 必须承接 Mobile 新增的便利店自提和短距配送
 - 履约方式配置概念：自提 / 短配、配送范围 mock。
 - 权限 / 门店范围继续遵守 V0.1 PC Shell 语义。
 - 使用 T015 fixtures 与 T018 Mobile 订单保持一致。
+- 为满足跨端订单唯一性，允许仅调整 T018 Mobile 演示订单 ID 生成规则：自提 / 短配增加 `PICKUP` / `DELIVERY` 后缀；不得改变 Mobile 履约交互、状态机或页面结构。
 
 ## Out of scope
 
 - 真实库存服务、配送 API、骑手调度、地图后台。
 - 智慧抗衰与商城后台。
+- 除演示订单 ID 唯一性修正外的 Mobile UX / 履约逻辑改造。
 
 ## Acceptance
 
