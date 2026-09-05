@@ -54,16 +54,16 @@ V0.2 智慧抗衰已升级为预约、二维码核销、检测报告和后续转
 
 ## Implementation record
 
-- Commit / PR:
-- Changed paths:
-- Notes:
+- Commit / PR: PR #34 · `feat(T023): add PC smart care appointment and report operations`
+- Changed paths: `apps/pc/src/SmartCareOperations.tsx`、`apps/pc/src/App.tsx`、`apps/pc/src/OperatorConsole.tsx`、`tests/browser/t023-pc-smart-care-operations.spec.mjs`、本任务卡与总台账。
+- Notes: 复用 T015 / T020 / T021 Shared 事实；预约扫码与时段暂停使用 PC Shell 原型状态覆盖，不写回 Shared；未改 Mobile 业务代码。
 
 ## Verification evidence
 
-- CI:
-- Page / Route:
-- Screenshot / Browser result:
-- Other evidence:
+- CI: PR #34 final-head Verify / Browser 执行中；OpenCode review Action 未产出可用 review，按用户授权由人工自审替代。
+- Page / Route: PC `?role=merchant` →「智慧抗衰运营」；PC `?role=operator` →「智慧抗衰运营」。
+- Screenshot / Browser result: T023 自动化写入 `test-results/t023-visual-evidence/`；final-head Browser 待收口。
+- Other evidence: 店主范围固定 `STORE-YUNLING`；平台运营消费同一 Shared projects / slots / appointments / detectionReports。
 
 ## Review
 
