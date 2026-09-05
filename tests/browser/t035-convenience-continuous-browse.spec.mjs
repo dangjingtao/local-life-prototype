@@ -1,3 +1,4 @@
+import { mkdir } from "node:fs/promises";
 import { expect, test } from "@playwright/test";
 
 const MOBILE = "http://127.0.0.1:4173";
@@ -52,6 +53,8 @@ test.describe("T035 · convenience continuous browse", () => {
     const freshSingle = page.getByTestId("convenience-segment-CONV-CAT-FRESH-single");
     const freshCombo = page.getByTestId("convenience-segment-CONV-CAT-FRESH-combo");
     const daily = page.getByTestId("convenience-section-CONV-CAT-DAILY");
+
+    await mkdir("test-results/t035-visual-evidence", { recursive: true });
 
     await freshSingle.scrollIntoViewIfNeeded();
     await expect(freshSingle).toBeVisible();
