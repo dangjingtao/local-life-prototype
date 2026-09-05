@@ -41,14 +41,13 @@ test.describe("T036 · convenience category scroll sync", () => {
 
     await expect(sections).toHaveCount(4);
 
-    const targets = [
+    const anchoredTargets = [
       ["饮料", "convenience-section-CONV-CAT-DRINKS"],
       ["鲜食", "convenience-section-CONV-CAT-FRESH"],
       ["日用洗护", "convenience-section-CONV-CAT-DAILY"],
-      ["生活方式", "convenience-section-CONV-CAT-LIFESTYLE"],
     ];
 
-    for (const [label, testId] of targets) {
+    for (const [label, testId] of anchoredTargets) {
       const button = nav.getByRole("button", { name: label, exact: true });
       await button.click();
       await expect(button).toHaveAttribute("aria-pressed", "true");
@@ -56,6 +55,20 @@ test.describe("T036 · convenience category scroll sync", () => {
       await expect.poll(() => sectionDeltaFromScrollTop(page, testId)).toBeLessThanOrEqual(1);
       await expect.poll(() => sectionDeltaFromScrollTop(page, testId)).toBeGreaterThanOrEqual(-1);
     }
+
+    const lifestyle = nav.getByRole("button", { name: "生活方式", exact: true });
+    await lifestyle.click();
+    await expect(lifestyle).toHaveAttribute("aria-pressed", "true");
+    const bottomState = await page.getByTestId("convenience-product-scroll").evaluate((node) => ({
+      top: node.scrollTop,
+      max: node.scrollHeight - node.clientHeight,
+    }));
+    expect(bottomState.max - bottomState.top).toBeLessThanOrEqual(2);
+
+    const drinks = nav.getByRole("button", { name: "饮料", exact: true });
+    await drinks.click();
+    await expect(drinks).toHaveAttribute("aria-pressed", "true");
+    await expect.poll(() => sectionDeltaFromScrollTop(page, "convenience-section-CONV-CAT-DRINKS")).toBeLessThanOrEqual(1);
 
     await freshButton.click();
     await expect(freshButton).toHaveAttribute("aria-pressed", "true");
@@ -75,6 +88,10 @@ test.describe("T036 · convenience category scroll sync", () => {
     await scrollSectionToTop(page, "convenience-section-CONV-CAT-FRESH", 2);
     await expect.poll(async () => fresh.getAttribute("aria-pressed")).toBe("true");
     await expect(daily).toHaveAttribute("aria-pressed", "false");
+
+    const scroll = page.getByTestId("convenience-product-scroll");
+    await scroll.evaluate((node) => { node.scrollTop = node.scrollHeight; });
+    await expect.poll(async () => nav.getByRole("button", { name: "生活方式", exact: true }).getAttribute("aria-pressed")).toBe("true");
   });
 
   test("rapid category clicks settle on the final target without highlight jitter", async ({ page }) => {
@@ -97,6 +114,23 @@ test.describe("T036 · convenience category scroll sync", () => {
 
     await page.waitForTimeout(150);
     await expect(daily).toHaveAttribute("aria-pressed", "true");
+  });
+
+  test("category click remains functional during search by returning to browse and locating the category", async ({ page }) => {
+    await openYunling(page);
+
+    const search = page.getByRole("textbox", { name: "搜索当前门店商品" });
+    const nav = page.getByRole("navigation", { name: "商品分类" });
+    await search.fill("燕麦");
+    await expect(page.getByTestId("convenience-search-results")).toBeVisible();
+
+    const fresh = nav.getByRole("button", { name: "鲜食", exact: true });
+    await fresh.click();
+
+    await expect(search).toHaveValue("");
+    await expect(page.getByTestId("convenience-continuous-sections")).toBeVisible();
+    await expect(fresh).toHaveAttribute("aria-pressed", "true");
+    await expect.poll(() => sectionDeltaFromScrollTop(page, "convenience-section-CONV-CAT-FRESH")).toBeLessThanOrEqual(1);
   });
 
   test("390px sidebar remains usable while the cart bar stays clear of the continuous list", async ({ page }) => {
