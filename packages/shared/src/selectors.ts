@@ -139,9 +139,9 @@ export function getPickupCredentialStatus(
   const validFrom = Date.parse(credential.validFrom);
   const validUntil = Date.parse(credential.validUntil);
   if (!Number.isFinite(at) || !Number.isFinite(validFrom) || !Number.isFinite(validUntil)) return "expired";
+  if (at > validUntil) return "expired";
   if (order.status !== "pending_pickup" || order.fulfillmentDetail.status !== "ready_for_pickup") return "inactive";
   if (at < validFrom) return "inactive";
-  if (at > validUntil) return "expired";
   return "active";
 }
 
