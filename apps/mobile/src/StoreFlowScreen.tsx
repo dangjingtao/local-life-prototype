@@ -185,6 +185,7 @@ export function StoreFlowScreen({ openActivity, entryContext }: StoreFlowScreenP
   const [query, setQuery] = useState("");
   const [category, setCategory] = useState("全部");
   const browseScrollRef = useRef<HTMLDivElement | null>(null);
+  const programmaticCategoryRef = useRef<string | null>(null);
   const [cartSheetOpen, setCartSheetOpen] = useState(false);
   const [carts, setCarts] = useState<CartState>(loadPersistedCarts);
   const [fulfillmentMode, setFulfillmentMode] = useState<FulfillmentMode>("pickup");
@@ -227,6 +228,7 @@ export function StoreFlowScreen({ openActivity, entryContext }: StoreFlowScreenP
     if (!scroll || normalizedQuery) return;
 
     if (label === "全部") {
+      programmaticCategoryRef.current = Math.abs(scroll.scrollTop) <= 1 ? null : label;
       scroll.scrollTo({ top: 0, behavior: "auto" });
       return;
     }
@@ -239,12 +241,38 @@ export function StoreFlowScreen({ openActivity, entryContext }: StoreFlowScreenP
     const scrollRect = scroll.getBoundingClientRect();
     const targetRect = target.getBoundingClientRect();
     const top = scroll.scrollTop + targetRect.top - scrollRect.top;
+    programmaticCategoryRef.current = Math.abs(scroll.scrollTop - top) <= 1 ? null : label;
     scroll.scrollTo({ top, behavior: "auto" });
   };
 
   const syncBrowseCategoryFromScroll = (event: UIEvent<HTMLDivElement>) => {
     if (normalizedQuery) return;
     const scroll = event.currentTarget;
+    const pendingLabel = programmaticCategoryRef.current;
+
+    if (pendingLabel) {
+      if (pendingLabel === "全部") {
+        if (scroll.scrollTop <= 1) {
+          programmaticCategoryRef.current = null;
+          setCategory("全部");
+        }
+        return;
+      }
+
+      const pendingSection = browseSections.find((item) => item.category.label === pendingLabel);
+      const pendingTarget = pendingSection ? document.getElementById(pendingSection.anchorId) : null;
+      if (!pendingTarget) {
+        programmaticCategoryRef.current = null;
+      } else {
+        const delta = pendingTarget.getBoundingClientRect().top - scroll.getBoundingClientRect().top;
+        if (Math.abs(delta) <= 1) {
+          programmaticCategoryRef.current = null;
+          setCategory(pendingLabel);
+        }
+        return;
+      }
+    }
+
     if (scroll.scrollTop <= 1) {
       setCategory((current) => current === "全部" ? current : "全部");
       return;
