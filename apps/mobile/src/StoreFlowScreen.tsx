@@ -186,6 +186,7 @@ export function StoreFlowScreen({ openActivity, entryContext }: StoreFlowScreenP
   const [category, setCategory] = useState("全部");
   const browseScrollRef = useRef<HTMLDivElement | null>(null);
   const programmaticCategoryRef = useRef<string | null>(null);
+  const pendingSearchCategoryRef = useRef<string | null>(null);
   const [cartSheetOpen, setCartSheetOpen] = useState(false);
   const [carts, setCarts] = useState<CartState>(loadPersistedCarts);
   const [fulfillmentMode, setFulfillmentMode] = useState<FulfillmentMode>("pickup");
@@ -222,10 +223,9 @@ export function StoreFlowScreen({ openActivity, entryContext }: StoreFlowScreenP
     .filter((section) => section.products.length > 0);
   const visibleProducts = scopedBrowseSections.flatMap((section) => section.products);
 
-  const selectBrowseCategory = (label: string) => {
-    setCategory(label);
+  const scrollToBrowseCategory = (label: string) => {
     const scroll = browseScrollRef.current;
-    if (!scroll || normalizedQuery) return;
+    if (!scroll) return;
 
     if (label === "全部") {
       programmaticCategoryRef.current = Math.abs(scroll.scrollTop) <= 1 ? null : label;
@@ -240,15 +240,36 @@ export function StoreFlowScreen({ openActivity, entryContext }: StoreFlowScreenP
 
     const scrollRect = scroll.getBoundingClientRect();
     const targetRect = target.getBoundingClientRect();
-    const top = scroll.scrollTop + targetRect.top - scrollRect.top;
+    const requestedTop = scroll.scrollTop + targetRect.top - scrollRect.top;
+    const maxScrollTop = Math.max(0, scroll.scrollHeight - scroll.clientHeight);
+    const top = Math.min(requestedTop, maxScrollTop);
     programmaticCategoryRef.current = Math.abs(scroll.scrollTop - top) <= 1 ? null : label;
     scroll.scrollTo({ top, behavior: "auto" });
   };
+
+  const selectBrowseCategory = (label: string) => {
+    setCategory(label);
+    if (normalizedQuery) {
+      pendingSearchCategoryRef.current = label;
+      setQuery("");
+      return;
+    }
+    scrollToBrowseCategory(label);
+  };
+
+  useEffect(() => {
+    const pendingLabel = pendingSearchCategoryRef.current;
+    if (normalizedQuery || !pendingLabel) return;
+    pendingSearchCategoryRef.current = null;
+    scrollToBrowseCategory(pendingLabel);
+  }, [normalizedQuery, selectedStoreId]);
 
   const syncBrowseCategoryFromScroll = (event: UIEvent<HTMLDivElement>) => {
     if (normalizedQuery) return;
     const scroll = event.currentTarget;
     const pendingLabel = programmaticCategoryRef.current;
+    const lastLabel = browseSections.at(-1)?.category.label;
+    const atBottom = scroll.scrollTop + scroll.clientHeight >= scroll.scrollHeight - 2;
 
     if (pendingLabel) {
       if (pendingLabel === "全部") {
@@ -256,6 +277,12 @@ export function StoreFlowScreen({ openActivity, entryContext }: StoreFlowScreenP
           programmaticCategoryRef.current = null;
           setCategory("全部");
         }
+        return;
+      }
+
+      if (pendingLabel === lastLabel && atBottom) {
+        programmaticCategoryRef.current = null;
+        setCategory(pendingLabel);
         return;
       }
 
@@ -271,6 +298,11 @@ export function StoreFlowScreen({ openActivity, entryContext }: StoreFlowScreenP
         }
         return;
       }
+    }
+
+    if (atBottom && lastLabel) {
+      setCategory((current) => current === lastLabel ? current : lastLabel);
+      return;
     }
 
     if (scroll.scrollTop <= 1) {
