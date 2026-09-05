@@ -299,7 +299,7 @@ export function StoreFlowScreen({ openActivity, entryContext }: StoreFlowScreenP
 
   const submitCheckout = () => {
     if (!canSubmitCheckout || !selectedStore) return;
-    const orderId = `CONV-${selectedStore.id.replace("STORE-", "")}-${coreDemoUser.id.replace("LL-", "")}`;
+    const orderId = `CONV-${selectedStore.id.replace("STORE-", "")}-${coreDemoUser.id.replace("LL-", "")}-${fulfillmentMode === "pickup" ? "PICKUP" : "DELIVERY"}`;
     const snapshot: StoreOrderSnapshot = {
       id: orderId,
       storeId: selectedStore.id,
