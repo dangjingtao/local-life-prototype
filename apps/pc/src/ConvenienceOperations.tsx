@@ -95,7 +95,7 @@ function ConvenienceOrderCard({
         <p className="mt-1 text-sm text-[var(--color-text-secondary)]">{getStoreName(order.storeId)} · {getUserName(order.userId)}</p>
       </div>
       <div className="text-right">
-        <p className="text-xs text-[var(--color-text-tertiary)]">订单金额</p>
+        <p className="text-xs text-[var(--color-text-tertiary)]">订单实付</p>
         <p className="mt-1 text-xl font-semibold">¥{order.amountYuan.toFixed(2)}</p>
       </div>
     </div>
@@ -133,7 +133,7 @@ function ConvenienceOrderCard({
               disabled={redemptionCompleted || status !== "ready_for_pickup"}
               onClick={onPickupRedeem}
             >
-              {redemptionCompleted || status === "completed" ? "已完成核销" : `扫码核销 ${order.id}`}
+              {redemptionCompleted || status === "completed" ? "已完成核销" : `扫码核销 ${detail.pickupCode ?? order.id}`}
             </SecondaryButton>
           )}
         </div>
