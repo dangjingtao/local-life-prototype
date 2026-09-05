@@ -69,12 +69,14 @@ function ConvenienceOrderCard({
   order,
   status,
   redemptionCompleted,
+  onPickupPrepared,
   onPickupRedeem,
   onAdvanceDelivery,
 }: {
   order: Order;
   status: OrderFulfillmentStatus;
   redemptionCompleted: boolean;
+  onPickupPrepared: () => void;
   onPickupRedeem: () => void;
   onAdvanceDelivery: () => void;
 }) {
@@ -124,12 +126,16 @@ function ConvenienceOrderCard({
                 ? "商品已备妥，可扫码核销用户取货码。"
                 : "当前订单尚未进入可核销状态。"}
           </p>
-          <SecondaryButton
-            disabled={redemptionCompleted || status !== "ready_for_pickup"}
-            onClick={onPickupRedeem}
-          >
-            {redemptionCompleted || status === "completed" ? "已完成核销" : `扫码核销 ${order.id}`}
-          </SecondaryButton>
+          {status === "preparing" ? (
+            <SecondaryButton onClick={onPickupPrepared}>备货完成 ${order.id}</SecondaryButton>
+          ) : (
+            <SecondaryButton
+              disabled={redemptionCompleted || status !== "ready_for_pickup"}
+              onClick={onPickupRedeem}
+            >
+              {redemptionCompleted || status === "completed" ? "已完成核销" : `扫码核销 ${order.id}`}
+            </SecondaryButton>
+          )}
         </div>
       ) : (
         <div className="flex flex-wrap items-center justify-between gap-3">
@@ -237,6 +243,7 @@ export function MerchantConvenienceOperations({
             order={order}
             status={effectiveFulfillmentStatus(order, fulfillmentOverrides)}
             redemptionCompleted={Boolean(redemption && redemptionOverrides[redemption.id] === "completed")}
+            onPickupPrepared={() => onFulfillmentChange(order.id, "ready_for_pickup")}
             onPickupRedeem={() => completePickup(order)}
             onAdvanceDelivery={() => advanceDelivery(order)}
           />;
