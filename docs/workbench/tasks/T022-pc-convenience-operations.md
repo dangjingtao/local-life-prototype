@@ -1,6 +1,6 @@
 # T022 · PC 便利店订单、履约与核销后台
 
-- Status: TODO
+- Status: DOING
 - Target version: 0.2.0
 - Impact: PC / Shared
 - Owner: -
