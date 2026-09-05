@@ -57,7 +57,7 @@
 | T020 | Mobile 智慧抗衰项目、预约与二维码核销 | Mobile | PASS | 0.2.0 | T015、T016 | PR #14 merge `3297f1c`；`a2f68b1` 记录验收；`npm run verify` success；Playwright 390px 全量 45 项通过（T020 专项 4 项）；7 项验收标准全部满足 |
 | T021 | Mobile 智慧抗衰检测报告、转化与历史对比 | Mobile | PASS | 0.2.0 | T015、T020 | `6adfc0d` 记录验收；8 项标准全部满足；假按钮与返回导航问题已修复回归；typecheck / build / 全量 40 浏览器用例通过 |
 | T022 | PC 便利店订单、履约与核销后台 | PC | PASS | 0.2.0 | T015、T018 | PR #33 merged；人工自审 PASS；Verify success；T022 Browser 5/5；全量仅保留既有 T017/T018/T032 checkout 基线债 |
-| T023 | PC 智慧抗衰预约、核销与报告运营后台 | PC | TODO | 0.2.0 | T015、T020、T021 | 项目 / 时段 / 预约 / 核销 / 报告 / 转化配置 |
+| T023 | PC 智慧抗衰预约、核销与报告运营后台 | PC | REVIEW | 0.2.0 | T015、T020、T021 | PR #34；Verify #33976018543 success；Browser #33976018600：T023 7/7、全量 89/97，8 项均为既有 T017/T018/T032 基线债；Codex 2×P2 已修复并 resolve；人工自审无阻塞项 |
 | T024 | PC 商城渠道、活动与搜索运营后台 | PC | TODO | 0.2.0 | T015、T016、T019 | Storefront / Channel、商城订单、活动 / 推荐位、搜索关联 |
 | T025 | PC V0.2 数据驾驶舱升级 | PC / Data | TODO | 0.2.0 | T015、T022-T024 | 自提 / 短配 / 商城 / 预约 / 核销 / 转化的增量数据视角 |
 | T026 | V0.2 跨端串联、中高保真质量与验收准备 | QA / Shared | TODO | 0.2.0 | T016-T025、T030 | 三主流程跨端对账、390/1024/1440 浏览器质量、PRD AC 对账；便利店中高保真必须引用 T030 UX PASS |
