@@ -40,12 +40,25 @@ test.describe("T036 · convenience category scroll sync", () => {
     const sections = page.getByTestId("convenience-continuous-sections").locator(":scope > section");
 
     await expect(sections).toHaveCount(4);
-    await freshButton.click();
 
+    const targets = [
+      ["饮料", "convenience-section-CONV-CAT-DRINKS"],
+      ["鲜食", "convenience-section-CONV-CAT-FRESH"],
+      ["日用洗护", "convenience-section-CONV-CAT-DAILY"],
+      ["生活方式", "convenience-section-CONV-CAT-LIFESTYLE"],
+    ];
+
+    for (const [label, testId] of targets) {
+      const button = nav.getByRole("button", { name: label, exact: true });
+      await button.click();
+      await expect(button).toHaveAttribute("aria-pressed", "true");
+      await expect(sections).toHaveCount(4);
+      await expect.poll(() => sectionDeltaFromScrollTop(page, testId)).toBeLessThanOrEqual(1);
+      await expect.poll(() => sectionDeltaFromScrollTop(page, testId)).toBeGreaterThanOrEqual(-1);
+    }
+
+    await freshButton.click();
     await expect(freshButton).toHaveAttribute("aria-pressed", "true");
-    await expect(sections).toHaveCount(4);
-    await expect.poll(() => sectionDeltaFromScrollTop(page, "convenience-section-CONV-CAT-FRESH")).toBeLessThanOrEqual(1);
-    await expect.poll(() => sectionDeltaFromScrollTop(page, "convenience-section-CONV-CAT-FRESH")).toBeGreaterThanOrEqual(-1);
   });
 
   test("natural forward and reverse scrolling updates the left category highlight", async ({ page }) => {
