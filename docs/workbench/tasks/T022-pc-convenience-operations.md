@@ -2,7 +2,7 @@
 
 - Status: REVIEW
 - Target version: 0.2.0
-- Impact: PC / Shared / Mobile（仅演示订单 ID 唯一性）
+- Impact: PC / Shared / Mobile（仅演示订单 ID / 取货码一致性）
 - Owner: -
 
 ## Background
@@ -29,13 +29,13 @@ V0.2 明确要求 PC 必须承接 Mobile 新增的便利店自提和短距配送
 - 履约方式配置概念：自提 / 短配、配送范围 mock。
 - 权限 / 门店范围继续遵守 V0.1 PC Shell 语义。
 - 使用 T015 fixtures 与 T018 Mobile 订单保持一致。
-- 为满足跨端订单唯一性，允许仅调整 T018 Mobile 演示订单 ID 生成规则：自提 / 短配增加 `PICKUP` / `DELIVERY` 后缀；不得改变 Mobile 履约交互、状态机或页面结构。
+- 为满足跨端订单唯一性与自提核销闭环，允许仅调整 T018 Mobile 演示订单 ID / 取货码生成规则：自提 / 短配 ID 增加 `PICKUP` / `DELIVERY` 后缀，核心演示用户取货码稳定为 `PK-8888`；不得改变 Mobile 履约交互、状态机或页面结构。
 
 ## Out of scope
 
 - 真实库存服务、配送 API、骑手调度、地图后台。
 - 智慧抗衰与商城后台。
-- 除演示订单 ID 唯一性修正外的 Mobile UX / 履约逻辑改造。
+- 除演示订单 ID / 取货码一致性修正外的 Mobile UX / 履约逻辑改造。
 
 ## Acceptance
 
@@ -63,7 +63,7 @@ V0.2 明确要求 PC 必须承接 Mobile 新增的便利店自提和短距配送
 - CI: Verify run `33972580481` success（version / typecheck / build）；Browser run `33972580470` 执行 90 项，82 passed / 8 failed。
 - Page / Route: PC `?role=merchant` →「便利店履约」；PC `?role=operator` →「便利店履约」。
 - Screenshot / Browser result: T022 专项 5/5 passed；1024 / 1440 overflow 检查通过；`test-results/t022-visual-evidence/` 已进入 Browser report artifact `9971397023`。全量 8 个失败均为既有 T017/T018/T032 checkout 旧断言，不含 T022。
-- Other evidence: Codex 2×P1 + 1×P2 已修复并 resolve；CodeRabbit 3 项首轮 finding 已修复 / resolve；Shared relation guard 继续由 T034 fixture relation test 验证通过。
+- Other evidence: Codex 2×P1 + 1×P2 已修复并 resolve；CodeRabbit 首轮 findings 已修复 / resolve；后续发现新自提单缺少 `preparing → ready_for_pickup` 操作，本轮人工复核已补齐，并进一步纠正 Mobile/PC 实付金额、商品名与 `PK-8888` 取货码一致性；Shared relation guard 继续由 T034 fixture relation test 验证。
 
 ## Review
 
