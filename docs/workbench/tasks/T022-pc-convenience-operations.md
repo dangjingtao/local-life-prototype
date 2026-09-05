@@ -1,6 +1,6 @@
 # T022 · PC 便利店订单、履约与核销后台
 
-- Status: REVIEW
+- Status: PASS
 - Target version: 0.2.0
 - Impact: PC / Shared / Mobile（仅演示订单 ID / 取货码一致性）
 - Owner: -
@@ -68,6 +68,6 @@ V0.2 明确要求 PC 必须承接 Mobile 新增的便利店自提和短距配送
 ## Review
 
 - Reviewer: Codex + CodeRabbit + Browser Quality gate
-- Result: REVIEW
-- Conclusion: T022 自身验收项和专项浏览器证据均满足；全量 Browser 仅保留 8 个进入本卡前已存在的 checkout 基线债，不由 T022 扩卡修复。
-- Follow-up: 等待用户产品验收；用户确认后方可将 T022 标为 PASS / 合并 PR #33。
+- Result: PASS
+- Conclusion: 人工自审 PASS；T022 专项 5/5，Verify success；PR #33 已合并至 dev。
+- Follow-up: 无。后续 checkout 基线债由 T017/T018/T032 对应任务处理。
