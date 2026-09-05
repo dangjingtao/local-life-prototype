@@ -1,4 +1,4 @@
-import { useMemo, useState } from "react";
+import { useMemo } from "react";
 import { Card, SecondaryButton, Section, StatusTag } from "@prototype/design-system";
 import {
   CORE_DEMO_IDS,
@@ -36,8 +36,8 @@ const availabilityStatusLabels = {
 } as const;
 
 type ConvenienceMode = "pickup" | "short_delivery";
-type FulfillmentOverrides = Partial<Record<string, OrderFulfillmentStatus>>;
-type RedemptionOverrides = Partial<Record<string, "completed">>;
+export type FulfillmentOverrides = Partial<Record<string, OrderFulfillmentStatus>>;
+export type RedemptionOverrides = Partial<Record<string, "completed">>;
 
 function isConvenienceOrder(order: Order): order is Order & { fulfillmentDetail: NonNullable<Order["fulfillmentDetail"]> & { mode: ConvenienceMode } } {
   return order.scene === "store" && (order.fulfillmentDetail?.mode === "pickup" || order.fulfillmentDetail?.mode === "short_delivery");
@@ -57,7 +57,7 @@ function toneForStatus(status: OrderFulfillmentStatus): "success" | "warning" | 
   return "warning";
 }
 
-function effectiveFulfillmentStatus(order: Order, overrides: FulfillmentOverrides) {
+export function effectiveFulfillmentStatus(order: Order, overrides: FulfillmentOverrides) {
   return overrides[order.id] ?? order.fulfillmentDetail?.status ?? "preparing";
 }
 
@@ -151,40 +151,54 @@ function ConvenienceOrderCard({
   </Card>;
 }
 
-export function MerchantConvenienceOperations() {
+export function MerchantConvenienceOperations({
+  fulfillmentOverrides,
+  redemptionOverrides,
+  onFulfillmentChange,
+  onRedemptionComplete,
+  onReset,
+}: {
+  fulfillmentOverrides: FulfillmentOverrides;
+  redemptionOverrides: RedemptionOverrides;
+  onFulfillmentChange: (orderId: string, status: OrderFulfillmentStatus) => void;
+  onRedemptionComplete: (redemptionId: string) => void;
+  onReset: () => void;
+}) {
   const convenienceOrders = useMemo(
     () => v02Orders.filter((order) => isConvenienceOrder(order) && order.storeId === CORE_DEMO_IDS.store),
     [],
   );
-  const [fulfillmentOverrides, setFulfillmentOverrides] = useState<FulfillmentOverrides>({});
-  const [redemptionOverrides, setRedemptionOverrides] = useState<RedemptionOverrides>({});
-
+  const demoBusinessDate = convenienceOrders.reduce(
+    (latest, order) => order.createdAt.slice(0, 10) > latest ? order.createdAt.slice(0, 10) : latest,
+    "",
+  );
+  const todayOrders = convenienceOrders.filter((order) => order.createdAt.slice(0, 10) === demoBusinessDate);
   const statuses = convenienceOrders.map((order) => effectiveFulfillmentStatus(order, fulfillmentOverrides));
   const metrics = [
-    { label: "今日便利店订单", value: String(convenienceOrders.length), note: "仅当前授权门店" },
+    { label: "今日便利店订单", value: String(todayOrders.length), note: `演示业务日 ${demoBusinessDate}` },
     { label: "待备货", value: String(statuses.filter((status) => status === "preparing").length), note: "自提 / 短配统一看板" },
     { label: "待取货", value: String(statuses.filter((status) => status === "ready_for_pickup").length), note: "扫码核销后完成" },
     { label: "配送中", value: String(statuses.filter((status) => status === "delivering").length), note: "短距配送 mock" },
   ];
 
   const completePickup = (order: Order) => {
-    setFulfillmentOverrides((current) => ({ ...current, [order.id]: "completed" }));
+    onFulfillmentChange(order.id, "completed");
     const redemption = redemptions.find((record) => record.targetType === "order" && record.targetId === order.id);
-    if (redemption) setRedemptionOverrides((current) => ({ ...current, [redemption.id]: "completed" }));
+    if (redemption) onRedemptionComplete(redemption.id);
   };
 
   const advanceDelivery = (order: Order) => {
     const currentStatus = effectiveFulfillmentStatus(order, fulfillmentOverrides);
     const nextStatus = currentStatus === "preparing" ? "delivering" : currentStatus === "delivering" ? "completed" : currentStatus;
-    setFulfillmentOverrides((current) => ({ ...current, [order.id]: nextStatus }));
+    onFulfillmentChange(order.id, nextStatus);
   };
 
-  const reset = () => {
-    setFulfillmentOverrides({});
-    setRedemptionOverrides({});
-  };
-
-  const hasOverrides = Object.keys(fulfillmentOverrides).length > 0 || Object.keys(redemptionOverrides).length > 0;
+  const convenienceOrderIds = new Set(convenienceOrders.map((order) => order.id));
+  const hasFulfillmentOverrides = convenienceOrders.some((order) => fulfillmentOverrides[order.id] !== undefined);
+  const hasRedemptionOverrides = redemptions.some(
+    (record) => record.targetType === "order" && convenienceOrderIds.has(record.targetId) && redemptionOverrides[record.id] !== undefined,
+  );
+  const hasOverrides = hasFulfillmentOverrides || hasRedemptionOverrides;
 
   return <>
     <div className="flex flex-wrap items-end justify-between gap-3">
@@ -192,7 +206,7 @@ export function MerchantConvenienceOperations() {
         <p className="text-sm text-[var(--color-text-secondary)]">{coreDemoStore.name} · T022 / V0.2</p>
         <h2 className="mt-1 text-2xl font-semibold">便利店订单与履约</h2>
       </div>
-      {hasOverrides && <SecondaryButton onClick={reset}>重置履约演示</SecondaryButton>}
+      {hasOverrides && <SecondaryButton onClick={onReset}>重置履约演示</SecondaryButton>}
     </div>
 
     <Card className="bg-[var(--color-surface-subtle)]">
