@@ -121,12 +121,25 @@ export function getPickupCredentialStatus(
   atIso: string,
 ): PickupCredentialStatus {
   if (!credential) return "expired";
+  const order = findById(v02Orders, credential.orderId);
   const redemption = findById(redemptions, credential.redemptionId);
-  if (!redemption || redemption.status !== "pending") return "expired";
+  if (!order || order.fulfillmentDetail?.mode !== "pickup") return "expired";
+  if (
+    order.status === "cancelled" ||
+    order.status === "completed" ||
+    order.fulfillmentDetail.status === "cancelled" ||
+    order.fulfillmentDetail.status === "completed" ||
+    !redemption ||
+    redemption.status !== "pending"
+  ) {
+    return "expired";
+  }
+
   const at = Date.parse(atIso);
   const validFrom = Date.parse(credential.validFrom);
   const validUntil = Date.parse(credential.validUntil);
   if (!Number.isFinite(at) || !Number.isFinite(validFrom) || !Number.isFinite(validUntil)) return "expired";
+  if (order.status !== "pending_pickup" || order.fulfillmentDetail.status !== "ready_for_pickup") return "inactive";
   if (at < validFrom) return "inactive";
   if (at > validUntil) return "expired";
   return "active";
@@ -136,11 +149,15 @@ export function getCommunityForStore(storeId: string) {
   return communities.find((community) => community.applicableStoreIds.includes(storeId));
 }
 
-export function shouldShowCommunityNudge(userId: string, communityId: string, atIso: string) {
-  const state = communityNudgeStates.find((item) => item.userId === userId && item.communityId === communityId);
-  if (!state?.lastShownAt) return true;
+export function shouldShowCommunityNudge(userId: string, _communityId: string, atIso: string) {
+  const latestShownAt = communityNudgeStates
+    .filter((item) => item.userId === userId && item.lastShownAt)
+    .map((item) => item.lastShownAt!)
+    .sort((a, b) => b.localeCompare(a))[0];
+
+  if (!latestShownAt) return true;
   const at = Date.parse(atIso);
-  const lastShown = Date.parse(state.lastShownAt);
+  const lastShown = Date.parse(latestShownAt);
   if (!Number.isFinite(at) || !Number.isFinite(lastShown)) return false;
   const cooldownMs = prototypeRules.communityNudgeCooldownDays.value * 24 * 60 * 60 * 1000;
   return at - lastShown >= cooldownMs;
