@@ -30,20 +30,45 @@ async function readShared(page) {
         rounding: shared.prototypeRules.purchasePointsRounding.status,
         redemptionLimit: shared.prototypeRules.pointsRedemptionLimit.status,
       },
-      pickup: pickup ? {
-        id: pickup.id,
-        orderId: pickup.orderId,
-        redemptionId: pickup.redemptionId,
-        inactive: shared.getPickupCredentialStatus(pickup, "2026-09-05T12:00:00+08:00"),
-        active: shared.getPickupCredentialStatus(pickup, "2026-09-05T12:45:00+08:00"),
-        expired: shared.getPickupCredentialStatus(pickup, "2026-09-05T13:30:00+08:00"),
-      } : null,
+      pickup: pickup ? (() => {
+        const order = shared.v02Orders.find((item) => item.id === pickup.orderId);
+        const originalOrderStatus = order?.status;
+        const originalFulfillmentStatus = order?.fulfillmentDetail?.status;
+        const inactive = shared.getPickupCredentialStatus(pickup, "2026-09-05T12:00:00+08:00");
+        const active = shared.getPickupCredentialStatus(pickup, "2026-09-05T12:45:00+08:00");
+        const expired = shared.getPickupCredentialStatus(pickup, "2026-09-05T13:30:00+08:00");
+
+        let preparing = null;
+        let cancelled = null;
+        if (order?.fulfillmentDetail) {
+          order.status = "pending_fulfillment";
+          order.fulfillmentDetail.status = "preparing";
+          preparing = shared.getPickupCredentialStatus(pickup, "2026-09-05T12:45:00+08:00");
+          order.status = "cancelled";
+          order.fulfillmentDetail.status = "cancelled";
+          cancelled = shared.getPickupCredentialStatus(pickup, "2026-09-05T12:45:00+08:00");
+          order.status = originalOrderStatus;
+          order.fulfillmentDetail.status = originalFulfillmentStatus;
+        }
+
+        return {
+          id: pickup.id,
+          orderId: pickup.orderId,
+          redemptionId: pickup.redemptionId,
+          inactive,
+          active,
+          expired,
+          preparing,
+          cancelled,
+        };
+      })() : null,
       community: community ? {
         id: community.id,
         benefits: community.benefits,
         firstShow: shared.shouldShowCommunityNudge(shared.CORE_DEMO_IDS.user, community.id, "2026-09-05T10:00:00+08:00"),
         recentSuppressed: shared.shouldShowCommunityNudge("LL-8893", community.id, "2026-09-05T10:00:00+08:00"),
-        afterCooldown: shared.shouldShowCommunityNudge("LL-8893", community.id, "2026-09-11T10:00:00+08:00"),
+        recentSuppressedAcrossCommunity: shared.shouldShowCommunityNudge("LL-8893", "COMMUNITY-OTHER-DEMO", "2026-09-05T10:00:00+08:00"),
+        afterCooldown: shared.shouldShowCommunityNudge("LL-8893", "COMMUNITY-OTHER-DEMO", "2026-09-11T10:00:00+08:00"),
       } : null,
     };
   }, moduleUrl);
@@ -83,11 +108,14 @@ test.describe("T034 · V0.3 shared contract", () => {
     expect(data.pickup.inactive).toBe("inactive");
     expect(data.pickup.active).toBe("active");
     expect(data.pickup.expired).toBe("expired");
+    expect(data.pickup.preparing).toBe("inactive");
+    expect(data.pickup.cancelled).toBe("expired");
 
     expect(data.community).not.toBeNull();
     expect(data.community.benefits).toEqual(["专属优惠", "上新通知", "直播优惠"]);
     expect(data.community.firstShow).toBe(true);
     expect(data.community.recentSuppressed).toBe(false);
+    expect(data.community.recentSuppressedAcrossCommunity).toBe(false);
     expect(data.community.afterCooldown).toBe(true);
   });
 });
