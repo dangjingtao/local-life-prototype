@@ -98,7 +98,7 @@ test.describe("T035 · convenience continuous browse", () => {
     await page.getByRole("button", { name: "查看商品：早餐能量组合" }).click();
     await expect(page.getByRole("heading", { name: "早餐能量组合" })).toBeVisible();
 
-    await page.getByRole("button", { name: "返回商品列表" }).click();
+    await page.getByRole("button", { name: "返回 云岭社区店" }).click();
     await page.getByRole("button", { name: /打开购物车，4 件商品/ }).click();
     await expect(page.getByRole("dialog", { name: "购物车" })).toBeVisible();
   });
