@@ -68,7 +68,7 @@
 | T033 | Mobile 顶栏、首页搜索与商城语义收口 | Mobile / UX / QA | REVIEW | 0.2.0 | T016、T019 | PR #27 已 merge `dev`；用户预览后明确否决商城“精选店铺 / 官方商城 / 合作渠道”模块。PR #28 follow-up 删除消费端店铺 / 来源 / 切换心智，Storefront / Channel 仅保留内部数据模型；等待 final head Verify / Browser / review |
 | T034 | V0.3 Shared 合同与 Mock | Shared / Product | PASS | 0.3.0 | T015、T031、T018 | PR #30 squash merge `18ea9e8`；Codex 2×P2 已修复并 resolve；自审补 1 个凭证过时段边界；final `d1cb656` Verify #314 success；Browser #115 T034 3/3 passed、relation `[]`，其余 8 项仍为既有 T017/T018/T032 基线债 |
 | T035 | Mobile 便利店连续浏览结构 | Mobile / UX | PASS | 0.3.0 | T034、T031 | PR #31 squash merge `669791b`；Codex P1 底部遮挡已修复并 resolve；final `54ce85d` Verify #321 success；Browser #119 T035 4/4 + T031 浏览回归通过，77/85，其余 8 项为既有 T017/T018/T032 checkout 旧债；未提前做 T036 |
-| T036 | Mobile 便利店分类滚动联动 | Mobile / Interaction | DOING | 0.3.0 | T035 | 点击分类定位 + 滚动反向高亮；不改商品排序 / 购物链路 |
+| T036 | Mobile 便利店分类滚动联动 | Mobile / Interaction | REVIEW | 0.3.0 | T035 | PR #32；final `1bf7878` Verify #331 success；Browser #126 T036 5/5 passed、82/90，其余 8 项为既有 T017/T018/T032 checkout 旧债；Codex 1×P1+2×P2 与 CodeRabbit 有效项均已闭环；未改 Shared/购物链路 |
 | T037 | Mobile 自提双凭证 | Mobile / Fulfillment | TODO | 0.3.0 | T034、T018 | 同一订单二维码 + 数字码；未生效 / 可核销 / 已失效；不改 PC |
 | T038 | PC 二维码扫码核销 | PC / Fulfillment | TODO | 0.3.0 | T034、T037、T022 | 必须消费 T022 已稳定便利店履约后台；不得另造第二套 PC 后台 |
 | T039 | PC 数字取货码核销 | PC / Fulfillment | TODO | 0.3.0 | T034、T037、T022 | 数字码核销与 T038 操作同一 redemption；验证双通道互斥 |
