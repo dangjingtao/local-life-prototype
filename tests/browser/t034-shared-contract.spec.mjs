@@ -39,11 +39,13 @@ async function readShared(page) {
         const expired = shared.getPickupCredentialStatus(pickup, "2026-09-05T13:30:00+08:00");
 
         let preparing = null;
+        let preparingAfterWindow = null;
         let cancelled = null;
         if (order?.fulfillmentDetail) {
           order.status = "pending_fulfillment";
           order.fulfillmentDetail.status = "preparing";
           preparing = shared.getPickupCredentialStatus(pickup, "2026-09-05T12:45:00+08:00");
+          preparingAfterWindow = shared.getPickupCredentialStatus(pickup, "2026-09-05T13:30:00+08:00");
           order.status = "cancelled";
           order.fulfillmentDetail.status = "cancelled";
           cancelled = shared.getPickupCredentialStatus(pickup, "2026-09-05T12:45:00+08:00");
@@ -59,6 +61,7 @@ async function readShared(page) {
           active,
           expired,
           preparing,
+          preparingAfterWindow,
           cancelled,
         };
       })() : null,
@@ -109,6 +112,7 @@ test.describe("T034 · V0.3 shared contract", () => {
     expect(data.pickup.active).toBe("active");
     expect(data.pickup.expired).toBe("expired");
     expect(data.pickup.preparing).toBe("inactive");
+    expect(data.pickup.preparingAfterWindow).toBe("expired");
     expect(data.pickup.cancelled).toBe("expired");
 
     expect(data.community).not.toBeNull();
