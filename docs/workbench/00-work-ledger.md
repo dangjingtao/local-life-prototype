@@ -66,7 +66,7 @@
 | T029 | Mobile 便利店商详、购物车与链路收口 UX 返工 | Mobile / UX | TODO | 0.2.0 | T027、T028 | 商详信息层级、购物车收口、唯一购买主链、legacy 自提兼容入口迁出正常路径 |
 | T030 | Mobile 便利店 UX 复审与验收 | UX / QA | TODO | 0.2.0 | T027-T029 | 390×844 实屏复审、内部术语扫描、门店连续性 / 购物栏 / 唯一购买主链、T012/T017/T018 回归；UX PASS 后恢复 T017 PASS |
 | T033 | Mobile 顶栏、首页搜索与商城语义收口 | Mobile / UX / QA | REVIEW | 0.2.0 | T016、T019 | PR #27 已 merge `dev`；用户预览后明确否决商城“精选店铺 / 官方商城 / 合作渠道”模块。PR #28 follow-up 删除消费端店铺 / 来源 / 切换心智，Storefront / Channel 仅保留内部数据模型；等待 final head Verify / Browser / review |
-| T034 | V0.3 Shared 合同与 Mock | Shared / Product | REVIEW | 0.3.0 | T015、T031、T018 | PR #30；Verify #311 success；T034 Shared 合同测试 3/3 passed、relation `[]`；Browser #112 总体 73/81，8 项失败均为既有 T017/T018/T032 基线债；无 Mobile/PC 改动 |
+| T034 | V0.3 Shared 合同与 Mock | Shared / Product | PASS | 0.3.0 | T015、T031、T018 | PR #30 squash merge `18ea9e8`；Codex 2×P2 已修复并 resolve；自审补 1 个凭证过时段边界；final `d1cb656` Verify #314 success；Browser #115 T034 3/3 passed、relation `[]`，其余 8 项仍为既有 T017/T018/T032 基线债 |
 | T035 | Mobile 便利店连续浏览结构 | Mobile / UX | TODO | 0.3.0 | T034、T031 | 单品 → 套餐 → 下一大类连续内容流；不负责左侧滚动联动 |
 | T036 | Mobile 便利店分类滚动联动 | Mobile / Interaction | TODO | 0.3.0 | T035 | 点击分类定位 + 滚动反向高亮；不改商品排序 / 购物链路 |
 | T037 | Mobile 自提双凭证 | Mobile / Fulfillment | TODO | 0.3.0 | T034、T018 | 同一订单二维码 + 数字码；未生效 / 可核销 / 已失效；不改 PC |
