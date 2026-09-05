@@ -141,6 +141,7 @@ test.describe("T022 · PC convenience fulfillment operations", () => {
     await expect(page.getByText("云岭社区店").first()).toBeVisible();
     await expect(page.getByText("门店正在备货", { exact: true })).toBeVisible();
     await expect(page.getByText("应付 ¥26.60", { exact: false })).toBeVisible();
+    await page.getByRole("button", { name: "模拟备货完成" }).click();
     await expect(page.getByText("PK-8888", { exact: true })).toBeVisible();
 
     await openMerchantFulfillment(page, 1024, 768);
