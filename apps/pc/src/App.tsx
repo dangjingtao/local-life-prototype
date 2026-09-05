@@ -20,7 +20,6 @@ import {
   services,
   users,
   v02Orders,
-  type AppointmentStatus,
   type OrderFulfillmentStatus,
   type PcRole,
   type RedemptionRecord,
