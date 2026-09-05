@@ -127,7 +127,7 @@ function ConvenienceOrderCard({
                 : "当前订单尚未进入可核销状态。"}
           </p>
           {status === "preparing" ? (
-            <SecondaryButton onClick={onPickupPrepared}>备货完成 ${order.id}</SecondaryButton>
+            <SecondaryButton onClick={onPickupPrepared}>{`备货完成 ${order.id}`}</SecondaryButton>
           ) : (
             <SecondaryButton
               disabled={redemptionCompleted || status !== "ready_for_pickup"}
