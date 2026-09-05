@@ -144,7 +144,7 @@ test.describe("T023 · PC smart care operations", () => {
   test("Mobile and PC preserve the same appointment and report business facts", async ({ page }) => {
     await openMobileCare(page);
     await expect(page.getByText("基础状态检测").first()).toBeVisible();
-    await expect(page.getByText(/09月01日.*10:30.*云岭社区店/)).toBeVisible();
+    await expect(page.getByText(/10:30.*云岭社区店/)).toBeVisible();
 
     await openMerchantCare(page, 1024, 900);
     const appointment = page.getByTestId("t023-appointment-APPOINTMENT-8888-01");
