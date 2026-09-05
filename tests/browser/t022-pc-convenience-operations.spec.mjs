@@ -124,11 +124,14 @@ test.describe("T022 · PC convenience fulfillment operations", () => {
 
     await expect(page.getByText("云岭社区店").first()).toBeVisible();
     await expect(page.getByText("门店接单 / 备货中", { exact: true })).toBeVisible();
+    await expect(page.getByText("应付 ¥31.60", { exact: false })).toBeVisible();
 
     await openMerchantFulfillment(page, 1024, 768);
     const delivery = page.getByTestId("t022-order-CONV-YUNLING-8888-DELIVERY");
     await expect(delivery).toContainText("云岭社区店");
     await expect(delivery).toContainText("备货中");
+    await expect(delivery).toContainText("¥31.60");
+    await expect(delivery).toContainText("溏心蛋火腿三明治");
     await expectNoHorizontalOverflow(page);
   });
 
@@ -137,11 +140,14 @@ test.describe("T022 · PC convenience fulfillment operations", () => {
 
     await expect(page.getByText("云岭社区店").first()).toBeVisible();
     await expect(page.getByText("门店正在备货", { exact: true })).toBeVisible();
+    await expect(page.getByText("应付 ¥26.60", { exact: false })).toBeVisible();
 
     await openMerchantFulfillment(page, 1024, 768);
     const pickup = page.getByTestId("t022-order-CONV-YUNLING-8888-PICKUP");
     await expect(pickup).toContainText("云岭社区店");
     await expect(pickup).toContainText("备货中");
+    await expect(pickup).toContainText("¥26.60");
+    await expect(pickup).toContainText("溏心蛋火腿三明治");
     await expectNoHorizontalOverflow(page);
   });
 
