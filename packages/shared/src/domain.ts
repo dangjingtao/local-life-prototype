@@ -105,6 +105,14 @@ export interface OfflineStore {
 /** @deprecated Prefer OfflineStore for V0.2 domain code. */
 export type Store = OfflineStore;
 
+export type ConvenienceProductType = "single" | "combo";
+
+export interface ConvenienceBrowseCategory {
+  id: string;
+  label: string;
+  sortOrder: number;
+}
+
 export interface Product {
   id: string;
   name: string;
@@ -112,7 +120,9 @@ export interface Product {
   category: string;
   scenes: BusinessScene[];
   fulfillment: Array<"pickup" | "home_delivery" | "store_delivery">;
-  type?: "single" | "combo";
+  type?: ConvenienceProductType;
+  browseCategoryId?: string;
+  browseOrder?: number;
   spec?: string;
   originalPriceYuan?: number;
   memberPriceYuan?: number;
@@ -193,6 +203,18 @@ export interface OrderFulfillment {
   carrier?: string;
   trackingNo?: string;
   appointmentId?: string;
+}
+
+export type PickupCredentialStatus = "inactive" | "active" | "expired";
+
+export interface PickupCredential {
+  id: string;
+  orderId: string;
+  redemptionId: string;
+  pickupCode: string;
+  qrPayload: string;
+  validFrom: string;
+  validUntil: string;
 }
 
 export interface Order {
@@ -349,6 +371,31 @@ export interface PointLedgerEntry {
   relatedOrderId?: string;
   balanceAfter: number;
   createdAt: string;
+}
+
+export interface PurchasePointProjection {
+  scene: BusinessScene;
+  eligibleYuan: number;
+  earnRate: number;
+  exactPoints: number;
+  baseRuleStatus: PrototypeRuleStatus;
+  roundingRuleStatus: PrototypeRuleStatus;
+}
+
+export interface CommunityGroup {
+  id: string;
+  title: string;
+  qrAssetKey: string;
+  benefits: string[];
+  applicableStoreIds: string[];
+  scopeStatus: PrototypeRuleStatus;
+  note: string;
+}
+
+export interface CommunityNudgeState {
+  userId: string;
+  communityId: string;
+  lastShownAt?: string;
 }
 
 export interface DetectionReport {

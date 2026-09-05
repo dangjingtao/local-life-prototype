@@ -1,10 +1,11 @@
-import type { Appointment, Campaign, CareAppointmentSlot, CareProject, Channel, ConvenienceCart, Coupon, DetectionRecord, DetectionReport, OfflineStore, OnlineStorefront, Order, Partner, PointLedgerEntry, Product, ProductAvailability, PrototypeRule, RedemptionRecord, Service, StoreDeliveryAddress, User } from "./domain";
+import type { Appointment, Campaign, CareAppointmentSlot, CareProject, Channel, CommunityGroup, CommunityNudgeState, ConvenienceBrowseCategory, ConvenienceCart, Coupon, DetectionRecord, DetectionReport, OfflineStore, OnlineStorefront, Order, Partner, PickupCredential, PointLedgerEntry, Product, ProductAvailability, PrototypeRule, RedemptionRecord, Service, StoreDeliveryAddress, User } from "./domain";
 
 export const CORE_DEMO_IDS = {
   user: "LL-8888", partner: "PARTNER-YUNLING", store: "STORE-YUNLING", pickupOrder: "LL-1024",
   shortDeliveryOrder: "LL-1030", mallOrder: "LL-1031", experienceCoupon: "EXPERIENCE-8888-01",
   report: "REPORT-CARE-0001", previousReport: "REPORT-CARE-0000", appointment: "APPOINTMENT-8888-01",
   detectionRecord: "DETECTION-8888-01", pickupRedemption: "REDEEM-LL-1024", careRedemption: "REDEEM-EXPERIENCE-8888-01",
+  pickupCredential: "PICKUP-CREDENTIAL-LL-1024", community: "COMMUNITY-YUNLING-DEMO",
 } as const;
 
 const legacyPartnerIds = new Set([CORE_DEMO_IDS.partner, "PARTNER-NANAN"]);
@@ -17,6 +18,11 @@ const legacyCouponIds = new Set(["COUPON-8888-01", "COUPON-8888-02", "COUPON-888
 export const prototypeRules = {
   membershipLevels: { value: ["standard", "silver", "gold", "black", "black_gold"] as const, status: "candidate", note: "会员等级名称来自 V0.1 候选方案，等级门槛与权益规则尚未确认。" },
   pointsToCash: { value: { points: 100, yuan: 1 }, status: "candidate", note: "100 积分抵 1 元仅为候选示例，不作为固定业务规则。" },
+  purchasePointsEarnRate: { value: { store: 1, mall: 1, care: 2 } as const, status: "confirmed", note: "V0.3 已确认：便利店 / 商城消费 1 元获得 1 积分，智慧抗衰消费 1 元获得 2 积分。" },
+  purchasePointsBase: { value: null, status: "unknown", note: "消费积分按原价、优惠后金额还是实际支付金额计算尚未确认；调用方必须显式传入 eligibleYuan。" },
+  purchasePointsRounding: { value: null, status: "unknown", note: "非整数积分的取整方式尚未确认，Shared 只返回精确投影值。" },
+  pointsRedemptionLimit: { value: null, status: "unknown", note: "单笔订单积分最高抵扣比例 / 最低应付金额尚未确认。" },
+  communityNudgeCooldownDays: { value: 7, status: "confirmed", note: "V0.3 已确认：同一用户 7 天内不重复展示消费后社群提示；常驻入口不受影响。" },
   settlement: { value: null, status: "unknown", note: "支付通道、收款主体、退款、分账比例和结算周期尚未确定。" },
   shortDeliveryRadiusKm: { value: 3, status: "confirmed", note: "V0.2 已确认便利店支持约 3 公里短距配送；fixtures 不模拟真实地图或调度。" },
   careDeviceIntegration: { value: null, status: "unknown", note: "检测设备与正式报告字段尚未确定；V0.2 只模拟非医疗性质的检测记录与报告结构。" },
@@ -44,14 +50,22 @@ export const offlineStores: OfflineStore[] = [
 ];
 export const stores = offlineStores.filter((item) => legacyStoreIds.has(item.id));
 
+export const convenienceBrowseCategories: ConvenienceBrowseCategory[] = [
+  { id: "CONV-CAT-DRINKS", label: "饮料", sortOrder: 10 },
+  { id: "CONV-CAT-FRESH", label: "鲜食", sortOrder: 20 },
+  { id: "CONV-CAT-DAILY", label: "日用洗护", sortOrder: 30 },
+  { id: "CONV-CAT-LIFESTYLE", label: "生活方式", sortOrder: 40 },
+];
+
 export const catalogProducts: Product[] = [
-  { id: "PRODUCT-SCALP-SET", name: "头皮养护套装", priceYuan: 129, originalPriceYuan: 159, memberPriceYuan: 119, category: "洗护", spec: "洗发露 300ml + 头皮精华 30ml", promotionLabel: "会员专享", type: "combo", scenes: ["store", "mall"], fulfillment: ["pickup", "home_delivery", "store_delivery"] },
-  { id: "PRODUCT-CLEAN-SET", name: "日常清洁组合", priceYuan: 69, category: "日用", spec: "洗手液 300ml + 湿巾 80 抽", type: "combo", scenes: ["store", "mall"], fulfillment: ["pickup", "home_delivery", "store_delivery"] },
-  { id: "PRODUCT-LIGHT-LIFE", name: "轻盈生活组合", priceYuan: 99, memberPriceYuan: 89, category: "生活方式", spec: "轻食杯 + 随行杯", promotionLabel: "本周推荐", type: "combo", scenes: ["store", "mall"], fulfillment: ["pickup", "home_delivery", "store_delivery"] },
+  { id: "PRODUCT-SCALP-SET", name: "头皮养护套装", priceYuan: 129, originalPriceYuan: 159, memberPriceYuan: 119, category: "洗护", browseCategoryId: "CONV-CAT-DAILY", browseOrder: 20, spec: "洗发露 300ml + 头皮精华 30ml", promotionLabel: "会员专享", type: "combo", scenes: ["store", "mall"], fulfillment: ["pickup", "home_delivery", "store_delivery"] },
+  { id: "PRODUCT-CLEAN-SET", name: "日常清洁组合", priceYuan: 69, category: "日用", browseCategoryId: "CONV-CAT-DAILY", browseOrder: 10, spec: "洗手液 300ml + 湿巾 80 抽", type: "combo", scenes: ["store", "mall"], fulfillment: ["pickup", "home_delivery", "store_delivery"] },
+  { id: "PRODUCT-LIGHT-LIFE", name: "轻盈生活组合", priceYuan: 99, memberPriceYuan: 89, category: "生活方式", browseCategoryId: "CONV-CAT-LIFESTYLE", browseOrder: 10, spec: "轻食杯 + 随行杯", promotionLabel: "本周推荐", type: "combo", scenes: ["store", "mall"], fulfillment: ["pickup", "home_delivery", "store_delivery"] },
   { id: "PRODUCT-SKIN-TRIAL", name: "肌肤护理体验", priceYuan: 39, category: "护理", spec: "7 日体验装", type: "single", scenes: ["mall", "care"], fulfillment: ["home_delivery", "store_delivery"] },
-  { id: "PRODUCT-OAT-LATTE", name: "燕麦拿铁", priceYuan: 13.9, memberPriceYuan: 11.9, category: "咖啡饮品", spec: "280ml", promotionLabel: "第二件 8 折", type: "single", scenes: ["store"], fulfillment: ["pickup", "store_delivery"] },
-  { id: "PRODUCT-SPARKLING-WATER", name: "青柠气泡水", priceYuan: 6.5, category: "饮料", spec: "480ml", type: "single", scenes: ["store"], fulfillment: ["pickup", "store_delivery"] },
-  { id: "PRODUCT-EGG-SANDWICH", name: "溏心蛋火腿三明治", priceYuan: 12.8, category: "鲜食", spec: "1 份", promotionLabel: "早餐热卖", type: "single", scenes: ["store"], fulfillment: ["pickup", "store_delivery"] },
+  { id: "PRODUCT-OAT-LATTE", name: "燕麦拿铁", priceYuan: 13.9, memberPriceYuan: 11.9, category: "咖啡饮品", browseCategoryId: "CONV-CAT-DRINKS", browseOrder: 10, spec: "280ml", promotionLabel: "第二件 8 折", type: "single", scenes: ["store"], fulfillment: ["pickup", "store_delivery"] },
+  { id: "PRODUCT-SPARKLING-WATER", name: "青柠气泡水", priceYuan: 6.5, category: "饮料", browseCategoryId: "CONV-CAT-DRINKS", browseOrder: 20, spec: "480ml", type: "single", scenes: ["store"], fulfillment: ["pickup", "store_delivery"] },
+  { id: "PRODUCT-EGG-SANDWICH", name: "溏心蛋火腿三明治", priceYuan: 12.8, category: "鲜食", browseCategoryId: "CONV-CAT-FRESH", browseOrder: 10, spec: "1 份", promotionLabel: "早餐热卖", type: "single", scenes: ["store"], fulfillment: ["pickup", "store_delivery"] },
+  { id: "PRODUCT-BREAKFAST-COMBO", name: "早餐能量组合", priceYuan: 23.9, memberPriceYuan: 21.9, category: "鲜食", browseCategoryId: "CONV-CAT-FRESH", browseOrder: 10, spec: "燕麦拿铁 + 溏心蛋火腿三明治", promotionLabel: "早餐组合", type: "combo", scenes: ["store"], fulfillment: ["pickup", "store_delivery"] },
   { id: "PRODUCT-COLLAGEN-DRINK", name: "胶原蛋白肽饮", priceYuan: 168, originalPriceYuan: 198, category: "营养健康", spec: "30ml × 10 瓶", promotionLabel: "商城包邮", type: "single", scenes: ["mall"], fulfillment: ["home_delivery"] },
 ];
 export const products = catalogProducts.filter((item) => legacyProductIds.has(item.id));
@@ -60,6 +74,7 @@ export const productAvailability: ProductAvailability[] = [
   { id: "AVAIL-YUNLING-OAT", storeId: CORE_DEMO_IDS.store, productId: "PRODUCT-OAT-LATTE", status: "available", priceYuan: 13.9, memberPriceYuan: 11.9, stockLabel: "现货", promotionLabel: "第二件 8 折" },
   { id: "AVAIL-YUNLING-WATER", storeId: CORE_DEMO_IDS.store, productId: "PRODUCT-SPARKLING-WATER", status: "available", priceYuan: 6.5, stockLabel: "现货" },
   { id: "AVAIL-YUNLING-SANDWICH", storeId: CORE_DEMO_IDS.store, productId: "PRODUCT-EGG-SANDWICH", status: "low_stock", priceYuan: 12.8, stockLabel: "仅余 3 件" },
+  { id: "AVAIL-YUNLING-BREAKFAST-COMBO", storeId: CORE_DEMO_IDS.store, productId: "PRODUCT-BREAKFAST-COMBO", status: "available", priceYuan: 23.9, memberPriceYuan: 21.9, stockLabel: "现货", promotionLabel: "早餐组合" },
   { id: "AVAIL-YUNLING-LIGHT", storeId: CORE_DEMO_IDS.store, productId: "PRODUCT-LIGHT-LIFE", status: "available", priceYuan: 99, memberPriceYuan: 89, stockLabel: "现货" },
   { id: "AVAIL-YUNLING-SCALP", storeId: CORE_DEMO_IDS.store, productId: "PRODUCT-SCALP-SET", status: "available", priceYuan: 129, memberPriceYuan: 119, stockLabel: "现货" },
   { id: "AVAIL-NANAN-OAT", storeId: "STORE-NANAN", productId: "PRODUCT-OAT-LATTE", status: "sold_out", priceYuan: 13.9, stockLabel: "今日售罄" },
@@ -163,6 +178,35 @@ export const redemptions: RedemptionRecord[] = [
   { id: "REDEEM-EXPERIENCE-8892-01", userId: "LL-8892", storeId: CORE_DEMO_IDS.store, targetType: "service", targetId: "SERVICE-CARE-BASIC", code: "CARE-8892", status: "completed", createdAt: "2026-08-26T16:20:00+08:00", redeemedAt: "2026-08-26T16:31:00+08:00" },
 ];
 
+export const pickupCredentials: PickupCredential[] = [
+  {
+    id: CORE_DEMO_IDS.pickupCredential,
+    orderId: CORE_DEMO_IDS.pickupOrder,
+    redemptionId: CORE_DEMO_IDS.pickupRedemption,
+    pickupCode: "LL-1024",
+    qrPayload: "locallife://pickup/LL-1024?credential=PICKUP-CREDENTIAL-LL-1024",
+    validFrom: "2026-09-05T12:30:00+08:00",
+    validUntil: "2026-09-05T13:00:00+08:00",
+  },
+];
+
+export const communities: CommunityGroup[] = [
+  {
+    id: CORE_DEMO_IDS.community,
+    title: "云岭门店社群",
+    qrAssetKey: "community-yunling-demo",
+    benefits: ["专属优惠", "上新通知", "直播优惠"],
+    applicableStoreIds: [CORE_DEMO_IDS.store],
+    scopeStatus: "unknown",
+    note: "仅为 V0.3 社群入口与频控演示样本；最终采用平台统一社群还是门店独立社群仍待确认。",
+  },
+];
+
+export const communityNudgeStates: CommunityNudgeState[] = [
+  { userId: CORE_DEMO_IDS.user, communityId: CORE_DEMO_IDS.community },
+  { userId: "LL-8893", communityId: CORE_DEMO_IDS.community, lastShownAt: "2026-09-03T09:00:00+08:00" },
+];
+
 export const campaigns: Campaign[] = [
   { id: "CAMPAIGN-AUTUMN-HERO", title: "初秋轻生活计划", subtitle: "早餐补给、精选好物与状态复测，一次逛完。", scene: "cross_scene", placement: "home_hero", status: "active", startsAt: "2026-08-28T00:00:00+08:00", endsAt: "2026-09-08T23:59:59+08:00", refs: [{ type: "product", id: "PRODUCT-EGG-SANDWICH" }, { type: "product", id: "PRODUCT-COLLAGEN-DRINK" }, { type: "care_project", id: "CARE-PROJECT-BASIC" }] },
   { id: "CAMPAIGN-STORE-BREAKFAST", title: "早八能量补给", subtitle: "云岭店早餐组合，会员价更轻松。", scene: "store", placement: "store_featured", status: "active", startsAt: "2026-08-31T07:00:00+08:00", endsAt: "2026-09-06T11:00:00+08:00", refs: [{ type: "product", id: "PRODUCT-OAT-LATTE" }, { type: "product", id: "PRODUCT-EGG-SANDWICH" }] },
@@ -171,4 +215,4 @@ export const campaigns: Campaign[] = [
 ];
 
 export const demoFixtures = { users, partners, stores, products, services, orders, coupons, pointLedger, reports, redemptions, rules: prototypeRules } as const;
-export const v02Fixtures = { users, partners: businessPartners, stores: offlineStores, products: catalogProducts, productAvailability, convenienceCarts, deliveryAddresses: storeDeliveryAddresses, services: careServices, channels, storefronts, campaigns, careProjects, appointmentSlots, appointments, orders: v02Orders, coupons: v02Coupons, pointLedger, detectionRecords, reports: detectionReports, redemptions, rules: prototypeRules } as const;
+export const v02Fixtures = { users, partners: businessPartners, stores: offlineStores, products: catalogProducts, convenienceBrowseCategories, productAvailability, convenienceCarts, deliveryAddresses: storeDeliveryAddresses, services: careServices, channels, storefronts, campaigns, careProjects, appointmentSlots, appointments, orders: v02Orders, coupons: v02Coupons, pointLedger, detectionRecords, reports: detectionReports, redemptions, pickupCredentials, communities, communityNudgeStates, rules: prototypeRules } as const;
