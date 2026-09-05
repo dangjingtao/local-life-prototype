@@ -2,7 +2,7 @@ import { useState } from "react";
 import { Card, SecondaryButton, Section, StatusTag } from "@prototype/design-system";
 import { PrototypeIcon } from "@prototype/icons";
 import { getPrototypeView, PrototypePanel, PrototypeState, setPrototypeView } from "@prototype/runtime";
-import { MerchantConvenienceOperations } from "./ConvenienceOperations";
+import { MerchantConvenienceOperations, effectiveFulfillmentStatus, type FulfillmentOverrides } from "./ConvenienceOperations";
 import {
   CORE_DEMO_IDS,
   businessSceneLabels,
@@ -19,6 +19,7 @@ import {
   services,
   users,
   v02Orders,
+  type OrderFulfillmentStatus,
   type PcRole,
   type RedemptionRecord,
 } from "@prototype/shared";
@@ -88,11 +89,16 @@ function PermissionState() {
   return <main className="mx-auto max-w-4xl p-5 md:p-8"><Card className="p-6 md:p-8"><div className="flex items-start gap-4"><div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-[var(--color-warning-bg)] text-[var(--color-warning)]"><PrototypeIcon name="warning" size={22} /></div><div className="min-w-0 flex-1"><StatusTag tone="warning">permission</StatusTag><h2 className="mt-3 text-xl font-semibold">当前范围没有访问权限</h2><p className="mt-2 text-sm leading-6 text-[var(--color-text-secondary)]">当前店主角色仅授权 {coreDemoStore.name}，不能查看其他门店或平台级明细。</p><div className="mt-5 rounded-[var(--radius-container)] bg-[var(--color-surface-subtle)] p-4"><p className="text-xs font-medium text-[var(--color-text-tertiary)]">当前数据范围</p><p className="mt-1 font-medium">{pcDataScopeLabels.assigned_store} · {coreDemoStore.name}</p><p className="mt-3 text-xs font-medium text-[var(--color-text-tertiary)]">下一步</p><p className="mt-1 text-sm leading-6 text-[var(--color-text-secondary)]">返回本店工作台；如需演示跨门店运营或平台汇总，请切换到对应角色。真实权限申请流程不在 V0.1 范围。</p></div><SecondaryButton className="mt-5" onClick={() => setPrototypeView("ready")}>返回本店工作台</SecondaryButton></div></div></Card></main>;
 }
 
-function MerchantOverview({ onNavigate, onPermission, overrides }: { onNavigate: (page: Page) => void; onPermission: () => void; overrides: RedemptionOverrides }) {
-  const fulfillmentStatuses = merchantConvenienceOrders.map((order) => order.fulfillmentDetail?.status);
+function MerchantOverview({ onNavigate, onPermission, overrides, fulfillmentOverrides }: { onNavigate: (page: Page) => void; onPermission: () => void; overrides: RedemptionOverrides; fulfillmentOverrides: FulfillmentOverrides }) {
+  const demoBusinessDate = merchantConvenienceOrders.reduce(
+    (latest, order) => order.createdAt.slice(0, 10) > latest ? order.createdAt.slice(0, 10) : latest,
+    "",
+  );
+  const todayConvenienceOrders = merchantConvenienceOrders.filter((order) => order.createdAt.slice(0, 10) === demoBusinessDate);
+  const fulfillmentStatuses = merchantConvenienceOrders.map((order) => effectiveFulfillmentStatus(order, fulfillmentOverrides));
   const pendingRedemptions = merchantRedemptions.filter((record) => effectiveRedemptionStatus(record, overrides) === "pending").length;
   const metrics = [
-    { label: "今日便利店订单", value: String(merchantConvenienceOrders.length), note: "仅当前授权门店" },
+    { label: "今日便利店订单", value: String(todayConvenienceOrders.length), note: `演示业务日 ${demoBusinessDate}` },
     { label: "待备货", value: String(fulfillmentStatuses.filter((status) => status === "preparing").length), note: "自提 / 短配履约" },
     { label: "待取货", value: String(fulfillmentStatuses.filter((status) => status === "ready_for_pickup").length), note: "扫码核销后完成" },
     { label: "配送中", value: String(fulfillmentStatuses.filter((status) => status === "delivering").length), note: "约 3 km 短配 mock" },
@@ -126,9 +132,23 @@ export function App() {
   const view = getPrototypeView();
   const [page, setPage] = useState<Page>("workspace");
   const [redemptionOverrides, setRedemptionOverrides] = useState<RedemptionOverrides>({});
+  const [fulfillmentOverrides, setFulfillmentOverrides] = useState<FulfillmentOverrides>({});
   const current = pageCatalog[page];
   const completeRedemption = (id: string) => setRedemptionOverrides((currentOverrides) => ({ ...currentOverrides, [id]: "completed" }));
+  const updateFulfillment = (orderId: string, status: OrderFulfillmentStatus) => {
+    setFulfillmentOverrides((currentOverrides) => ({ ...currentOverrides, [orderId]: status }));
+  };
+  const resetConvenience = () => {
+    setFulfillmentOverrides({});
+    setRedemptionOverrides((currentOverrides) => {
+      const next = { ...currentOverrides };
+      for (const record of merchantRedemptions) {
+        if (record.targetType === "order") delete next[record.id];
+      }
+      return next;
+    });
+  };
   const showPermission = () => setPrototypeView("permission");
 
-  return <div className="flex min-h-screen bg-[var(--color-background)] text-[var(--color-text-primary)]"><aside className="hidden w-64 shrink-0 border-r border-[var(--color-border)] bg-[var(--color-surface)] p-5 lg:flex lg:flex-col"><div><p className="text-xs font-semibold tracking-wide text-[var(--color-primary)]">LOCAL LIFE · V0.2</p><h1 className="mt-1 text-xl font-semibold">本地生活</h1><p className="mt-2 text-xs leading-5 text-[var(--color-text-tertiary)]">店主 / 合作商工作台 · 概念原型</p></div><div className="mt-7"><p className="mb-2 text-xs font-medium text-[var(--color-text-tertiary)]">概念角色</p><RoleSwitcher /></div><nav className="mt-7 space-y-1">{(Object.keys(pageCatalog) as Page[]).map((item) => <button key={item} type="button" onClick={() => setPage(item)} className={`flex min-h-11 w-full items-center gap-3 rounded-[var(--radius-control)] px-3 text-sm ${page === item ? "bg-[var(--color-brand-subtle)] font-medium text-[var(--color-primary-pressed)]" : "text-[var(--color-text-secondary)] hover:bg-[var(--color-surface-subtle)]"}`}><PrototypeIcon name={pageCatalog[item].icon} size={18} />{pageCatalog[item].label}</button>)}</nav><div className="mt-auto border-t border-[var(--color-border)] pt-4"><StatusTag tone="success">仅本店范围</StatusTag><p className="mt-2 text-xs font-medium">{coreDemoStore.name} · {coreDemoStore.id}</p><p className="mt-2 text-xs leading-5 text-[var(--color-text-tertiary)]">真实 RBAC、登录、组织架构未接入；切换运营或管理层会进入各自独立控制台。</p></div></aside><div className="min-w-0 flex-1"><header className="border-b border-[var(--color-border)] bg-[var(--color-surface)] px-5 py-3 md:px-8"><div className="flex min-h-12 flex-wrap items-center justify-between gap-3"><div><h2 className="font-semibold">{current.label}</h2><p className="mt-1 text-xs text-[var(--color-text-tertiary)]">店主 / 合作商 · {pcDataScopeLabels.assigned_store} · {coreDemoStore.name}</p></div><div className="flex items-center gap-2"><StatusTag>店主 / 合作商</StatusTag><StatusTag tone="success">模拟权限</StatusTag></div></div><div className="mt-3 lg:hidden"><CompactRoleSwitcher /></div></header><div className="flex gap-2 overflow-x-auto border-b border-[var(--color-border)] bg-[var(--color-surface)] px-5 py-2 lg:hidden">{(Object.keys(pageCatalog) as Page[]).map((item) => <button key={item} type="button" onClick={() => setPage(item)} className={`shrink-0 rounded-[var(--radius-control)] px-3 py-2 text-sm ${page === item ? "bg-[var(--color-brand-subtle)] font-medium text-[var(--color-primary-pressed)]" : "text-[var(--color-text-secondary)]"}`}>{pageCatalog[item].label}</button>)}</div>{view === "permission" ? <PermissionState /> : <PrototypeState view={view}><main className="mx-auto max-w-7xl space-y-7 p-5 md:p-8">{page === "workspace" && <MerchantOverview onNavigate={setPage} onPermission={showPermission} overrides={redemptionOverrides} />}{page === "fulfillment" && <MerchantConvenienceOperations />}{page === "orders" && <MerchantOrders overrides={redemptionOverrides} onComplete={completeRedemption} onReset={() => setRedemptionOverrides({})} />}{page === "members" && <MerchantMembers onPermission={showPermission} />}<Card className="bg-[var(--color-surface-subtle)]"><div className="flex flex-wrap items-center gap-2"><StatusTag>V0.2 原型边界</StatusTag><span className="text-sm text-[var(--color-text-secondary)]">真实扫码、支付、库存、骑手调度、地图、配送 API、退款、财务结算与生产级权限均未接入。</span></div></Card></main></PrototypeState>}</div><PrototypePanel /></div>;
+  return <div className="flex min-h-screen bg-[var(--color-background)] text-[var(--color-text-primary)]"><aside className="hidden w-64 shrink-0 border-r border-[var(--color-border)] bg-[var(--color-surface)] p-5 lg:flex lg:flex-col"><div><p className="text-xs font-semibold tracking-wide text-[var(--color-primary)]">LOCAL LIFE · V0.2</p><h1 className="mt-1 text-xl font-semibold">本地生活</h1><p className="mt-2 text-xs leading-5 text-[var(--color-text-tertiary)]">店主 / 合作商工作台 · 概念原型</p></div><div className="mt-7"><p className="mb-2 text-xs font-medium text-[var(--color-text-tertiary)]">概念角色</p><RoleSwitcher /></div><nav className="mt-7 space-y-1">{(Object.keys(pageCatalog) as Page[]).map((item) => <button key={item} type="button" onClick={() => setPage(item)} className={`flex min-h-11 w-full items-center gap-3 rounded-[var(--radius-control)] px-3 text-sm ${page === item ? "bg-[var(--color-brand-subtle)] font-medium text-[var(--color-primary-pressed)]" : "text-[var(--color-text-secondary)] hover:bg-[var(--color-surface-subtle)]"}`}><PrototypeIcon name={pageCatalog[item].icon} size={18} />{pageCatalog[item].label}</button>)}</nav><div className="mt-auto border-t border-[var(--color-border)] pt-4"><StatusTag tone="success">仅本店范围</StatusTag><p className="mt-2 text-xs font-medium">{coreDemoStore.name} · {coreDemoStore.id}</p><p className="mt-2 text-xs leading-5 text-[var(--color-text-tertiary)]">真实 RBAC、登录、组织架构未接入；切换运营或管理层会进入各自独立控制台。</p></div></aside><div className="min-w-0 flex-1"><header className="border-b border-[var(--color-border)] bg-[var(--color-surface)] px-5 py-3 md:px-8"><div className="flex min-h-12 flex-wrap items-center justify-between gap-3"><div><h2 className="font-semibold">{current.label}</h2><p className="mt-1 text-xs text-[var(--color-text-tertiary)]">店主 / 合作商 · {pcDataScopeLabels.assigned_store} · {coreDemoStore.name}</p></div><div className="flex items-center gap-2"><StatusTag>店主 / 合作商</StatusTag><StatusTag tone="success">模拟权限</StatusTag></div></div><div className="mt-3 lg:hidden"><CompactRoleSwitcher /></div></header><div className="flex gap-2 overflow-x-auto border-b border-[var(--color-border)] bg-[var(--color-surface)] px-5 py-2 lg:hidden">{(Object.keys(pageCatalog) as Page[]).map((item) => <button key={item} type="button" onClick={() => setPage(item)} className={`shrink-0 rounded-[var(--radius-control)] px-3 py-2 text-sm ${page === item ? "bg-[var(--color-brand-subtle)] font-medium text-[var(--color-primary-pressed)]" : "text-[var(--color-text-secondary)]"}`}>{pageCatalog[item].label}</button>)}</div>{view === "permission" ? <PermissionState /> : <PrototypeState view={view}><main className="mx-auto max-w-7xl space-y-7 p-5 md:p-8">{page === "workspace" && <MerchantOverview onNavigate={setPage} onPermission={showPermission} overrides={redemptionOverrides} fulfillmentOverrides={fulfillmentOverrides} />}{page === "fulfillment" && <MerchantConvenienceOperations fulfillmentOverrides={fulfillmentOverrides} redemptionOverrides={redemptionOverrides} onFulfillmentChange={updateFulfillment} onRedemptionComplete={completeRedemption} onReset={resetConvenience} />}{page === "orders" && <MerchantOrders overrides={redemptionOverrides} onComplete={completeRedemption} onReset={() => setRedemptionOverrides({})} />}{page === "members" && <MerchantMembers onPermission={showPermission} />}<Card className="bg-[var(--color-surface-subtle)]"><div className="flex flex-wrap items-center gap-2"><StatusTag>V0.2 原型边界</StatusTag><span className="text-sm text-[var(--color-text-secondary)]">真实扫码、支付、库存、骑手调度、地图、配送 API、退款、财务结算与生产级权限均未接入。</span></div></Card></main></PrototypeState>}</div><PrototypePanel /></div>;
 }
