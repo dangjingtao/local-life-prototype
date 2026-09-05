@@ -8,6 +8,9 @@ import {
   careServices,
   catalogProducts,
   channels,
+  communities,
+  communityNudgeStates,
+  convenienceBrowseCategories,
   convenienceCarts,
   coupons,
   detectionRecords,
@@ -18,6 +21,8 @@ import {
   pointLedger,
   productAvailability,
   products,
+  prototypeRules,
+  pickupCredentials,
   redemptions,
   reports,
   services,
@@ -28,7 +33,7 @@ import {
   v02Coupons,
   v02Orders,
 } from "./fixtures";
-import type { OfflineStore, StoreDeliveryAddress } from "./domain";
+import type { BusinessScene, OfflineStore, PickupCredential, PickupCredentialStatus, PurchasePointProjection, StoreDeliveryAddress } from "./domain";
 
 export function findById<T extends { id: string }>(items: readonly T[], id: string): T | undefined {
   return items.find((item) => item.id === id);
@@ -62,6 +67,83 @@ export function getStoreProducts(storeId: string) {
       .map((item) => item.productId),
   );
   return catalogProducts.filter((product) => productIds.has(product.id));
+}
+
+const convenienceProductTypeRank = { single: 0, combo: 1 } as const;
+
+export function getConvenienceBrowseSections(storeId: string) {
+  const productsAtStore = getStoreProducts(storeId)
+    .filter((product) => product.type && product.browseCategoryId)
+    .slice();
+
+  return convenienceBrowseCategories
+    .slice()
+    .sort((a, b) => a.sortOrder - b.sortOrder)
+    .map((category) => {
+      const sectionProducts = productsAtStore
+        .filter((product) => product.browseCategoryId === category.id)
+        .sort((a, b) => {
+          const typeDelta = convenienceProductTypeRank[a.type!] - convenienceProductTypeRank[b.type!];
+          if (typeDelta !== 0) return typeDelta;
+          const orderDelta = (a.browseOrder ?? Number.MAX_SAFE_INTEGER) - (b.browseOrder ?? Number.MAX_SAFE_INTEGER);
+          return orderDelta || a.id.localeCompare(b.id);
+        });
+      return {
+        category,
+        anchorId: `convenience-category-${category.id.toLowerCase()}`,
+        products: sectionProducts,
+        single: sectionProducts.filter((product) => product.type === "single"),
+        combo: sectionProducts.filter((product) => product.type === "combo"),
+      };
+    })
+    .filter((section) => section.products.length > 0);
+}
+
+export function getPurchasePointProjection(scene: BusinessScene, eligibleYuan: number): PurchasePointProjection {
+  const normalizedYuan = Math.max(0, eligibleYuan);
+  const earnRate = prototypeRules.purchasePointsEarnRate.value[scene];
+  return {
+    scene,
+    eligibleYuan: normalizedYuan,
+    earnRate,
+    exactPoints: normalizedYuan * earnRate,
+    baseRuleStatus: prototypeRules.purchasePointsBase.status,
+    roundingRuleStatus: prototypeRules.purchasePointsRounding.status,
+  };
+}
+
+export function getPickupCredentialForOrder(orderId: string) {
+  return pickupCredentials.find((credential) => credential.orderId === orderId);
+}
+
+export function getPickupCredentialStatus(
+  credential: PickupCredential | undefined,
+  atIso: string,
+): PickupCredentialStatus {
+  if (!credential) return "expired";
+  const redemption = findById(redemptions, credential.redemptionId);
+  if (!redemption || redemption.status !== "pending") return "expired";
+  const at = Date.parse(atIso);
+  const validFrom = Date.parse(credential.validFrom);
+  const validUntil = Date.parse(credential.validUntil);
+  if (!Number.isFinite(at) || !Number.isFinite(validFrom) || !Number.isFinite(validUntil)) return "expired";
+  if (at < validFrom) return "inactive";
+  if (at > validUntil) return "expired";
+  return "active";
+}
+
+export function getCommunityForStore(storeId: string) {
+  return communities.find((community) => community.applicableStoreIds.includes(storeId));
+}
+
+export function shouldShowCommunityNudge(userId: string, communityId: string, atIso: string) {
+  const state = communityNudgeStates.find((item) => item.userId === userId && item.communityId === communityId);
+  if (!state?.lastShownAt) return true;
+  const at = Date.parse(atIso);
+  const lastShown = Date.parse(state.lastShownAt);
+  if (!Number.isFinite(at) || !Number.isFinite(lastShown)) return false;
+  const cooldownMs = prototypeRules.communityNudgeCooldownDays.value * 24 * 60 * 60 * 1000;
+  return at - lastShown >= cooldownMs;
 }
 
 export function getUserConvenienceCarts(userId: string) {
@@ -100,6 +182,9 @@ export function validateDemoFixtureRelations(): string[] {
   const appointmentIds = new Set(appointments.map((item) => item.id));
   const detectionRecordIds = new Set(detectionRecords.map((item) => item.id));
   const reportIds = new Set(detectionReports.map((item) => item.id));
+  const redemptionIds = new Set(redemptions.map((item) => item.id));
+  const communityIds = new Set(communities.map((item) => item.id));
+  const browseCategoryIds = new Set(convenienceBrowseCategories.map((item) => item.id));
 
   if (offlineStores.length < 3) issues.push("fixture:requires-at-least-3-offline-stores");
   if (channels.length < 2 || storefronts.length < 2) {
@@ -107,6 +192,42 @@ export function validateDemoFixtureRelations(): string[] {
   }
   if (detectionReports.filter((report) => report.userId === CORE_DEMO_IDS.user).length < 2) {
     issues.push(`fixture:user:${CORE_DEMO_IDS.user}:requires-at-least-2-care-reports`);
+  }
+
+  const browseCategoryOrder = convenienceBrowseCategories.map((item) => item.sortOrder);
+  if (new Set(convenienceBrowseCategories.map((item) => item.id)).size !== convenienceBrowseCategories.length) {
+    issues.push("browse:duplicate-category-id");
+  }
+  if (new Set(browseCategoryOrder).size !== browseCategoryOrder.length) {
+    issues.push("browse:duplicate-category-sort-order");
+  }
+  for (const product of catalogProducts.filter((item) => item.scenes.includes("store"))) {
+    if (!product.type) issues.push(`browse:product:${product.id}:missing-type`);
+    if (!product.browseCategoryId) issues.push(`browse:product:${product.id}:missing-category-id`);
+    else if (!browseCategoryIds.has(product.browseCategoryId)) issues.push(`browse:product:${product.id}:unknown-category:${product.browseCategoryId}`);
+    if (typeof product.browseOrder !== "number") issues.push(`browse:product:${product.id}:missing-order`);
+  }
+  const coreBrowseSections = getConvenienceBrowseSections(CORE_DEMO_IDS.store);
+  if (!coreBrowseSections.some((section) => section.single.length > 0 && section.combo.length > 0)) {
+    issues.push(`browse:store:${CORE_DEMO_IDS.store}:requires-mixed-single-combo-section`);
+  }
+  for (const section of coreBrowseSections) {
+    const seenCombo = section.products.some((product, index) =>
+      product.type === "combo" && section.products.slice(index + 1).some((later) => later.type === "single"),
+    );
+    if (seenCombo) issues.push(`browse:section:${section.category.id}:single-after-combo`);
+  }
+
+  if (prototypeRules.purchasePointsEarnRate.status !== "confirmed") issues.push("points:purchase-earn-rate-must-be-confirmed");
+  for (const scene of ["store", "mall", "care"] as const) {
+    if (prototypeRules.purchasePointsEarnRate.value[scene] <= 0) issues.push(`points:invalid-purchase-rate:${scene}`);
+  }
+  if (prototypeRules.pointsToCash.status !== "candidate") issues.push("points:cash-rate-must-remain-candidate");
+  if (prototypeRules.purchasePointsBase.status !== "unknown") issues.push("points:purchase-base-must-remain-unknown");
+  if (prototypeRules.purchasePointsRounding.status !== "unknown") issues.push("points:rounding-must-remain-unknown");
+  if (prototypeRules.pointsRedemptionLimit.status !== "unknown") issues.push("points:redemption-limit-must-remain-unknown");
+  if (prototypeRules.communityNudgeCooldownDays.value !== 7 || prototypeRules.communityNudgeCooldownDays.status !== "confirmed") {
+    issues.push("community:nudge-cooldown-must-be-7-days-confirmed");
   }
   for (const requiredStatus of ["scheduled", "checked_in", "completed", "cancelled", "rescheduled"] as const) {
     if (!appointments.some((appointment) => appointment.status === requiredStatus)) {
@@ -300,6 +421,44 @@ export function validateDemoFixtureRelations(): string[] {
     if (!storeIds.has(redemption.storeId)) issues.push(`redemption:${redemption.id}:missing-store:${redemption.storeId}`);
     const targetExists = redemption.targetType === "order" ? orderIds.has(redemption.targetId) : redemption.targetType === "coupon" ? couponIds.has(redemption.targetId) : serviceIds.has(redemption.targetId);
     if (!targetExists) issues.push(`redemption:${redemption.id}:missing-${redemption.targetType}:${redemption.targetId}`);
+  }
+
+  const credentialOrderIds = new Set<string>();
+  for (const credential of pickupCredentials) {
+    if (!orderIds.has(credential.orderId)) issues.push(`pickup-credential:${credential.id}:missing-order:${credential.orderId}`);
+    if (!redemptionIds.has(credential.redemptionId)) issues.push(`pickup-credential:${credential.id}:missing-redemption:${credential.redemptionId}`);
+    if (credentialOrderIds.has(credential.orderId)) issues.push(`pickup-credential:${credential.id}:duplicate-order:${credential.orderId}`);
+    credentialOrderIds.add(credential.orderId);
+    const order = findById(v02Orders, credential.orderId);
+    const redemption = findById(redemptions, credential.redemptionId);
+    if (order?.fulfillmentDetail?.mode !== "pickup") issues.push(`pickup-credential:${credential.id}:order-not-pickup`);
+    if (redemption && (redemption.targetType !== "order" || redemption.targetId !== credential.orderId)) {
+      issues.push(`pickup-credential:${credential.id}:redemption-order-mismatch`);
+    }
+    if (redemption && redemption.code !== credential.pickupCode) issues.push(`pickup-credential:${credential.id}:code-mismatch-redemption`);
+    if (order?.fulfillmentDetail?.pickupCode && order.fulfillmentDetail.pickupCode !== credential.pickupCode) {
+      issues.push(`pickup-credential:${credential.id}:code-mismatch-order`);
+    }
+    if (!Number.isFinite(Date.parse(credential.validFrom)) || !Number.isFinite(Date.parse(credential.validUntil))) {
+      issues.push(`pickup-credential:${credential.id}:invalid-validity-window`);
+    } else if (Date.parse(credential.validUntil) <= Date.parse(credential.validFrom)) {
+      issues.push(`pickup-credential:${credential.id}:invalid-validity-order`);
+    }
+  }
+
+  for (const community of communities) {
+    for (const storeId of community.applicableStoreIds) if (!storeIds.has(storeId)) issues.push(`community:${community.id}:missing-store:${storeId}`);
+    if (!community.qrAssetKey) issues.push(`community:${community.id}:missing-qr-asset-key`);
+    if (community.benefits.length < 3) issues.push(`community:${community.id}:insufficient-benefits`);
+  }
+  const communityNudgeKeys = new Set<string>();
+  for (const state of communityNudgeStates) {
+    if (!userIds.has(state.userId)) issues.push(`community-nudge:${state.userId}:missing-user`);
+    if (!communityIds.has(state.communityId)) issues.push(`community-nudge:${state.userId}:missing-community:${state.communityId}`);
+    const key = `${state.userId}:${state.communityId}`;
+    if (communityNudgeKeys.has(key)) issues.push(`community-nudge:${key}:duplicate`);
+    communityNudgeKeys.add(key);
+    if (state.lastShownAt && !Number.isFinite(Date.parse(state.lastShownAt))) issues.push(`community-nudge:${key}:invalid-last-shown-at`);
   }
 
   for (const campaign of campaigns) {
