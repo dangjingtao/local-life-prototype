@@ -1,6 +1,6 @@
 # T036 · Mobile 便利店分类滚动联动
 
-- Status: TODO
+- Status: DOING
 - Target version: 0.3.0
 - Type: Mobile / Interaction
 - Predecessors: T035
@@ -34,6 +34,12 @@
 - [ ] 连续快速点击不同分类后最终状态与可见区域一致。
 - [ ] 390×844 分类栏始终可用且不遮挡底部购物栏。
 - [ ] typecheck / build / browser test 通过。
+
+## Execution baseline
+
+- Branch: `task/T036-mobile-convenience-category-scroll-sync`
+- Started from: `dev@ecb1a484735684e75ade70e48c12c84aa4b50000`
+- Started at: 2026-09-05
 
 ## Evidence required
 
