@@ -54,16 +54,16 @@ V0.2 明确要求 PC 必须承接 Mobile 新增的便利店自提和短距配送
 
 ## Implementation record
 
-- Commit / PR:
-- Changed paths:
-- Notes:
+- Commit / PR: PR #33 · `feat(T022): add PC convenience fulfillment operations`
+- Changed paths: `apps/pc/src/App.tsx`、`apps/pc/src/ConvenienceOperations.tsx`、`apps/pc/src/OperatorConsole.tsx`、`packages/shared/src/fixtures.ts`、`packages/shared/src/selectors.ts`、`apps/mobile/src/StoreFlowScreen.tsx`（仅订单 ID 唯一性）、`tests/browser/t022-pc-convenience-operations.spec.mjs`
+- Notes: 店主 / 运营端均复用 Shared V0.2 订单事实；履约状态上提 Merchant Shell；不提前施工 T037-T039。
 
 ## Verification evidence
 
-- CI:
-- Page / Route:
-- Screenshot / Browser result:
-- Other evidence:
+- CI: PR #33 final-head gates running；DOING 状态证据以 PR #33 为准。
+- Page / Route: PC `?role=merchant` →「便利店履约」；PC `?role=operator` →「便利店履约」。
+- Screenshot / Browser result: T022 自动化写入 `test-results/t022-visual-evidence/`；final-head Browser 待收口。
+- Other evidence: Codex 首轮 2×P1 + 1×P2 已按当前 head 修复；CodeRabbit 首轮状态持久化意见已识别为 Addressed。
 
 ## Review
 
