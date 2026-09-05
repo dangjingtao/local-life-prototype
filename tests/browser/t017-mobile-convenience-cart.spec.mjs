@@ -124,9 +124,12 @@ test.describe("T017 · Mobile convenience store browsing and independent cart", 
     await expect(updatedBar).toBeVisible();
     await expect(updatedBar).toContainText("¥43.10");
 
-    // 单品/套餐切换存在
-    await expect(page.getByRole("button", { name: "单品", exact: true })).toBeVisible();
-    await expect(page.getByRole("button", { name: "套餐", exact: true })).toBeVisible();
+    // V0.3 连续浏览：单品/套餐不再作为过滤按钮，两类内容默认同时存在
+    await expect(page.getByRole("button", { name: "单品", exact: true })).toHaveCount(0);
+    await expect(page.getByRole("button", { name: "套餐", exact: true })).toHaveCount(0);
+    const fresh = page.getByTestId("convenience-section-CONV-CAT-FRESH");
+    await expect(fresh.getByText("单品", { exact: true })).toBeVisible();
+    await expect(fresh.getByText("套餐", { exact: true })).toBeVisible();
 
     // 可用券入口存在
     await expect(page.getByRole("button", { name: /可用券/ })).toBeVisible();
