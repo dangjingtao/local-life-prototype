@@ -1,6 +1,6 @@
 # T034 · V0.3 Shared 合同与 Mock
 
-- Status: DOING
+- Status: REVIEW
 - Target version: 0.3.0
 - Type: Shared / Product Contract
 - Predecessors: V0.2 Shared 基线（T015）、便利店商品 type 基线（T031）、自提语义（T018）
@@ -38,13 +38,13 @@
 
 ## Acceptance
 
-- [ ] Shared 能稳定表达商品分类内 `single → combo` 顺序和跨大类锚点。
-- [ ] 同一自提订单的二维码 / 数字码共享单一核销状态。
-- [ ] Shared 存在三场景消费积分倍率，并提供统一预计获得计算入口或等价语义。
-- [ ] 社群 Mock 与 7 天频控状态可被 UI 消费。
-- [ ] 未确认积分规则保持 Candidate / Unknown。
-- [ ] `validateDemoFixtureRelations()` 返回 `[]`。
-- [ ] `npm run typecheck`、`npm run build` 通过。
+- [x] Shared 能稳定表达商品分类内 `single → combo` 顺序和跨大类锚点。
+- [x] 同一自提订单的二维码 / 数字码共享单一核销状态。
+- [x] Shared 存在三场景消费积分倍率，并提供统一预计获得计算入口或等价语义。
+- [x] 社群 Mock 与 7 天频控状态可被 UI 消费。
+- [x] 未确认积分规则保持 Candidate / Unknown。
+- [x] `validateDemoFixtureRelations()` 返回 `[]`。
+- [x] `npm run typecheck`、`npm run build` 通过。
 
 ## Execution baseline
 
@@ -62,3 +62,39 @@
 ## Stop conditions
 
 如实现需要改变已确认的订单状态、购物车隔离、商城消费者语义或积分正式兑换规则，立即 BLOCKED 并回到产品决策，不得在本卡内自行扩权。
+
+
+## Implementation record
+
+- PR: #30 `feat(T034): add V0.3 shared contract and mock data`
+- Branch: `task/T034-v03-shared-contract`
+- Candidate head before evidence write-back: `e6ea46b9d3c7b93f5b763c60039972e4703b5da7`
+- Business changed paths:
+  - `packages/shared/src/domain.ts`
+  - `packages/shared/src/fixtures.ts`
+  - `packages/shared/src/selectors.ts`
+- Test evidence:
+  - `tests/browser/t034-shared-contract.spec.mjs`
+- No `apps/mobile/**` / `apps/pc/**` changes.
+
+### Contract additions
+
+- Browse: `ConvenienceBrowseCategory` + `Product.browseCategoryId / browseOrder` + `getConvenienceBrowseSections()`; `Product.type` 继续使用原有 single / combo 语义。
+- Pickup: `PickupCredential` 只保存 credential 本身，通过 `redemptionId` 绑定现有 `RedemptionRecord`；不复制 redemption status。
+- Points: `purchasePointsEarnRate` 确认 store=1 / mall=1 / care=2；`getPurchasePointProjection(scene, eligibleYuan)` 不替业务决定计分基数或取整。
+- Community: `CommunityGroup` + `CommunityNudgeState` + 7 天 cooldown selector；最终平台统一群 / 门店群范围继续 Unknown。
+
+## Verification evidence
+
+- Verify Prototype #311: **success**；version contract、全仓 typecheck、全仓 build 通过。
+- T012 Browser Quality #112: 81 项中 **73 passed / 8 failed**。
+  - T034 新增 3 项合同测试 **3/3 passed**。
+  - `validateDemoFixtureRelations()` 在真实 Vite / Chromium 运行环境返回 `[]`。
+  - 8 个失败全部为既有 T017 / T018 / T032 旧断言，与进入本卡前已记录的便利店浏览器基线债一致；本卡未修改 Mobile。
+- CodeRabbit status: success；当前 PR 无 review thread。
+- Changed-path review: 业务修改只落在本卡 Shared 白名单；另有任务卡 / 台账和 T034 测试证据文件。
+
+## Review
+
+- Result: REVIEW
+- Conclusion: T034 的 7 项 AC 已有直接证据；全仓浏览器 workflow 仍因既有 8 项便利店旧基线失败显示 failure，但 T034 专项 3/3 通过，未发现本卡引入的新回归。按项目规则不据此自行 PASS / merge。
