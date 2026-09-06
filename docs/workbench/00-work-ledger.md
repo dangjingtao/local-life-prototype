@@ -77,7 +77,7 @@
 | T040 | Mobile 便利店消费积分反馈 | Mobile / Benefits | PASS | 0.3.0 | T034、T018、T032 | 2026-09-06 Mira 按用户授权自审验收；PR #39 squash merge `4e17126`；Verify #34006380444 success；Browser #34006380455：T040 4/4、全量 112/120，余 8 项为既有 checkout 债；CodeRabbit 1×Major 已修复并 resolved，latest re-review 无 actionable comment |
 | T041 | Mobile 商城积分消费闭环 | Mobile / Mall / Benefits | PASS | 0.3.0 | T034、T019/T033 当前消费者基线 | 2026-09-06 Mira 按用户授权自审验收；PR #40 squash merge `5cb269e`；Verify #34007147259 success；Browser #34007147233：T041 4/4、T019-R4 2/2、R5 1/1、全量 116/124，余 8 项为既有 checkout 债；CodeRabbit success / 无 actionable comment |
 | T042 | Mobile 社群基础入口 | Mobile / Private-domain | PASS | 0.3.0 | T034 | 2026-09-06 Mira 按用户授权自审验收；PR #41 squash merge `27b717b`；Verify #34029073161 success；Browser #34029073148：T042 4/4、全量 120/128，余 8 项为既有 checkout 债；Codex P2 + CodeRabbit Major 均修复并 resolve，latest CodeRabbit success / 无 actionable comment |
-| T043 | Mobile 消费后社群承接 | Mobile / Growth | DOING | 0.3.0 | T042、T018 | `task/T043-community-post-purchase-nudge` 施工中；便利店支付成功 / 取货成功轻提示 + 同一用户 7 天全局频控；入口复用 T042 指引页，不扩商城 / 智慧抗衰 |
+| T043 | Mobile 消费后社群承接 | Mobile / Growth | REVIEW | 0.3.0 | T042、T018 | PR #42；reviewed `4ee9483`；Verify #34032075151 success；Browser #34032075150：T043 4/4、全量 124/132，余 8 项为既有 checkout 债；CodeRabbit 2×Major 旧 head finding 已修复并 resolve，status success；自审无 blocker |
 
 ## V0.1 收口记录
 
