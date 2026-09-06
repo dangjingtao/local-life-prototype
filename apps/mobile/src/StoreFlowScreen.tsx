@@ -96,11 +96,6 @@ function buildPickupCode() {
   return `${pickupCodePrefix}-${coreDemoUser.id.replace("LL-", "")}`;
 }
 
-function formatCredentialWindow(iso: string) {
-  const match = iso.match(/T(\d{2}:\d{2})/);
-  return match?.[1] ?? "--:--";
-}
-
 function buildQrMockCells(payload: string, size = 15) {
   const seed = Array.from(payload).reduce((sum, char, index) => (sum + char.charCodeAt(0) * (index + 17)) % 104729, 0);
   const inFinder = (row: number, col: number, originRow: number, originCol: number) => {
@@ -1506,8 +1501,8 @@ export function StoreFlowScreen({ openActivity, entryContext }: StoreFlowScreenP
             <span className="text-xs text-[var(--color-text-tertiary)]">Mock order · 支付成功</span>
           </div>
           <p className="mt-4 font-semibold">{snapshot.storeName}</p>
-          <p className="mt-1 text-sm text-[var(--color-text-secondary)]">自提 · {snapshot.itemCount} 件商品 · 应付 ¥{snapshot.payable.toFixed(2)}</p>
-          {snapshot.pickupWindow && <p className="mt-2 text-sm text-[var(--color-text-secondary)]">取货时段：{snapshot.pickupWindow}</p>}
+          <p className="mt-1 text-sm text-[var(--color-text-secondary)]">到店自提 · 凭证与核销状态以 Shared 履约记录为准</p>
+          {snapshot.pickupWindow && <p className="mt-2 text-sm text-[var(--color-text-secondary)]">下单选择时段：{snapshot.pickupWindow}</p>}
 
           <div className="mt-5 rounded-[var(--radius-container)] border border-[var(--color-border)] bg-[var(--color-background)] p-4" data-testid="pickup-dual-credential">
             <div className="flex items-start justify-between gap-3">
@@ -1543,9 +1538,9 @@ export function StoreFlowScreen({ openActivity, entryContext }: StoreFlowScreenP
               >
                 <p className="text-xs text-[var(--color-text-tertiary)]">数字取货码</p>
                 <p className="mt-2 break-all font-mono text-2xl font-semibold tracking-[0.08em]">{credential?.pickupCode ?? snapshot.pickupCode}</p>
-                {credential && (
+                {snapshot.pickupWindow && (
                   <p className="mt-2 text-[11px] leading-5 text-[var(--color-text-tertiary)]">
-                    凭证有效期 {formatCredentialWindow(credential.validFrom)}–{formatCredentialWindow(credential.validUntil)}
+                    取货时段 {snapshot.pickupWindow}
                   </p>
                 )}
               </div>
@@ -1581,12 +1576,8 @@ export function StoreFlowScreen({ openActivity, entryContext }: StoreFlowScreenP
               <p className="mt-2 text-sm leading-6 text-[var(--color-text-secondary)]">订单 {snapshot.id} · {snapshot.storeName}</p>
             </section>
             <Card>
-              <div className="space-y-3 text-sm">
-                <div className="flex justify-between gap-3"><span className="text-[var(--color-text-secondary)]">商品实付小计</span><span className="font-medium">¥{snapshot.subtotalMember.toFixed(2)}</span></div>
-                {snapshot.couponDiscount > 0 && <div className="flex justify-between gap-3"><span className="text-[var(--color-text-secondary)]">优惠券</span><span className="font-medium text-[var(--color-success)]">-¥{snapshot.couponDiscount.toFixed(2)}</span></div>}
-                {snapshot.pointsDiscount > 0 && <div className="flex justify-between gap-3"><span className="text-[var(--color-text-secondary)]">积分抵扣</span><span className="font-medium text-[var(--color-success)]">-¥{snapshot.pointsDiscount.toFixed(2)}</span></div>}
-                <div className="flex justify-between gap-3 border-t border-[var(--color-border)] pt-3"><span className="font-semibold">应付</span><span className="font-semibold">¥{snapshot.payable.toFixed(2)}</span></div>
-              </div>
+              <p className="font-semibold">本次履约已完成</p>
+              <p className="mt-2 text-sm leading-6 text-[var(--color-text-secondary)]">两种取货凭证共用同一核销记录，完成后均不可再次使用。</p>
             </Card>
             <Button className="w-full" onClick={() => goStep("browse")}>返回便利店继续选购</Button>
           </>
