@@ -74,7 +74,7 @@
 | T037 | Mobile 自提双凭证 | Mobile / Fulfillment | PASS | 0.3.0 | T034、T018 | 2026-09-06 Mira 按用户授权自审验收；PR #36 squash merge `e05c2ff`；final `f6cdb71` Verify #34004467423 success；Browser #34004467392：T037 3/3、全量 102/111；8 项既有 checkout 旧债 + 1 项 T022 旧“第二张 pickup 订单”断言由 T038/T039 收口 |
 | T038 | PC 二维码扫码核销 | PC / Fulfillment | PASS | 0.3.0 | T034、T037、T022 | 2026-09-06 Mira 按用户授权自审验收；PR #37 squash merge `08a0eca`；Verify #34005128300 success；Browser #34005128283：T038 2/2、T022 5/5、全量 105/113，余 8 项为既有 checkout 债 |
 | T039 | PC 数字取货码核销 | PC / Fulfillment | PASS | 0.3.0 | T034、T037、T022 | 2026-09-06 Mira 按用户授权自审验收；PR #38 squash merge `893bddd`；Verify #34005515901 success；Browser #34005515921：T039 3/3、T038 2/2、T022 5/5、全量 108/116，余 8 项为既有 checkout 债 |
-| T040 | Mobile 便利店消费积分反馈 | Mobile / Benefits | TODO | 0.3.0 | T034、T018、T032 | 购物车 + 结算“本单预计可得积分”；复用现有抵现，不重做 |
+| T040 | Mobile 便利店消费积分反馈 | Mobile / Benefits | DOING | 0.3.0 | T034、T018、T032 | `task/T040-mobile-convenience-points-earned` 施工中；Cart Sheet / 独立购物车 / 结算消费 Shared 积分投影，保留“预计”与基数/取整 Unknown，不重做抵现 |
 | T041 | Mobile 商城积分消费闭环 | Mobile / Mall / Benefits | TODO | 0.3.0 | T034、T019/T033 当前消费者基线 | 商城可得积分 + 结算积分抵现 + 金额联动；不得恢复店铺 / 来源心智 |
 | T042 | Mobile 社群基础入口 | Mobile / Private-domain | TODO | 0.3.0 | T034 | 我的 → 加入社群 → 指引页；不做消费后提示 |
 | T043 | Mobile 消费后社群承接 | Mobile / Growth | TODO | 0.3.0 | T042、T018 | 支付成功 / 取货成功轻提示 + 7 天频控 Mock；不扩到商城 / 智慧抗衰 |

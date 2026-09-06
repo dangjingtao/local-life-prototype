@@ -12,6 +12,7 @@ import {
   getConvenienceBrowseSections,
   getPickupCredentialForOrder,
   getPickupCredentialStatus,
+  getPurchasePointProjection,
   getStoreAvailability,
   getStoreDeliveryAddresses,
   getUserConvenienceCarts,
@@ -94,6 +95,10 @@ function buildPickupSlots(): string[] {
 
 function buildPickupCode() {
   return `${pickupCodePrefix}-${coreDemoUser.id.replace("LL-", "")}`;
+}
+
+function formatProjectedPoints(value: number) {
+  return Number.isInteger(value) ? String(value) : value.toFixed(2).replace(/0+$/, "").replace(/\.$/, "");
 }
 
 function buildQrMockCells(payload: string, size = 15) {
@@ -372,6 +377,9 @@ export function StoreFlowScreen({ openActivity, entryContext }: StoreFlowScreenP
       .filter((row): row is NonNullable<typeof row> => Boolean(row))
     : [];
   const cartTotal = cartRows.reduce((sum, row) => sum + row.subtotal, 0);
+
+  const storePointProjection = getPurchasePointProjection("store", cartTotal);
+  const projectedStorePoints = formatProjectedPoints(storePointProjection.exactPoints);
 
   const deliveryAddresses = selectedStore ? getStoreDeliveryAddresses(selectedStore.id) : [];
   const defaultInRangeAddress = deliveryAddresses.find((address) => isStoreDeliveryAddressInRange(selectedStore, address));
@@ -859,8 +867,31 @@ export function StoreFlowScreen({ openActivity, entryContext }: StoreFlowScreenP
                 </div>
               </div>
 
-              {/* 抽屉底部：合计 + 去结算 */}
+              {/* 抽屉底部：完整购物车入口 + 积分 + 合计 + 去结算 */}
               <div className="border-t border-[var(--color-border)] px-4 pt-3 pb-2">
+                <button
+                  type="button"
+                  onClick={() => {
+                    setCartSheetOpen(false);
+                    goStep("cart");
+                  }}
+                  className="mb-2 text-xs font-medium text-[var(--color-primary)]"
+                >
+                  查看完整购物车
+                </button>
+                <div
+                  data-testid="t040-cart-sheet-points"
+                  data-earn-rate={storePointProjection.earnRate}
+                  className="mb-3 rounded-[var(--radius-control)] bg-[var(--color-brand-subtle)] px-3 py-2"
+                >
+                  <div className="flex items-center justify-between gap-3">
+                    <span className="text-xs font-medium text-[var(--color-text-secondary)]">本单预计可得</span>
+                    <span className="text-sm font-semibold text-[var(--color-primary-pressed)]">+{projectedStorePoints} 积分</span>
+                  </div>
+                  <p className="mt-1 text-[10px] leading-4 text-[var(--color-text-tertiary)]">
+                    按当前商品金额预计 · {storePointProjection.earnRate} 积分/元；实际到账以积分规则为准
+                  </p>
+                </div>
                 <div className="flex items-end justify-between">
                   <div>
                     <p className="text-xs text-[var(--color-text-tertiary)]">共 {cartCount} 件，合计</p>
@@ -1187,6 +1218,19 @@ export function StoreFlowScreen({ openActivity, entryContext }: StoreFlowScreenP
                 <span className="font-semibold">商品合计</span>
                 <span className="text-xl font-bold text-[var(--color-primary-pressed)]">¥{cartTotal.toFixed(2)}</span>
               </div>
+              <div
+                data-testid="t040-cart-page-points"
+                data-earn-rate={storePointProjection.earnRate}
+                className="mt-3 rounded-[var(--radius-control)] bg-[var(--color-brand-subtle)] px-3 py-2"
+              >
+                <div className="flex items-center justify-between gap-3">
+                  <span className="text-xs font-medium text-[var(--color-text-secondary)]">本单预计可得</span>
+                  <span className="text-sm font-semibold text-[var(--color-primary-pressed)]">+{projectedStorePoints} 积分</span>
+                </div>
+                <p className="mt-1 text-[10px] leading-4 text-[var(--color-text-tertiary)]">
+                  按当前商品金额预计 · {storePointProjection.earnRate} 积分/元；实际到账以积分规则为准
+                </p>
+              </div>
             </div>
 
             {/* 底部占位 */}
@@ -1435,6 +1479,19 @@ export function StoreFlowScreen({ openActivity, entryContext }: StoreFlowScreenP
             <div className="flex items-center justify-between">
               <span className="text-[var(--color-text-secondary)]">购物袋</span>
               <span className="font-medium">¥{bagFee.toFixed(2)}</span>
+            </div>
+            <div
+              data-testid="t040-checkout-points"
+              data-earn-rate={storePointProjection.earnRate}
+              className="rounded-[var(--radius-control)] bg-[var(--color-brand-subtle)] px-3 py-2"
+            >
+              <div className="flex items-center justify-between gap-3">
+                <span className="text-xs font-medium text-[var(--color-text-secondary)]">本单预计可得</span>
+                <span className="text-sm font-semibold text-[var(--color-primary-pressed)]">+{projectedStorePoints} 积分</span>
+              </div>
+              <p className="mt-1 text-[10px] leading-4 text-[var(--color-text-tertiary)]">
+                按当前商品金额预计 · {storePointProjection.earnRate} 积分/元；实际到账以积分规则为准
+              </p>
             </div>
             <div className="flex items-center justify-between border-t border-[var(--color-border)] pt-2.5">
               <span className="font-semibold">应付金额</span>
