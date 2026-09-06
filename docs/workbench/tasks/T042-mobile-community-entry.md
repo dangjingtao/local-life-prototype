@@ -1,6 +1,6 @@
 # T042 · Mobile 社群基础入口
 
-- Status: REVIEW
+- Status: PASS
 - Target version: 0.3.0
 - Type: Mobile / Private-domain
 - Predecessors: T034
@@ -83,5 +83,5 @@
 
 ## Review
 
-- Result: REVIEW
-- Conclusion: T042 AC 满足；latest-head Verify success、专项 4/4、两项 AI review finding 均修复并 resolve。按用户既有授权可由 Mira 自审验收并合并。
+- Result: PASS
+- Conclusion: T042 AC 满足；latest-head Verify success、专项 4/4、两项 AI review finding 均修复并 resolve。2026-09-06 按用户既有授权由 Mira 自审验收；PR #41 squash merge `27b717bd36427a018152a1df4605335073e908af`。T043 前置已满足。
