@@ -28,6 +28,7 @@ import {
   services,
   storeDeliveryAddresses,
   storefronts,
+  mallProductListings,
   stores,
   users,
   v02Coupons,
@@ -322,6 +323,24 @@ export function validateDemoFixtureRelations(): string[] {
   }
   for (const storefront of storefronts) {
     if (!channelIds.has(storefront.channelId)) issues.push(`storefront:${storefront.id}:missing-channel:${storefront.channelId}`);
+  }
+  const mallListingKeys = new Set<string>();
+  for (const listing of mallProductListings) {
+    if (!productIds.has(listing.productId)) issues.push(`mall-listing:${listing.id}:missing-product:${listing.productId}`);
+    if (!storefrontIds.has(listing.storefrontId)) issues.push(`mall-listing:${listing.id}:missing-storefront:${listing.storefrontId}`);
+    if (!channelIds.has(listing.channelId)) issues.push(`mall-listing:${listing.id}:missing-channel:${listing.channelId}`);
+    const storefront = findById(storefronts, listing.storefrontId);
+    if (storefront && storefront.channelId !== listing.channelId) issues.push(`mall-listing:${listing.id}:storefront-channel-mismatch`);
+    const product = findById(catalogProducts, listing.productId);
+    if (product && !product.scenes.includes("mall")) issues.push(`mall-listing:${listing.id}:product-not-mall:${listing.productId}`);
+    const key = `${listing.productId}:${listing.storefrontId}`;
+    if (mallListingKeys.has(key)) issues.push(`mall-listing:${listing.id}:duplicate-product-storefront:${key}`);
+    mallListingKeys.add(key);
+  }
+  for (const product of catalogProducts.filter((item) => item.scenes.includes("mall"))) {
+    if (!mallProductListings.some((listing) => listing.productId === product.id)) {
+      issues.push(`mall-listing:product:${product.id}:missing-source-relation`);
+    }
   }
   for (const project of careProjects) {
     if (project.serviceId && !serviceIds.has(project.serviceId)) issues.push(`care-project:${project.id}:missing-service:${project.serviceId}`);
