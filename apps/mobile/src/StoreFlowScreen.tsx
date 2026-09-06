@@ -298,6 +298,7 @@ export function StoreFlowScreen({ openActivity, onOpenCommunity, entryContext }:
   const [pickupStatus, setPickupStatus] = useState<PickupStatus>("preparing");
   const [deliveryStatus, setDeliveryStatus] = useState<DeliveryStatus>("preparing");
   const [communityNudgeStage, setCommunityNudgeStage] = useState<"payment" | "pickup_completed" | null>(null);
+  const communityNudgeShownAtRef = useRef(loadCommunityNudgeShownAt());
 
   useEffect(() => {
     if (entryContext?.storeId) persistSelectedStoreId(entryContext.storeId);
@@ -481,11 +482,12 @@ export function StoreFlowScreen({ openActivity, onOpenCommunity, entryContext }:
       setCommunityNudgeStage(null);
       return false;
     }
-    const localShownAt = loadCommunityNudgeShownAt();
+    const localShownAt = communityNudgeShownAtRef.current;
     if (isWithinCommunityNudgeCooldown(localShownAt, atIso)) {
       setCommunityNudgeStage(null);
       return false;
     }
+    communityNudgeShownAtRef.current = atIso;
     persistCommunityNudgeShownAt(atIso);
     setCommunityNudgeStage(stage);
     return true;
