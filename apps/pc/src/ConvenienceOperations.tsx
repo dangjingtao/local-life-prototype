@@ -1,9 +1,10 @@
-import { useMemo } from "react";
+import { useMemo, useState } from "react";
 import { Card, SecondaryButton, Section, StatusTag } from "@prototype/design-system";
 import {
   CORE_DEMO_IDS,
   catalogProducts,
   coreDemoStore,
+  getPickupCredentialForOrder,
   offlineStores,
   productAvailability,
   redemptions,
@@ -187,6 +188,38 @@ export function MerchantConvenienceOperations({
     { label: "配送中", value: String(statuses.filter((status) => status === "delivering").length), note: "短距配送 mock" },
   ];
 
+  const [qrScanState, setQrScanState] = useState<"idle" | "matched" | "completed" | "already_used" | "invalid">("idle");
+  const pickupCredential = getPickupCredentialForOrder(CORE_DEMO_IDS.pickupOrder);
+  const qrOrder = pickupCredential ? convenienceOrders.find((order) => order.id === pickupCredential.orderId) : undefined;
+  const qrRedemption = pickupCredential
+    ? redemptions.find((record) => record.id === pickupCredential.redemptionId)
+    : undefined;
+  const qrRedemptionCompleted = Boolean(
+    qrRedemption && (qrRedemption.status === "completed" || redemptionOverrides[qrRedemption.id] === "completed"),
+  );
+
+  const scanPickupQr = () => {
+    if (!pickupCredential || !qrOrder || !qrRedemption) {
+      setQrScanState("invalid");
+      return;
+    }
+    if (qrRedemptionCompleted || effectiveFulfillmentStatus(qrOrder, fulfillmentOverrides) === "completed") {
+      setQrScanState("already_used");
+      return;
+    }
+    setQrScanState("matched");
+  };
+
+  const confirmQrRedemption = () => {
+    if (!qrOrder || !qrRedemption || qrRedemptionCompleted) {
+      setQrScanState("already_used");
+      return;
+    }
+    onFulfillmentChange(qrOrder.id, "completed");
+    onRedemptionComplete(qrRedemption.id);
+    setQrScanState("completed");
+  };
+
   const completePickup = (order: Order) => {
     onFulfillmentChange(order.id, "completed");
     const redemption = redemptions.find((record) => record.targetType === "order" && record.targetId === order.id);
@@ -231,6 +264,72 @@ export function MerchantConvenienceOperations({
         <p className="mt-2 text-xs text-[var(--color-text-tertiary)]">{metric.note}</p>
       </Card>)}
     </div>
+
+    <Section title="扫码核销">
+      <Card className="p-5" data-testid="t038-qr-redemption">
+        <div className="flex flex-wrap items-start justify-between gap-3">
+          <div>
+            <div className="flex flex-wrap items-center gap-2">
+              <StatusTag tone="warning">二维码 Mock</StatusTag>
+              <span className="text-xs text-[var(--color-text-tertiary)]">T038 · 不接摄像头 / 扫码 SDK</span>
+            </div>
+            <h3 className="mt-3 text-lg font-semibold">自提二维码扫码核销</h3>
+            <p className="mt-2 max-w-2xl text-sm leading-6 text-[var(--color-text-secondary)]">
+              使用 T037 同一 Shared 二维码凭证做解析演示；扫码只读取 Mock payload，不代表真实硬件能力已经接入。
+            </p>
+          </div>
+          <SecondaryButton onClick={scanPickupQr}>
+            {qrScanState === "idle" ? "模拟扫码" : "再次模拟扫码"}
+          </SecondaryButton>
+        </div>
+
+        {qrScanState !== "idle" && (
+          <div className="mt-5 rounded-[var(--radius-container)] border border-[var(--color-border)] bg-[var(--color-surface-subtle)] p-4">
+            {qrScanState === "invalid" ? (
+              <div>
+                <StatusTag tone="warning">未匹配</StatusTag>
+                <p className="mt-3 text-sm text-[var(--color-text-secondary)]">未找到可识别的自提二维码凭证。</p>
+              </div>
+            ) : qrScanState === "already_used" ? (
+              <div>
+                <StatusTag tone="warning">不可重复核销</StatusTag>
+                <p className="mt-3 text-sm font-medium">二维码已核销 / 凭证已失效</p>
+                <p className="mt-1 text-xs text-[var(--color-text-tertiary)]">同一 redemption 只能成功一次，不创建第二条核销记录。</p>
+              </div>
+            ) : (
+              <div data-testid="t038-qr-match">
+                <div className="flex flex-wrap items-center justify-between gap-3">
+                  <div>
+                    <p className="text-xs text-[var(--color-text-tertiary)]">扫码命中订单</p>
+                    <p className="mt-1 font-semibold">{qrOrder?.id ?? "-"}</p>
+                  </div>
+                  <StatusTag tone={qrScanState === "completed" ? "success" : "warning"}>
+                    {qrScanState === "completed" ? "核销完成" : "待确认核销"}
+                  </StatusTag>
+                </div>
+                <div className="mt-4 grid gap-3 text-sm sm:grid-cols-2 xl:grid-cols-4">
+                  <DetailItem label="订单" value={qrOrder?.id ?? "-"} />
+                  <DetailItem label="Redemption" value={qrRedemption?.id ?? "-"} />
+                  <DetailItem label="数字取货码" value={pickupCredential?.pickupCode ?? "-"} />
+                  <DetailItem label="门店" value={getStoreName(qrOrder?.storeId)} />
+                </div>
+                <p className="mt-3 break-all text-xs text-[var(--color-text-tertiary)]">
+                  QR payload · {pickupCredential?.qrPayload ?? "-"}
+                </p>
+                {qrScanState === "matched" && (
+                  <SecondaryButton className="mt-4 w-full" onClick={confirmQrRedemption}>
+                    确认核销 {qrOrder?.id}
+                  </SecondaryButton>
+                )}
+                {qrScanState === "completed" && (
+                  <p className="mt-4 text-sm font-medium text-[var(--color-success)]">同一 redemption 已完成；订单履约同步结束。</p>
+                )}
+              </div>
+            )}
+          </div>
+        )}
+      </Card>
+    </Section>
 
     <Section title="本店便利店订单">
       <div className="grid gap-4">
