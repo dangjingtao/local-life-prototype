@@ -65,7 +65,7 @@ test.describe("T022 · PC convenience fulfillment operations", () => {
     await expect(delivery).toContainText("约 3 km 短配");
     await expect(delivery).toContainText("备货中");
 
-    await pickup.getByRole("button", { name: "扫码核销 LL-1024" }).click();
+    await pickup.getByRole("button", { name: "扫码核销 482731" }).click();
     await expect(pickup).toContainText("已完成");
     await expect(pickup.getByRole("button", { name: "已完成核销" })).toBeDisabled();
 
