@@ -77,7 +77,7 @@
 | T040 | Mobile 便利店消费积分反馈 | Mobile / Benefits | PASS | 0.3.0 | T034、T018、T032 | 2026-09-06 Mira 按用户授权自审验收；PR #39 squash merge `4e17126`；Verify #34006380444 success；Browser #34006380455：T040 4/4、全量 112/120，余 8 项为既有 checkout 债；CodeRabbit 1×Major 已修复并 resolved，latest re-review 无 actionable comment |
 | T041 | Mobile 商城积分消费闭环 | Mobile / Mall / Benefits | PASS | 0.3.0 | T034、T019/T033 当前消费者基线 | 2026-09-06 Mira 按用户授权自审验收；PR #40 squash merge `5cb269e`；Verify #34007147259 success；Browser #34007147233：T041 4/4、T019-R4 2/2、R5 1/1、全量 116/124，余 8 项为既有 checkout 债；CodeRabbit success / 无 actionable comment |
 | T042 | Mobile 社群基础入口 | Mobile / Private-domain | PASS | 0.3.0 | T034 | 2026-09-06 Mira 按用户授权自审验收；PR #41 squash merge `27b717b`；Verify #34029073161 success；Browser #34029073148：T042 4/4、全量 120/128，余 8 项为既有 checkout 债；Codex P2 + CodeRabbit Major 均修复并 resolve，latest CodeRabbit success / 无 actionable comment |
-| T043 | Mobile 消费后社群承接 | Mobile / Growth | REVIEW | 0.3.0 | T042、T018 | PR #42；reviewed `4ee9483`；Verify #34032075151 success；Browser #34032075150：T043 4/4、全量 124/132，余 8 项为既有 checkout 债；CodeRabbit 2×Major 旧 head finding 已修复并 resolve，status success；自审无 blocker |
+| T043 | Mobile 消费后社群承接 | Mobile / Growth | PASS | 0.3.0 | T042、T018 | 2026-09-06 Mira 按用户授权自审验收；PR #42 squash merge `ae2d34d`；Verify #34032075151 success；Browser #34032075150：T043 4/4、全量 124/132，余 8 项为既有 checkout 债；CodeRabbit 2×Major 已修复并 resolve，status success |
 
 ## V0.1 收口记录
 
@@ -185,5 +185,5 @@
 1. V0.2：T025 已解锁，可直接开始 PC 数据驾驶舱增量；T025 完成后，仍需 T019 / T033 商城最终视觉验收收口，再进入 T026 总体跨端验收准备。
 2. V0.2：便利店 UX lane 已全部收口，T017、T027-T032、T030 均为 PASS，不再作为后续施工阻塞。
 3. V0.3：T034-T042 当前已完成；T043 前置已满足，可直接启动。
-4. V0.3：T037-T039 双凭证 / 双通道核销已 PASS；T042 完成后解锁 T043。
+4. V0.3：双凭证 / 双通道核销、积分升级、社群常驻入口与消费后承接均已 PASS；进入 Release Gate 只做证据 / 回归 / Shared 一致性验收。
 5. T022 / T023 / T024 已全部 PASS；后续不得另造第二套 PC 便利店履约 / 核销后台，也不得回滚已确认的 Shared / T018 业务事实。
