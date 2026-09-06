@@ -1,6 +1,6 @@
 # T037 · Mobile 自提双凭证
 
-- Status: REVIEW
+- Status: PASS
 - Target version: 0.3.0
 - Type: Mobile / Fulfillment
 - Predecessors: T034、T018
@@ -80,5 +80,5 @@
 
 ## Review
 
-- Result: REVIEW
-- Conclusion: T037 唯一交付物满足；专项 3/3、Verify success，自审无阻塞项。按用户授权可由 Mira 自审验收并合并。
+- Result: PASS
+- Conclusion: T037 唯一交付物满足；专项 3/3、Verify success，自审无阻塞项。2026-09-06 按用户授权由 Mira 自审验收；PR #36 squash merge `e05c2ffd923ba52e14af2fa4360710ea3a700b66`。T038 / T039 前置已满足。
