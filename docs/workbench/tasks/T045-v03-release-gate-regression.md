@@ -24,6 +24,17 @@ T043 latest Browser Quality 为 124 / 132，仍有 8 条历史 T017 / T018 / T03
 
 本卡是 Release Gate QA 收口，不重做产品 UI。
 
+### 已知真实产品缺口
+
+PRD 反向审查同时确认，当前便利店订单状态页仍存在消费者可见工程术语：
+
+- `Mock order · 支付成功`
+- `凭证与核销状态以 Shared 履约记录为准`
+
+这两处不是“旧测试断言”，属于正常消费者路径的产品文案缺口。T045 必须最小清理为消费者可理解表达。
+
+`二维码 Mock` / “当前二维码仅为界面演示”等用于明确原型能力边界的提示可以保留；禁止把生产级扫码能力伪装成已接入。
+
 ## Frozen product baseline
 
 当前便利店 checkout 以以下消费者结构为准：
@@ -40,11 +51,12 @@ T043 latest Browser Quality 为 124 / 132，仍有 8 条历史 T017 / T018 / T03
 
 ## Changed paths whitelist
 
-第一阶段只允许更新：
+第一阶段允许更新：
 
 - `tests/browser/t017-mobile-convenience-cart.spec.mjs`
 - `tests/browser/t018-mobile-convenience-fulfillment.spec.mjs`
 - `tests/browser/t032-cart-sheet-checkout.spec.mjs`
+- `apps/mobile/src/StoreFlowScreen.tsx`（**仅**清理上述已知消费者工程术语；不得借机重做订单页）
 
 允许新增一个明确命名的 V0.3 release-gate spec，用于跨卡总对账，例如：
 
@@ -74,6 +86,7 @@ T043 latest Browser Quality 为 124 / 132，仍有 8 条历史 T017 / T018 / T03
 - [ ] T018 履约切换不跨店、不混商城购物车。
 - [ ] T032 商详固定底栏 + 立即购买进入当前 checkout 回归通过。
 - [ ] T032 checkout 卡片分组回归通过。
+- [ ] 便利店支付成功 / 自提订单正常消费者页面不再出现 `Mock order`、`Shared`、`fixture` 等工程术语；二维码原型能力边界提示除外。
 - [ ] T034 `validateDemoFixtureRelations()` 返回 `[]`。
 - [ ] T034-T044 专项回归全部通过。
 - [ ] Mobile 390×844 主链无横向溢出、底部 fixed UI 不遮挡核心 CTA。
@@ -89,6 +102,7 @@ T043 latest Browser Quality 为 124 / 132，仍有 8 条历史 T017 / T018 / T03
 - Mobile 390×844 主链实屏证据；
 - PC 核销桌面端证据；
 - 如本卡发现真实产品缺陷，必须单独记录“旧测试偏差”与“真实缺陷”两类，不能混写。
+- 至少新增一条正常消费者订单状态页术语扫描，防止 `Mock order` / `Shared` 回归。
 
 ## Stop conditions
 
