@@ -175,6 +175,7 @@ test.describe("T024 · PC mall channel campaign search operations", () => {
   });
 
   test("all T024 tabs remain overflow-free at 1024 and 1440", async ({ page }) => {
+    await mkdir("test-results/t024-visual-evidence", { recursive: true });
     for (const width of [1024, 1440]) {
       await openCommerce(page, width, 900);
       await expectNoHorizontalOverflow(page);
@@ -182,9 +183,9 @@ test.describe("T024 · PC mall channel campaign search operations", () => {
       await expectNoHorizontalOverflow(page);
       await page.getByRole("button", { name: "搜索关联", exact: true }).click();
       await expectNoHorizontalOverflow(page);
+      if (width === 1024) {
+        await page.screenshot({ path: "test-results/t024-visual-evidence/03-search-1024.png", fullPage: true });
+      }
     }
-
-    await mkdir("test-results/t024-visual-evidence", { recursive: true });
-    await page.screenshot({ path: "test-results/t024-visual-evidence/03-search-1024.png", fullPage: true });
   });
 });
