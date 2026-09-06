@@ -10,6 +10,8 @@ import {
   coreUserV02Coupons,
   findById,
   getConvenienceBrowseSections,
+  getPickupCredentialForOrder,
+  getPickupCredentialStatus,
   getStoreAvailability,
   getStoreDeliveryAddresses,
   getUserConvenienceCarts,
@@ -92,6 +94,25 @@ function buildPickupSlots(): string[] {
 
 function buildPickupCode() {
   return `${pickupCodePrefix}-${coreDemoUser.id.replace("LL-", "")}`;
+}
+
+function buildQrMockCells(payload: string, size = 15) {
+  const seed = Array.from(payload).reduce((sum, char, index) => (sum + char.charCodeAt(0) * (index + 17)) % 104729, 0);
+  const inFinder = (row: number, col: number, originRow: number, originCol: number) => {
+    const localRow = row - originRow;
+    const localCol = col - originCol;
+    if (localRow < 0 || localRow > 4 || localCol < 0 || localCol > 4) return null;
+    const edge = localRow === 0 || localRow === 4 || localCol === 0 || localCol === 4;
+    const core = localRow >= 2 && localRow <= 2 && localCol >= 2 && localCol <= 2;
+    return edge || core;
+  };
+  return Array.from({ length: size * size }, (_, index) => {
+    const row = Math.floor(index / size);
+    const col = index % size;
+    const finder = inFinder(row, col, 0, 0) ?? inFinder(row, col, 0, size - 5) ?? inFinder(row, col, size - 5, 0);
+    if (finder !== null) return finder;
+    return ((seed + row * 37 + col * 53 + row * col * 7) % 11) < 5;
+  });
 }
 
 function buildInitialCarts(): CartState {
@@ -205,6 +226,7 @@ export function StoreFlowScreen({ openActivity, entryContext }: StoreFlowScreenP
   }, [entryContext?.storeId]);
 
   const selectedStore = selectedStoreId ? findById(offlineStores, selectedStoreId) : undefined;
+  const sharedPickupCredential = getPickupCredentialForOrder(CORE_DEMO_IDS.pickupOrder);
   const storeAvailability = selectedStore ? getStoreAvailability(selectedStore.id) : [];
   const availabilityByProductId = new Map(storeAvailability.map((item) => [item.productId, item]));
   const selectedProduct = selectedProductId ? findById(catalogProducts, selectedProductId) : undefined;
@@ -401,7 +423,9 @@ export function StoreFlowScreen({ openActivity, entryContext }: StoreFlowScreenP
 
   const submitCheckout = () => {
     if (!canSubmitCheckout || !selectedStore) return;
-    const orderId = `CONV-${selectedStore.id.replace("STORE-", "")}-${coreDemoUser.id.replace("LL-", "")}-${fulfillmentMode === "pickup" ? "PICKUP" : "DELIVERY"}`;
+    const orderId = fulfillmentMode === "pickup"
+      ? CORE_DEMO_IDS.pickupOrder
+      : `CONV-${selectedStore.id.replace("STORE-", "")}-${coreDemoUser.id.replace("LL-", "")}-DELIVERY`;
     const snapshot: StoreOrderSnapshot = {
       id: orderId,
       storeId: selectedStore.id,
@@ -417,7 +441,7 @@ export function StoreFlowScreen({ openActivity, entryContext }: StoreFlowScreenP
       pointsDiscount,
       fulfillmentFee,
       payable,
-      ...(fulfillmentMode === "pickup" ? { pickupWindow: effectivePickupWindow, pickupCode: buildPickupCode() } : {}),
+      ...(fulfillmentMode === "pickup" ? { pickupWindow: effectivePickupWindow, pickupCode: sharedPickupCredential?.pickupCode ?? buildPickupCode() } : {}),
       ...(fulfillmentMode === "short_delivery" && effectiveAddress ? { address: `${effectiveAddress.label} · ${effectiveAddress.address}`, distanceKm: effectiveAddress.distanceKm } : {}),
       inRange: fulfillmentMode === "short_delivery" ? addressInRange : true,
     };
@@ -589,6 +613,23 @@ export function StoreFlowScreen({ openActivity, entryContext }: StoreFlowScreenP
             </div>
             <span className="shrink-0 text-xs text-[var(--color-primary)]">切换 ›</span>
           </button>
+
+          {orderSnapshot?.mode === "pickup" && (
+            <button
+              type="button"
+              onClick={() => goStep("pickupOrder")}
+              className="mx-4 mb-2 flex items-center justify-between rounded-[var(--radius-control)] border border-[var(--color-border)] bg-[var(--color-surface)] px-3 py-2 text-left"
+              aria-label={`查看最近自提订单 ${orderSnapshot.id}`}
+            >
+              <div>
+                <p className="text-xs font-medium text-[var(--color-text-primary)]">最近自提订单 · {orderSnapshot.id}</p>
+                <p className="mt-0.5 text-[11px] text-[var(--color-text-tertiary)]">
+                  {pickupStatus === "preparing" ? "备货中" : pickupStatus === "ready_for_pickup" ? "待取货" : "核销完成"}
+                </p>
+              </div>
+              <span className="text-xs text-[var(--color-primary)]">查看 ›</span>
+            </button>
+          )}
 
           {/* 双栏主体 */}
           <div className="relative flex flex-1 min-h-0">
@@ -1429,6 +1470,22 @@ export function StoreFlowScreen({ openActivity, entryContext }: StoreFlowScreenP
         </Card>
       );
     }
+
+    const credential = sharedPickupCredential;
+    const inactiveAt = credential
+      ? new Date(Date.parse(credential.validFrom) - 60_000).toISOString()
+      : new Date(0).toISOString();
+    const activeAt = credential?.validFrom ?? new Date(0).toISOString();
+    const sharedStatus = getPickupCredentialStatus(
+      credential,
+      pickupStatus === "preparing" ? inactiveAt : activeAt,
+    );
+    const credentialStatus = pickupStatus === "completed" ? "expired" : sharedStatus;
+    const credentialLabel = credentialStatus === "inactive" ? "未生效" : credentialStatus === "active" ? "可核销" : "已失效";
+    const credentialTone = credentialStatus === "active" ? "success" : credentialStatus === "expired" ? "warning" : undefined;
+    const qrCells = buildQrMockCells(credential?.qrPayload ?? snapshot.id);
+    const redemptionId = credential?.redemptionId ?? CORE_DEMO_IDS.pickupRedemption;
+
     return (
       <>
         <div>
@@ -1444,35 +1501,71 @@ export function StoreFlowScreen({ openActivity, entryContext }: StoreFlowScreenP
             <span className="text-xs text-[var(--color-text-tertiary)]">Mock order · 支付成功</span>
           </div>
           <p className="mt-4 font-semibold">{snapshot.storeName}</p>
-          <p className="mt-1 text-sm text-[var(--color-text-secondary)]">自提 · {snapshot.itemCount} 件商品 · 应付 ¥{snapshot.payable.toFixed(2)}</p>
-          {snapshot.pickupWindow && <p className="mt-2 text-sm text-[var(--color-text-secondary)]">取货时段：{snapshot.pickupWindow}</p>}
+          <p className="mt-1 text-sm text-[var(--color-text-secondary)]">到店自提 · 凭证与核销状态以 Shared 履约记录为准</p>
+          {snapshot.pickupWindow && <p className="mt-2 text-sm text-[var(--color-text-secondary)]">下单选择时段：{snapshot.pickupWindow}</p>}
+
+          <div className="mt-5 rounded-[var(--radius-container)] border border-[var(--color-border)] bg-[var(--color-background)] p-4" data-testid="pickup-dual-credential">
+            <div className="flex items-start justify-between gap-3">
+              <div>
+                <p className="text-sm font-semibold">自提凭证</p>
+                <p className="mt-1 text-xs text-[var(--color-text-tertiary)]">二维码与数字码对应同一订单、同一次核销。</p>
+              </div>
+              <StatusTag tone={credentialTone}>{credentialLabel}</StatusTag>
+            </div>
+
+            <div className="mt-4 grid grid-cols-[116px_minmax(0,1fr)] gap-4">
+              <div
+                data-testid="pickup-qr-credential"
+                data-redemption-id={redemptionId}
+                className={`rounded-[var(--radius-control)] border border-[var(--color-border)] bg-white p-2 ${credentialStatus === "active" ? "" : "opacity-45"}`}
+              >
+                <div
+                  role="img"
+                  aria-label={`取货二维码，状态：${credentialLabel}`}
+                  className="grid aspect-square w-full grid-cols-[repeat(15,minmax(0,1fr))] bg-white p-1"
+                >
+                  {qrCells.map((filled, index) => (
+                    <span key={index} className={filled ? "bg-black" : "bg-white"} />
+                  ))}
+                </div>
+                <p className="mt-1 text-center text-[10px] text-black/60">二维码 Mock</p>
+              </div>
+
+              <div
+                data-testid="pickup-code-credential"
+                data-redemption-id={redemptionId}
+                className={`flex min-w-0 flex-col justify-center rounded-[var(--radius-control)] border border-[var(--color-border)] p-3 ${credentialStatus === "active" ? "bg-[var(--color-brand-subtle)]" : "bg-[var(--color-surface-subtle)] opacity-60"}`}
+              >
+                <p className="text-xs text-[var(--color-text-tertiary)]">数字取货码</p>
+                <p className="mt-2 break-all font-mono text-2xl font-semibold tracking-[0.08em]">{credential?.pickupCode ?? snapshot.pickupCode}</p>
+                {snapshot.pickupWindow && (
+                  <p className="mt-2 text-[11px] leading-5 text-[var(--color-text-tertiary)]">
+                    取货时段 {snapshot.pickupWindow}
+                  </p>
+                )}
+              </div>
+            </div>
+
+            <p className="mt-3 text-xs leading-5 text-[var(--color-text-secondary)]">
+              {credentialStatus === "inactive"
+                ? "门店完成备货后，两种凭证会同时生效。"
+                : credentialStatus === "active"
+                ? "到店可出示任一凭证；任一通道核销后，两种凭证同时失效。"
+                : "本次核销已结束，二维码与数字码均不可再次使用。"}
+            </p>
+          </div>
 
           {pickupStatus === "preparing" && (
             <div className="mt-5 rounded-[var(--radius-container)] bg-[var(--color-brand-subtle)] p-4">
               <p className="text-sm font-medium">门店正在备货</p>
-              <p className="mt-1 text-sm leading-6 text-[var(--color-text-secondary)]">商品打包完成后会进入待取货状态并生成取货码。</p>
+              <p className="mt-1 text-sm leading-6 text-[var(--color-text-secondary)]">商品打包完成后会进入待取货状态，两种取货凭证同时生效。</p>
               <Button className="mt-4 w-full" onClick={advancePickupStatus}>模拟备货完成</Button>
-            </div>
-          )}
-
-          {pickupStatus === "ready_for_pickup" && (
-            <div className="mt-5 rounded-[var(--radius-overlay)] bg-[var(--color-primary)] p-5 text-[var(--color-on-primary)]">
-              <div className="flex items-center justify-between gap-3">
-                <StatusTag tone="success">待到店取货</StatusTag>
-                <span className="text-xs opacity-80">{snapshot.pickupWindow}</span>
-              </div>
-              <p className="mt-7 text-sm opacity-80">取货码</p>
-              <p className="mt-2 font-mono text-4xl font-semibold tracking-[0.16em]">{snapshot.pickupCode}</p>
-              <div className="mt-7 border-t border-white/20 pt-4 text-sm leading-6 opacity-80">
-                <p>{snapshot.storeName}</p>
-                <p className="mt-1">{selectedStore?.address}</p>
-              </div>
             </div>
           )}
         </section>
 
         {pickupStatus === "ready_for_pickup" && <Button className="w-full" onClick={advancePickupStatus}>模拟店员核销</Button>}
-        {pickupStatus === "preparing" && <SecondaryButton className="w-full" onClick={() => goStep("browse")}>返回便利店</SecondaryButton>}
+        {pickupStatus !== "completed" && <SecondaryButton className="w-full" onClick={() => goStep("browse")}>返回便利店</SecondaryButton>}
 
         {pickupStatus === "completed" && (
           <>
@@ -1483,12 +1576,8 @@ export function StoreFlowScreen({ openActivity, entryContext }: StoreFlowScreenP
               <p className="mt-2 text-sm leading-6 text-[var(--color-text-secondary)]">订单 {snapshot.id} · {snapshot.storeName}</p>
             </section>
             <Card>
-              <div className="space-y-3 text-sm">
-                <div className="flex justify-between gap-3"><span className="text-[var(--color-text-secondary)]">商品实付小计</span><span className="font-medium">¥{snapshot.subtotalMember.toFixed(2)}</span></div>
-                {snapshot.couponDiscount > 0 && <div className="flex justify-between gap-3"><span className="text-[var(--color-text-secondary)]">优惠券</span><span className="font-medium text-[var(--color-success)]">-¥{snapshot.couponDiscount.toFixed(2)}</span></div>}
-                {snapshot.pointsDiscount > 0 && <div className="flex justify-between gap-3"><span className="text-[var(--color-text-secondary)]">积分抵扣</span><span className="font-medium text-[var(--color-success)]">-¥{snapshot.pointsDiscount.toFixed(2)}</span></div>}
-                <div className="flex justify-between gap-3 border-t border-[var(--color-border)] pt-3"><span className="font-semibold">应付</span><span className="font-semibold">¥{snapshot.payable.toFixed(2)}</span></div>
-              </div>
+              <p className="font-semibold">本次履约已完成</p>
+              <p className="mt-2 text-sm leading-6 text-[var(--color-text-secondary)]">两种取货凭证共用同一核销记录，完成后均不可再次使用。</p>
             </Card>
             <Button className="w-full" onClick={() => goStep("browse")}>返回便利店继续选购</Button>
           </>
