@@ -1,6 +1,6 @@
 # T040 · Mobile 便利店消费积分反馈
 
-- Status: TODO
+- Status: DOING
 - Target version: 0.3.0
 - Type: Mobile / Benefits
 - Predecessors: T034、T018、T032
@@ -37,3 +37,12 @@
 ## Evidence required
 
 至少断言一次“商品数量变化 → 可得积分变化”，不能只检查静态文案存在。
+
+
+## Execution baseline
+
+- Branch: `task/T040-mobile-convenience-points-earned`
+- Started after T039 PASS on latest `dev`.
+- Business file frozen to `apps/mobile/src/StoreFlowScreen.tsx`.
+- Projection consumes Shared `getPurchasePointProjection("store", eligibleYuan)`; no Shared changes.
+- Because purchase base and rounding remain `unknown`, UI must keep “预计 / 演示投影 / 正式规则待确认” wording and must not round to a fake final integer balance.
