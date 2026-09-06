@@ -3,6 +3,7 @@ import { Card, SecondaryButton, Section, StatusTag } from "@prototype/design-sys
 import { PrototypeIcon, type PrototypeIconName } from "@prototype/icons";
 import { getPrototypeView, PrototypePanel, PrototypeState, setPrototypeView } from "@prototype/runtime";
 import { OperatorConvenienceOperations } from "./ConvenienceOperations";
+import { MallCampaignSearchOperations } from "./MallCampaignSearchOperations";
 import { OperatorSmartCareOperations, type CareAppointmentOverrides, type CareScanOverrides, type CareSlotAvailabilityOverrides } from "./SmartCareOperations";
 import {
   CORE_DEMO_IDS,
@@ -28,7 +29,7 @@ import {
   type RedemptionRecord,
 } from "@prototype/shared";
 
-type OperatorModule = "users" | "partners" | "catalog" | "orders" | "convenience" | "care" | "membership" | "marketing";
+type OperatorModule = "users" | "partners" | "catalog" | "orders" | "convenience" | "commerce" | "care" | "membership" | "marketing";
 type OperatorView = "overview" | OperatorModule;
 type SceneFilter = "all" | BusinessScene;
 
@@ -38,6 +39,7 @@ const moduleMeta: Record<OperatorModule, { label: string; description: string; i
   catalog: { label: "商品 / 服务", description: "商品、服务与适用场景", icon: "modules", fr: "FR-603" },
   orders: { label: "订单 / 核销", description: "三场景订单与核销记录", icon: "modules", fr: "FR-604" },
   convenience: { label: "便利店履约", description: "自提 / 短配订单、门店可售关系与履约能力", icon: "modules", fr: "T022" },
+  commerce: { label: "商城 / 内容运营", description: "Storefront / Channel、商城订单、活动推荐位与全局搜索关联", icon: "settings", fr: "T024" },
   care: { label: "智慧抗衰运营", description: "项目 / 时段 / 预约核销 / 检测报告与转化配置", icon: "modules", fr: "T023" },
   membership: { label: "会员", description: "等级、积分与候选规则", icon: "profile", fr: "FR-605" },
   marketing: { label: "营销", description: "优惠券与体验券资产", icon: "settings", fr: "FR-606" },
@@ -89,13 +91,13 @@ function BoundaryNote() {
 }
 
 function PermissionState() {
-  return <main className="mx-auto max-w-4xl p-5 md:p-8"><Card className="p-6 md:p-8"><div className="flex items-start gap-4"><div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-[var(--color-warning-bg)] text-[var(--color-warning)]"><PrototypeIcon name="warning" size={22} /></div><div className="min-w-0 flex-1"><StatusTag tone="warning">permission</StatusTag><h2 className="mt-3 text-xl font-semibold">超出当前运营授权范围</h2><p className="mt-2 text-sm leading-6 text-[var(--color-text-secondary)]">平台运营只查看 V0.1 授权业务范围。当前原型不建立真实组织、审批和 RBAC，所以越权请求不会展示目标数据。</p><div className="mt-5 rounded-[var(--radius-container)] bg-[var(--color-surface-subtle)] p-4"><p className="text-xs font-medium text-[var(--color-text-tertiary)]">当前数据范围</p><p className="mt-1 font-medium">{pcDataScopeLabels.authorized_platform} · 平台运营 V0.1</p><p className="mt-3 text-xs font-medium text-[var(--color-text-tertiary)]">下一步</p><p className="mt-1 text-sm text-[var(--color-text-secondary)]">返回运营中台；如需查看管理层汇总视角，可切换到“平台管理层”。</p></div><SecondaryButton className="mt-5" onClick={() => setPrototypeView("ready")}>返回运营中台</SecondaryButton></div></div></Card></main>;
+  return <main className="mx-auto max-w-4xl p-5 md:p-8"><Card className="p-6 md:p-8"><div className="flex items-start gap-4"><div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-[var(--color-warning-bg)] text-[var(--color-warning)]"><PrototypeIcon name="warning" size={22} /></div><div className="min-w-0 flex-1"><StatusTag tone="warning">permission</StatusTag><h2 className="mt-3 text-xl font-semibold">超出当前运营授权范围</h2><p className="mt-2 text-sm leading-6 text-[var(--color-text-secondary)]">平台运营只查看当前原型授权业务范围。当前原型不建立真实组织、审批和 RBAC，所以越权请求不会展示目标数据。</p><div className="mt-5 rounded-[var(--radius-container)] bg-[var(--color-surface-subtle)] p-4"><p className="text-xs font-medium text-[var(--color-text-tertiary)]">当前数据范围</p><p className="mt-1 font-medium">{pcDataScopeLabels.authorized_platform} · 平台运营 V0.2</p><p className="mt-3 text-xs font-medium text-[var(--color-text-tertiary)]">下一步</p><p className="mt-1 text-sm text-[var(--color-text-secondary)]">返回运营中台；如需查看管理层汇总视角，可切换到“平台管理层”。</p></div><SecondaryButton className="mt-5" onClick={() => setPrototypeView("ready")}>返回运营中台</SecondaryButton></div></div></Card></main>;
 }
 
 function Overview({ onOpen }: { onOpen: (module: OperatorModule) => void }) {
   const totalAmount = orders.reduce((sum, order) => sum + order.amountYuan, 0);
   const pendingRedemptions = redemptions.filter((item) => item.status === "pending").length;
-  return <><section className="grid gap-4 xl:grid-cols-[1.55fr_1fr]"><div className="rounded-[var(--radius-overlay)] bg-[var(--color-primary)] p-6 text-white md:p-7"><div className="flex flex-wrap items-center justify-between gap-3"><StatusTag>平台运营</StatusTag><span className="text-xs text-white/65">FR-601 · FR-606</span></div><h2 className="mt-6 max-w-2xl text-2xl font-semibold md:text-3xl">从用户到订单，再回到权益与经营关系。</h2><p className="mt-3 max-w-2xl text-sm leading-6 text-white/75">统一中台把用户、合作商与门店、商品服务、订单核销、会员和营销资产放进同一浏览结构。当前所有数据均为 V0.1 演示数据。</p></div><Card className="p-5"><div className="flex items-center justify-between"><h3 className="font-semibold">当前授权</h3><StatusTag tone="success">平台授权范围</StatusTag></div><p className="mt-4 text-sm leading-6 text-[var(--color-text-secondary)]">可浏览当前演示数据关系；未确认业务规则不提供生产配置入口。</p><SecondaryButton className="mt-5 w-full" onClick={() => setPrototypeView("permission")}>演示越权状态</SecondaryButton></Card></section><div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-4">{[
+  return <><section className="grid gap-4 xl:grid-cols-[1.55fr_1fr]"><div className="rounded-[var(--radius-overlay)] bg-[var(--color-primary)] p-6 text-white md:p-7"><div className="flex flex-wrap items-center justify-between gap-3"><StatusTag>平台运营</StatusTag><span className="text-xs text-white/65">FR-601 · FR-606</span></div><h2 className="mt-6 max-w-2xl text-2xl font-semibold md:text-3xl">从用户到订单，再回到权益与经营关系。</h2><p className="mt-3 max-w-2xl text-sm leading-6 text-white/75">统一中台把用户、合作商与门店、商品服务、订单核销、会员和营销资产放进同一浏览结构。当前业务能力统一消费 V0.2 Shared 演示事实，不接生产数据写入。</p></div><Card className="p-5"><div className="flex items-center justify-between"><h3 className="font-semibold">当前授权</h3><StatusTag tone="success">平台授权范围</StatusTag></div><p className="mt-4 text-sm leading-6 text-[var(--color-text-secondary)]">可浏览当前演示数据关系；未确认业务规则不提供生产配置入口。</p><SecondaryButton className="mt-5 w-full" onClick={() => setPrototypeView("permission")}>演示越权状态</SecondaryButton></Card></section><div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-4">{[
     ["统一用户", String(users.length), "跨三场景身份"],
     ["合作商 / 门店", `${partners.length} / ${stores.length}`, "演示组织结构"],
     ["演示订单额", `¥${totalAmount}`, `${orders.length} 笔订单`],
@@ -172,6 +174,7 @@ function ModuleContent({
   if (module === "catalog") return <CatalogModule scene={scene} setScene={setScene} />;
   if (module === "orders") return <OrdersModule scene={scene} setScene={setScene} />;
   if (module === "convenience") return <OperatorConvenienceOperations />;
+  if (module === "commerce") return <MallCampaignSearchOperations />;
   if (module === "care") return <OperatorSmartCareOperations appointmentOverrides={careAppointmentOverrides} slotAvailabilityOverrides={careSlotAvailabilityOverrides} scanOverrides={careScanOverrides} onSlotAvailabilityChange={onCareSlotAvailabilityChange} onScanStart={onCareScanStart} onScanComplete={onCareScanComplete} onReset={onResetCare} />;
   if (module === "membership") return <MembershipModule />;
   return <MarketingModule scene={scene} setScene={setScene} />;
