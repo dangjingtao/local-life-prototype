@@ -175,12 +175,12 @@ function persistSelectedStoreId(storeId: string) {
   }
 }
 
-function loadCommunityNudgeShownAt() {
-  if (typeof window === "undefined") return "";
+function loadCommunityNudgeShownAt(): string | null | undefined {
+  if (typeof window === "undefined") return undefined;
   try {
-    return window.localStorage.getItem(communityNudgeStorageKey) ?? "";
+    return window.localStorage.getItem(communityNudgeStorageKey);
   } catch {
-    return "";
+    return undefined;
   }
 }
 
@@ -298,7 +298,7 @@ export function StoreFlowScreen({ openActivity, onOpenCommunity, entryContext }:
   const [pickupStatus, setPickupStatus] = useState<PickupStatus>("preparing");
   const [deliveryStatus, setDeliveryStatus] = useState<DeliveryStatus>("preparing");
   const [communityNudgeStage, setCommunityNudgeStage] = useState<"payment" | "pickup_completed" | null>(null);
-  const communityNudgeShownAtRef = useRef(loadCommunityNudgeShownAt());
+  const communityNudgeShownAtRef = useRef(loadCommunityNudgeShownAt() ?? "");
 
   useEffect(() => {
     if (entryContext?.storeId) persistSelectedStoreId(entryContext.storeId);
@@ -482,7 +482,10 @@ export function StoreFlowScreen({ openActivity, onOpenCommunity, entryContext }:
       setCommunityNudgeStage(null);
       return false;
     }
-    const localShownAt = communityNudgeShownAtRef.current;
+    const persistedShownAt = loadCommunityNudgeShownAt();
+    const localShownAt = persistedShownAt === undefined
+      ? communityNudgeShownAtRef.current
+      : persistedShownAt ?? "";
     if (isWithinCommunityNudgeCooldown(localShownAt, atIso)) {
       setCommunityNudgeStage(null);
       return false;
