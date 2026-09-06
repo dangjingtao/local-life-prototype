@@ -35,6 +35,13 @@ async function readShared(page) {
         const redemption = shared.redemptions.find((item) => item.id === pickup.redemptionId);
         const originalOrderStatus = order?.status;
         const originalFulfillmentStatus = order?.fulfillmentDetail?.status;
+        const originalOrderPickupCode = order?.fulfillmentDetail?.mode === "pickup" ? order.fulfillmentDetail.pickupCode : undefined;
+        let emptyOrderCodeIssues = [];
+        if (order?.fulfillmentDetail?.mode === "pickup") {
+          order.fulfillmentDetail.pickupCode = "";
+          emptyOrderCodeIssues = shared.validateDemoFixtureRelations();
+          order.fulfillmentDetail.pickupCode = originalOrderPickupCode;
+        }
         const inactive = shared.getPickupCredentialStatus(pickup, "2026-09-05T12:00:00+08:00");
         const active = shared.getPickupCredentialStatus(pickup, "2026-09-05T12:45:00+08:00");
         const expired = shared.getPickupCredentialStatus(pickup, "2026-09-05T13:30:00+08:00");
@@ -61,6 +68,7 @@ async function readShared(page) {
           pickupCode: pickup.pickupCode,
           orderPickupCode: order?.fulfillmentDetail?.mode === "pickup" ? order.fulfillmentDetail.pickupCode : null,
           redemptionCode: redemption?.code ?? null,
+          emptyOrderCodeIssues,
           inactive,
           active,
           expired,
@@ -116,6 +124,7 @@ test.describe("T034 · V0.3 shared contract", () => {
     expect(data.pickup.pickupCode).not.toBe(data.pickup.orderId);
     expect(data.pickup.orderPickupCode).toBe(data.pickup.pickupCode);
     expect(data.pickup.redemptionCode).toBe(data.pickup.pickupCode);
+    expect(data.pickup.emptyOrderCodeIssues).toContain("pickup-credential:PICKUP-CREDENTIAL-LL-1024:code-mismatch-order");
     expect(data.pickup.inactive).toBe("inactive");
     expect(data.pickup.active).toBe("active");
     expect(data.pickup.expired).toBe("expired");
