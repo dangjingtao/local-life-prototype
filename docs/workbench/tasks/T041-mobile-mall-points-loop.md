@@ -1,6 +1,6 @@
 # T041 · Mobile 商城积分消费闭环
 
-- Status: TODO
+- Status: DOING
 - Target version: 0.3.0
 - Type: Mobile / Mall / Benefits
 - Predecessors: T034、T019 / T033 当前 storefront-free 消费者基线
@@ -40,3 +40,13 @@
 ## Stop conditions
 
 如果当前 T019 视觉基线在开工前发生用户级变更，先同步本卡白名单 / AC，再施工，不覆盖最新视觉决策。
+
+
+## Execution baseline
+
+- Branch: `task/T041-mobile-mall-points-loop`
+- Started from `dev@cfecad1` after T040 PASS.
+- Preserve current T019 / T033 storefront-free consumer baseline.
+- Earn projection consumes Shared `getPurchasePointProjection("mall", subtotal)`.
+- Redemption uses Shared `prototypeRules.pointsToCash` only as its existing Candidate example; UI must explicitly keep candidate / actual-rule wording.
+- No Shared changes; no convenience-store points changes.
