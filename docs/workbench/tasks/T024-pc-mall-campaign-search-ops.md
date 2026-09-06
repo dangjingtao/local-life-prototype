@@ -1,6 +1,6 @@
 # T024 · PC 商城渠道、活动与搜索运营后台
 
-- Status: TODO
+- Status: DOING
 - Target version: 0.2.0
 - Impact: PC / Shared
 - Owner: -
