@@ -37,8 +37,8 @@ test.describe("T037 · mobile pickup dual credential", () => {
     await expect(page.getByText("未生效", { exact: true })).toBeVisible();
     await expect(page.getByRole("img", { name: "取货二维码，状态：未生效" })).toBeVisible();
     await expect(page.getByText("LL-1024", { exact: true }).last()).toBeVisible();
-    await expect(qr).toHaveAttribute("data-redemption-id", "REDEMPTION-LL-1024");
-    await expect(code).toHaveAttribute("data-redemption-id", "REDEMPTION-LL-1024");
+    await expect(qr).toHaveAttribute("data-redemption-id", "REDEEM-LL-1024");
+    await expect(code).toHaveAttribute("data-redemption-id", "REDEEM-LL-1024");
     await expectNoHorizontalOverflow(page);
 
     await mkdir("test-results/t037-visual-evidence", { recursive: true });
@@ -60,8 +60,8 @@ test.describe("T037 · mobile pickup dual credential", () => {
     await expect(page.getByText("核销完成", { exact: true }).first()).toBeVisible();
     await expect(page.getByText("已失效", { exact: true })).toBeVisible();
     await expect(page.getByRole("img", { name: "取货二维码，状态：已失效" })).toBeVisible();
-    await expect(qr).toHaveAttribute("data-redemption-id", "REDEMPTION-LL-1024");
-    await expect(code).toHaveAttribute("data-redemption-id", "REDEMPTION-LL-1024");
+    await expect(qr).toHaveAttribute("data-redemption-id", "REDEEM-LL-1024");
+    await expect(code).toHaveAttribute("data-redemption-id", "REDEEM-LL-1024");
     await expect(page.getByText("LL-1024", { exact: true }).last()).toBeVisible();
 
     await mkdir("test-results/t037-visual-evidence", { recursive: true });
