@@ -178,7 +178,7 @@ export function MallCheckoutView({
 
       <section
         data-testid="mall-checkout-amounts"
-        className="h-[160px] border-b border-[var(--color-border)] bg-[var(--color-surface)] px-4 py-1.5"
+        className="h-[164px] border-b border-[var(--color-border)] bg-[var(--color-surface)] px-4 py-1.5"
       >
         <div className="flex h-7 items-center justify-between text-[12px]">
           <span className="text-[var(--color-text-secondary)]">商品金额</span>
@@ -194,7 +194,7 @@ export function MallCheckoutView({
         </div>
         <div className="flex h-7 items-center justify-between text-[12px]">
           <span className="text-[var(--color-text-secondary)]">积分抵扣{pointsUsed > 0 ? ` · ${pointsUsed} 积分` : ""}</span>
-          <span className="font-medium text-[var(--color-success)]">-{money(pointsDiscount)} 元</span>
+          <span className="font-medium text-[var(--color-success)]">-¥{money(pointsDiscount)}</span>
         </div>
         <div className="flex h-10 items-center justify-between border-t border-[var(--color-border)] text-[13px]">
           <span className="font-semibold">应付金额</span>
