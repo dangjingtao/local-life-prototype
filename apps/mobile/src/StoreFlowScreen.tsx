@@ -879,7 +879,7 @@ export function StoreFlowScreen({ openActivity, entryContext }: StoreFlowScreenP
                     <span className="text-sm font-semibold text-[var(--color-primary-pressed)]">+{projectedStorePoints} 积分</span>
                   </div>
                   <p className="mt-1 text-[10px] leading-4 text-[var(--color-text-tertiary)]">
-                    Shared 倍率 {storePointProjection.earnRate} 积分/元 · 当前商品金额演示投影；正式计分基数与取整规则待确认
+                    按当前商品金额预计 · {storePointProjection.earnRate} 积分/元；实际到账以积分规则为准
                   </p>
                 </div>
                 <div className="flex items-end justify-between">
@@ -1218,7 +1218,7 @@ export function StoreFlowScreen({ openActivity, entryContext }: StoreFlowScreenP
                   <span className="text-sm font-semibold text-[var(--color-primary-pressed)]">+{projectedStorePoints} 积分</span>
                 </div>
                 <p className="mt-1 text-[10px] leading-4 text-[var(--color-text-tertiary)]">
-                  Shared 倍率 {storePointProjection.earnRate} 积分/元 · 正式计分基数与取整规则待确认
+                  按当前商品金额预计 · {storePointProjection.earnRate} 积分/元；实际到账以积分规则为准
                 </p>
               </div>
             </div>
@@ -1480,7 +1480,7 @@ export function StoreFlowScreen({ openActivity, entryContext }: StoreFlowScreenP
                 <span className="text-sm font-semibold text-[var(--color-primary-pressed)]">+{projectedStorePoints} 积分</span>
               </div>
               <p className="mt-1 text-[10px] leading-4 text-[var(--color-text-tertiary)]">
-                Shared 倍率 {storePointProjection.earnRate} 积分/元 · 当前商品金额演示投影；正式计分基数与取整规则待确认
+                按当前商品金额预计 · {storePointProjection.earnRate} 积分/元；实际到账以积分规则为准
               </p>
             </div>
             <div className="flex items-center justify-between border-t border-[var(--color-border)] pt-2.5">
