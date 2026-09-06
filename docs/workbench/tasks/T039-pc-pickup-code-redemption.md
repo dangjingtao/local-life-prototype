@@ -1,6 +1,6 @@
 # T039 · PC 数字取货码核销
 
-- Status: TODO
+- Status: DOING
 - Target version: 0.3.0
 - Type: PC / Fulfillment
 - Predecessors: T034、T037、T022
@@ -16,10 +16,11 @@
 
 ## Changed paths whitelist
 
-- T022 已稳定的便利店订单 / 核销模块；
+冻结为：
+- `apps/pc/src/ConvenienceOperations.tsx`；
 - `tests/browser/t039-pc-pickup-code-redemption.spec.mjs`；
-- 如需验证与 T038 互斥，允许最小更新 T038 spec；
-- 不允许修改 Mobile。
+- 如需验证与 T038 互斥，允许最小更新 `tests/browser/t038-pc-qr-redemption.spec.mjs`；
+- 不允许修改 Mobile / Shared / PC Shell。
 
 ## Out of scope
 
@@ -41,3 +42,11 @@
 ## Evidence required
 
 自动化必须至少包含一次“QR 先核销 → code 被拒绝”或反向互斥验证。
+
+
+## Execution baseline
+
+- Branch: `task/T039-pc-pickup-code-redemption`
+- Started from latest `dev` after T038 merge.
+- Reuse T038 QR channel and the same Shared pickup credential / redemption.
+- Shared `pickupCode` current demo value is `LL-1024`; T039 consumes it as-is and does not redefine the contract.
