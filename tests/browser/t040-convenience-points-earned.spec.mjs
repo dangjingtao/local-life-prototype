@@ -73,12 +73,13 @@ test.describe("T040 · convenience purchase points feedback", () => {
     await expect(checkoutPoints).toHaveAttribute("data-earn-rate", "1");
     expect(extractProjectedPoints(await checkoutPoints.innerText())).toBe(expectedPoints);
 
-    const totalBefore = await page.locator("div.fixed").last().innerText();
+    const submitBar = page.locator("div.fixed").filter({ has: page.getByRole("button", { name: "提交订单" }) });
+    const totalBefore = await submitBar.innerText();
     const bagSwitch = page.getByRole("switch", { name: "需要购物袋" });
     await expect(bagSwitch).toHaveAttribute("aria-checked", "true");
     await bagSwitch.click();
     await expect(bagSwitch).toHaveAttribute("aria-checked", "false");
-    const totalAfter = await page.locator("div.fixed").last().innerText();
+    const totalAfter = await submitBar.innerText();
 
     expect(totalAfter).not.toBe(totalBefore);
     expect(extractProjectedPoints(await checkoutPoints.innerText())).toBe(expectedPoints);
