@@ -1,6 +1,6 @@
 # T044 · V0.3 数字取货码语义整改
 
-- Status: TODO
+- Status: DOING
 - Target version: 0.3.0
 - Type: Shared / Mobile / PC / Fulfillment / Release Gate
 - Predecessors: T034、T037、T038、T039
@@ -68,7 +68,7 @@ V0.3 PRD R02 明确要求“二维码 + 数字取货码”双凭证。
 - [ ] code → QR、QR → code 双向互斥继续成立。
 - [ ] T022 / T037 / T038 / T039 相关回归全部通过。
 - [ ] typecheck / build 通过。
-- [ ] 正常消费者 / 店员页面不出现 Shared、fixture 等工程术语。
+- [ ] 本卡新增 / 修改的数字取货码展示与店员输入不引入 Shared、fixture 等工程术语；既有 Mobile 订单页的历史工程术语由 T045 Release Gate 文案收口统一处理。
 
 ## Evidence required
 
@@ -84,3 +84,11 @@ V0.3 PRD R02 明确要求“二维码 + 数字取货码”双凭证。
 
 - 如果实现必须修改订单状态定义、二维码合同、redemption 结构或数字码长度规则，立即 BLOCKED，回到产品决策。
 - 不允许为了“看起来像数字码”只改 UI 标签而保留 `LL-1024`。
+
+
+## Execution baseline
+
+- Branch: `task/T044-v03-numeric-pickup-code-alignment`
+- Started from: `dev@7460e6752200e02c44349df5844c8d6c751325e1`
+- Started at: 2026-09-07
+- Scope clarification: T044 只整改数字取货码事实与跨端核销一致性；PRD 反审发现的既有 Mobile `Mock order` / `Shared` 消费者术语已经明确归入 T045，不在本卡静默扩 `StoreFlowScreen.tsx` 白名单。
