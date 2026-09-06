@@ -172,7 +172,7 @@ export function MallCheckoutView({
           </span>
         </div>
         <p className="mt-2 text-[10px] leading-4 text-[var(--color-text-tertiary)]">
-          抵现为原型候选示例：{candidatePoints} 积分约抵 ¥{candidateYuan}；正式兑换比例与单笔上限以最终规则为准。
+          当前抵现比例为示例：{candidatePoints} 积分约抵 ¥{candidateYuan}；实际兑换比例与单笔上限以最终规则为准。
         </p>
       </section>
 
