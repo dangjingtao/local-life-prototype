@@ -220,6 +220,7 @@ export function MerchantConvenienceOperations({
     onFulfillmentChange(qrOrder.id, "completed");
     onRedemptionComplete(qrRedemption.id);
     setQrScanState("completed");
+    if (pickupCodeState === "matched") setPickupCodeState("already_used");
   };
 
   const lookupPickupCode = () => {
@@ -243,6 +244,7 @@ export function MerchantConvenienceOperations({
     onFulfillmentChange(qrOrder.id, "completed");
     onRedemptionComplete(qrRedemption.id);
     setPickupCodeState("completed");
+    if (qrScanState === "matched") setQrScanState("already_used");
   };
 
   const resetRedemptionDemo = () => {
