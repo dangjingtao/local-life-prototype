@@ -1,6 +1,6 @@
 # T038 · PC 二维码扫码核销
 
-- Status: TODO
+- Status: DOING
 - Target version: 0.3.0
 - Type: PC / Fulfillment
 - Predecessors: T034、T037、T022
@@ -18,10 +18,11 @@ T022 尚未稳定时本卡不得 DOING。T022 进入可消费的稳定状态后�
 
 开工前必须补全为 T022 的实际便利店履约模块路径。
 
-当前只允许：
-- T022 已创建 / 稳定的便利店订单或核销模块；
+冻结为：
+- `apps/pc/src/ConvenienceOperations.tsx`（T022 已稳定便利店履约模块）；
 - `tests/browser/t038-pc-qr-redemption.spec.mjs`；
-- 不允许修改 Mobile。
+- `tests/browser/t022-pc-convenience-operations.spec.mjs`（仅把被 V0.3 R02 淘汰的“第二张 Mobile pickup 订单”跨端断言对齐到 Shared `LL-1024`）；
+- 不允许修改 Mobile / Shared / `apps/pc/src/App.tsx`。
 
 ## Out of scope
 
@@ -42,3 +43,11 @@ T022 尚未稳定时本卡不得 DOING。T022 进入可消费的稳定状态后�
 ## Evidence required
 
 至少覆盖：有效扫码成功、重复扫码失败 / 已完成两条自动化路径。
+
+
+## Execution baseline
+
+- Branch: `task/T038-pc-qr-redemption`
+- Started from: `dev@0919fb6e342e989c9ffc702695e3d6ef595edee7`
+- Frozen PC business path: `apps/pc/src/ConvenienceOperations.tsx`
+- Started at: 2026-09-06
