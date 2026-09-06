@@ -279,6 +279,7 @@ export interface Campaign {
   startsAt: string;
   endsAt: string;
   refs: CampaignRef[];
+  target: { type: "campaign_detail"; campaignId: string };
 }
 
 export interface CareProject {
