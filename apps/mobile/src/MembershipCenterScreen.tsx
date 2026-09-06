@@ -105,7 +105,7 @@ export function MembershipCenterScreen({ onOpenReports, onOpenCommunity }: Membe
         <Entry icon="info" title="加入社群" note="门店福利 · 社群动态" onClick={() => onOpenCommunity?.()} />
       </div></Section>
       <Card><div className="flex flex-wrap gap-2">{prototypeRules.membershipLevels.value.map((level) => <StatusTag key={level} tone={level === coreDemoUser.member.level ? "success" : "neutral"}>{membershipLevelLabels[level]}</StatusTag>)}</div><p className="mt-3 text-xs leading-5 text-[var(--color-text-tertiary)]">等级名称为候选结构；升级门槛、倍率、保级与专属折扣均未确认。</p></Card>
-      <Card className="bg-[var(--color-surface-subtle)]"><p className="font-medium">主动任务 · 能力占位</p><p className="mt-2 text-sm leading-6 text-[var(--color-text-secondary)]">“任务”是已建模的积分来源，但任务内容、奖励额度、频率与触发规则没有 fixture，因此不伪造可领取任务。</p></Card>
+      <Card className="bg-[var(--color-surface-subtle)]"><p className="font-medium">主动任务 · 能力占位</p><p className="mt-2 text-sm leading-6 text-[var(--color-text-secondary)]">“任务”是已建模的积分来源，但任务内容、奖励额度、频率与触发规则尚未提供，因此不展示可领取任务。</p></Card>
     </>
   );
 
