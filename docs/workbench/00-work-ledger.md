@@ -72,7 +72,7 @@
 | T035 | Mobile 便利店连续浏览结构 | Mobile / UX | PASS | 0.3.0 | T034、T031 | PR #31 squash merge `669791b`；Codex P1 底部遮挡已修复并 resolve；final `54ce85d` Verify #321 success；Browser #119 T035 4/4 + T031 浏览回归通过，77/85，其余 8 项为既有 T017/T018/T032 checkout 旧债；未提前做 T036 |
 | T036 | Mobile 便利店分类滚动联动 | Mobile / Interaction | PASS | 0.3.0 | T035 | 2026-09-06 用户授权 AI review 无新回复时自审验收；latest-head Verify #34003981393 success；Browser #34003981401：T036 5/5、全量 100/108，8 项均为既有 T017/T018/T032 checkout 旧债；PR #32 squash merge `3dd5309` |
 | T037 | Mobile 自提双凭证 | Mobile / Fulfillment | PASS | 0.3.0 | T034、T018 | 2026-09-06 Mira 按用户授权自审验收；PR #36 squash merge `e05c2ff`；final `f6cdb71` Verify #34004467423 success；Browser #34004467392：T037 3/3、全量 102/111；8 项既有 checkout 旧债 + 1 项 T022 旧“第二张 pickup 订单”断言由 T038/T039 收口 |
-| T038 | PC 二维码扫码核销 | PC / Fulfillment | DOING | 0.3.0 | T034、T037、T022 | `task/T038-pc-qr-redemption` 施工中；冻结 `apps/pc/src/ConvenienceOperations.tsx`，复用 T022 后台与 T037 `LL-1024 / REDEEM-LL-1024`；不改 Mobile / Shared |
+| T038 | PC 二维码扫码核销 | PC / Fulfillment | REVIEW | 0.3.0 | T034、T037、T022 | PR #37；final `b5db88c`；Verify #34005128300 success；Browser #34005128283：T038 2/2、T022 5/5、全量 105/113，余 8 项为既有 checkout 债；AI review 无实质回复，自审无阻塞项 |
 | T039 | PC 数字取货码核销 | PC / Fulfillment | TODO | 0.3.0 | T034、T037、T022 | 数字码核销与 T038 操作同一 redemption；验证双通道互斥 |
 | T040 | Mobile 便利店消费积分反馈 | Mobile / Benefits | TODO | 0.3.0 | T034、T018、T032 | 购物车 + 结算“本单预计可得积分”；复用现有抵现，不重做 |
 | T041 | Mobile 商城积分消费闭环 | Mobile / Mall / Benefits | TODO | 0.3.0 | T034、T019/T033 当前消费者基线 | 商城可得积分 + 结算积分抵现 + 金额联动；不得恢复店铺 / 来源心智 |
