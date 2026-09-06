@@ -265,7 +265,7 @@ export interface MallProductListing {
 export type CampaignPlacement = "home_hero" | "home_featured" | "store_featured" | "mall_featured" | "care_featured";
 
 export interface CampaignRef {
-  type: "product" | "care_project" | "coupon" | "storefront";
+  type: "product" | "care_project" | "coupon";
   id: string;
 }
 
