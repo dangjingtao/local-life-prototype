@@ -33,7 +33,7 @@ function buildQrCells(seed: string) {
   return cells;
 }
 
-function qrSvg(cells: boolean[]) {
+function qrSvg(cells: boolean[], foreground: string, background: string) {
   const modules = cells
     .map((filled, index) => {
       if (!filled) return "";
@@ -42,7 +42,21 @@ function qrSvg(cells: boolean[]) {
       return `<rect x="${x}" y="${y}" width="1" height="1"/>`;
     })
     .join("");
-  return `<svg xmlns="http://www.w3.org/2000/svg" viewBox="-2 -2 ${QR_SIZE + 4} ${QR_SIZE + 4}" shape-rendering="crispEdges"><rect x="-2" y="-2" width="${QR_SIZE + 4}" height="${QR_SIZE + 4}" fill="white"/><g fill="#111">${modules}</g></svg>`;
+  return `<svg xmlns="http://www.w3.org/2000/svg" viewBox="-2 -2 ${QR_SIZE + 4} ${QR_SIZE + 4}" shape-rendering="crispEdges"><rect x="-2" y="-2" width="${QR_SIZE + 4}" height="${QR_SIZE + 4}" fill="${background}"/><g fill="${foreground}">${modules}</g></svg>`;
+}
+
+function resolveQrExportColors() {
+  const probe = document.createElement("span");
+  probe.style.color = "var(--color-text-primary)";
+  probe.style.backgroundColor = "var(--color-surface)";
+  probe.style.position = "fixed";
+  probe.style.pointerEvents = "none";
+  probe.style.opacity = "0";
+  document.body.appendChild(probe);
+  const computed = getComputedStyle(probe);
+  const colors = { foreground: computed.color, background: computed.backgroundColor };
+  probe.remove();
+  return colors;
 }
 
 export function CommunityGuideScreen({ onBack }: CommunityGuideScreenProps) {
@@ -50,7 +64,8 @@ export function CommunityGuideScreen({ onBack }: CommunityGuideScreenProps) {
   const cells = useMemo(() => buildQrCells(community?.qrAssetKey ?? CORE_DEMO_IDS.community), [community?.qrAssetKey]);
 
   const saveQrImage = () => {
-    const svg = qrSvg(cells);
+    const { foreground, background } = resolveQrExportColors();
+    const svg = qrSvg(cells, foreground, background);
     const href = `data:image/svg+xml;charset=utf-8,${encodeURIComponent(svg)}`;
     const link = document.createElement("a");
     link.href = href;
@@ -104,10 +119,18 @@ export function CommunityGuideScreen({ onBack }: CommunityGuideScreenProps) {
             data-qr-asset-key={community.qrAssetKey}
             role="img"
             aria-label="加入社群二维码示意"
-            className="mx-auto grid h-[220px] w-[220px] grid-cols-[repeat(21,minmax(0,1fr))] overflow-hidden border-[10px] border-white bg-white shadow-[0_4px_20px_rgba(15,23,42,0.08)]"
+            className="mx-auto grid h-[220px] w-[220px] grid-cols-[repeat(21,minmax(0,1fr))] overflow-hidden border-[10px]"
+            style={{
+              borderColor: "var(--color-surface)",
+              backgroundColor: "var(--color-surface)",
+              boxShadow: "var(--shadow-floating)",
+            }}
           >
             {cells.map((filled, index) => (
-              <span key={index} className={filled ? "bg-[#111]" : "bg-white"} />
+              <span
+                key={index}
+                style={{ backgroundColor: filled ? "var(--color-text-primary)" : "var(--color-surface)" }}
+              />
             ))}
           </div>
           <p className="mt-4 text-sm font-semibold">长按识别二维码</p>
