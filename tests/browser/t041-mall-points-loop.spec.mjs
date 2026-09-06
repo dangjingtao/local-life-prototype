@@ -73,7 +73,7 @@ test.describe("T041 · mall points earn and redemption loop", () => {
     await expect(pointsPanel).toContainText(/当前积分 \d+/);
     await expect(pointsPanel).toHaveAttribute("data-earn-rate", "1");
     expect(extractPoints(await pointsPanel.innerText())).toBe(cartPoints);
-    await expect(pointsPanel).toContainText("抵现为原型候选示例");
+    await expect(pointsPanel).toContainText("当前抵现比例为示例");
     await expect(switcher).toHaveAttribute("aria-checked", "false");
 
     for (const label of ["商品金额", "运费", "商城优惠", "积分抵扣", "应付金额"]) {
