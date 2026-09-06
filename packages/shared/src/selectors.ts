@@ -485,7 +485,7 @@ export function validateDemoFixtureRelations(): string[] {
     }
     if (!/^\d+$/.test(credential.pickupCode)) issues.push(`pickup-credential:${credential.id}:pickup-code-not-numeric`);
     if (redemption && redemption.code !== credential.pickupCode) issues.push(`pickup-credential:${credential.id}:code-mismatch-redemption`);
-    if (order?.fulfillmentDetail?.pickupCode && order.fulfillmentDetail.pickupCode !== credential.pickupCode) {
+    if (order?.fulfillmentDetail?.mode === "pickup" && order.fulfillmentDetail.pickupCode !== credential.pickupCode) {
       issues.push(`pickup-credential:${credential.id}:code-mismatch-order`);
     }
     if (!Number.isFinite(Date.parse(credential.validFrom)) || !Number.isFinite(Date.parse(credential.validUntil))) {
