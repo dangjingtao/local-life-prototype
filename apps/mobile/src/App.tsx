@@ -6,6 +6,7 @@ import { careProjects, coreDemoUser, membershipLevelLabels } from "@prototype/sh
 import { CampaignActivityScreen } from "./CampaignActivityScreen";
 import { CareFlowScreen } from "./CareFlowScreen";
 import { CareReportScreen } from "./CareReportScreen";
+import { CommunityGuideScreen } from "./CommunityGuideScreen";
 import { GlobalSearchScreen, type SearchBusinessHandoff } from "./GlobalSearchScreen";
 import { MallFlowScreen, type MallStep, type StorefrontCartState } from "./MallFlowScreen";
 import { MembershipCenterScreen } from "./MembershipCenterScreen";
@@ -13,7 +14,7 @@ import { StoreFlowScreen } from "./StoreFlowScreen";
 import { V02HomeScreen } from "./V02HomeScreen";
 
 type Tab = "home" | "store" | "mall" | "care" | "me";
-type Screen = Tab | "search" | "activity" | "reports";
+type Screen = Tab | "search" | "activity" | "reports" | "community";
 
 type ReportEntry = {
   reportId?: string;
@@ -109,17 +110,21 @@ export function App() {
     ? "home"
     : screen === "reports"
       ? (reportEntry?.back === "me" ? "me" : "care")
-      : screen;
+      : screen === "community"
+        ? "me"
+        : screen;
   const title = screen === "search"
     ? "全局搜索"
     : screen === "activity"
       ? "活动中心"
       : screen === "reports"
         ? "我的检测"
-        : tabs.find((item) => item.id === activeTab)?.label ?? "首页";
+        : screen === "community"
+          ? "加入社群"
+          : tabs.find((item) => item.id === activeTab)?.label ?? "首页";
   const isMallFullScreen = screen === "mall" && ["detail", "checkout", "order"].includes(mallStep);
   const isMallDedicatedLayout = screen === "mall" && mallStep !== "home";
-  const showGlobalHeader = screen !== "mall";
+  const showGlobalHeader = screen !== "mall" && screen !== "community";
 
   const scrollTop = () => window.scrollTo({ top: 0, behavior: "smooth" });
 
@@ -164,6 +169,12 @@ export function App() {
   const openReportsFromMe = () => {
     setReportEntry({ back: "me" });
     go("reports");
+  };
+
+  const openCommunity = () => {
+    setSearchHandoff(null);
+    setScreen("community");
+    scrollTop();
   };
 
   const openReportFromCare = (reportId: string) => {
@@ -261,7 +272,8 @@ export function App() {
               />
             </>
           )}
-          {screen === "me" && <MembershipCenterScreen onOpenReports={openReportsFromMe} />}
+          {screen === "me" && <MembershipCenterScreen onOpenReports={openReportsFromMe} onOpenCommunity={openCommunity} />}
+          {screen === "community" && <CommunityGuideScreen onBack={() => go("me")} />}
           {screen === "reports" && (
             <CareReportScreen
               key={`${reportEntry?.back ?? "me"}:${reportEntry?.reportId ?? "list"}`}
