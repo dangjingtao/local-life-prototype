@@ -1,4 +1,4 @@
-import type { Appointment, Campaign, CareAppointmentSlot, CareProject, Channel, CommunityGroup, CommunityNudgeState, ConvenienceBrowseCategory, ConvenienceCart, Coupon, DetectionRecord, DetectionReport, OfflineStore, OnlineStorefront, Order, Partner, PickupCredential, PointLedgerEntry, Product, ProductAvailability, PrototypeRule, RedemptionRecord, Service, StoreDeliveryAddress, User } from "./domain";
+import type { Appointment, Campaign, CareAppointmentSlot, CareProject, Channel, CommunityGroup, CommunityNudgeState, ConvenienceBrowseCategory, ConvenienceCart, Coupon, DetectionRecord, DetectionReport, OfflineStore, OnlineStorefront, MallProductListing, Order, Partner, PickupCredential, PointLedgerEntry, Product, ProductAvailability, PrototypeRule, RedemptionRecord, Service, StoreDeliveryAddress, User } from "./domain";
 
 export const CORE_DEMO_IDS = {
   user: "LL-8888", partner: "PARTNER-YUNLING", store: "STORE-YUNLING", pickupOrder: "LL-1024",
@@ -115,6 +115,15 @@ export const storefronts: OnlineStorefront[] = [
   { id: "STOREFRONT-DOUYIN", channelId: "CHANNEL-DOUYIN", name: "抖音店商品橱窗", status: "active", fulfillment: "parcel_delivery", serviceArea: "nationwide", note: "展示来源语义，不代表真实接入。" },
 ];
 
+export const mallProductListings: MallProductListing[] = [
+  { id: "MALL-LISTING-PRIVATE-SCALP", productId: "PRODUCT-SCALP-SET", storefrontId: "STOREFRONT-PRIVATE", channelId: "CHANNEL-OWNED", status: "active", note: "私域商城商品关系样本。" },
+  { id: "MALL-LISTING-PRIVATE-CLEAN", productId: "PRODUCT-CLEAN-SET", storefrontId: "STOREFRONT-PRIVATE", channelId: "CHANNEL-OWNED", status: "active", note: "私域商城商品关系样本。" },
+  { id: "MALL-LISTING-PRIVATE-LIGHT", productId: "PRODUCT-LIGHT-LIFE", storefrontId: "STOREFRONT-PRIVATE", channelId: "CHANNEL-OWNED", status: "active", note: "私域商城商品关系样本。" },
+  { id: "MALL-LISTING-PRIVATE-SKIN", productId: "PRODUCT-SKIN-TRIAL", storefrontId: "STOREFRONT-PRIVATE", channelId: "CHANNEL-OWNED", status: "active", note: "与 CORE_DEMO_IDS.mallOrder 的来源关系一致。" },
+  { id: "MALL-LISTING-PRIVATE-COLLAGEN", productId: "PRODUCT-COLLAGEN-DRINK", storefrontId: "STOREFRONT-PRIVATE", channelId: "CHANNEL-OWNED", status: "active", note: "与商城活动 / CORE_DEMO_IDS.mallOrder 的来源关系一致。" },
+  { id: "MALL-LISTING-DOUYIN-SCALP", productId: "PRODUCT-SCALP-SET", storefrontId: "STOREFRONT-DOUYIN", channelId: "CHANNEL-DOUYIN", status: "planned", note: "仅表达 LL-1023 的渠道来源语义；不代表已接通抖音 API。" },
+];
+
 export const careProjects: CareProject[] = [
   { id: "CARE-PROJECT-BASIC", serviceId: "SERVICE-CARE-BASIC", name: "基础状态检测", summary: "约 30 分钟完成基础状态记录，并生成非医疗性质的趋势报告。", priceYuan: 39, durationMinutes: 30, storeIds: [CORE_DEMO_IDS.store, "STORE-NANAN"], capabilityStatus: "candidate", note: "检测能力为原型语义。" },
   { id: "CARE-PROJECT-SOOTHING", serviceId: "SERVICE-CARE-EXPERIENCE", name: "屏障舒缓护理", summary: "结合基础状态记录安排一次舒缓护理体验。", priceYuan: 89, durationMinutes: 50, storeIds: ["STORE-NANAN"], capabilityStatus: "candidate", note: "护理方案为转化演示数据。" },
@@ -217,4 +226,4 @@ export const campaigns: Campaign[] = [
 ];
 
 export const demoFixtures = { users, partners, stores, products, services, orders, coupons, pointLedger, reports, redemptions, rules: prototypeRules } as const;
-export const v02Fixtures = { users, partners: businessPartners, stores: offlineStores, products: catalogProducts, convenienceBrowseCategories, productAvailability, convenienceCarts, deliveryAddresses: storeDeliveryAddresses, services: careServices, channels, storefronts, campaigns, careProjects, appointmentSlots, appointments, orders: v02Orders, coupons: v02Coupons, pointLedger, detectionRecords, reports: detectionReports, redemptions, pickupCredentials, communities, communityNudgeStates, rules: prototypeRules } as const;
+export const v02Fixtures = { users, partners: businessPartners, stores: offlineStores, products: catalogProducts, convenienceBrowseCategories, productAvailability, convenienceCarts, deliveryAddresses: storeDeliveryAddresses, services: careServices, channels, storefronts, mallProductListings, campaigns, careProjects, appointmentSlots, appointments, orders: v02Orders, coupons: v02Coupons, pointLedger, detectionRecords, reports: detectionReports, redemptions, pickupCredentials, communities, communityNudgeStates, rules: prototypeRules } as const;
