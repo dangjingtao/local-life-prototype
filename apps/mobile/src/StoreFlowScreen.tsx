@@ -867,8 +867,18 @@ export function StoreFlowScreen({ openActivity, entryContext }: StoreFlowScreenP
                 </div>
               </div>
 
-              {/* 抽屉底部：合计 + 去结算 */}
+              {/* 抽屉底部：完整购物车入口 + 积分 + 合计 + 去结算 */}
               <div className="border-t border-[var(--color-border)] px-4 pt-3 pb-2">
+                <button
+                  type="button"
+                  onClick={() => {
+                    setCartSheetOpen(false);
+                    goStep("cart");
+                  }}
+                  className="mb-2 text-xs font-medium text-[var(--color-primary)]"
+                >
+                  查看完整购物车
+                </button>
                 <div
                   data-testid="t040-cart-sheet-points"
                   data-earn-rate={storePointProjection.earnRate}
