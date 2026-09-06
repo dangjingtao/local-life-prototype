@@ -1,6 +1,6 @@
 # T041 · Mobile 商城积分消费闭环
 
-- Status: REVIEW
+- Status: PASS
 - Target version: 0.3.0
 - Type: Mobile / Mall / Benefits
 - Predecessors: T034、T019 / T033 当前 storefront-free 消费者基线
@@ -89,5 +89,5 @@
 
 ## Review
 
-- Result: REVIEW
-- Conclusion: T041 AC 满足；latest-head Verify success、专项 4/4、商城视觉关键回归通过，AI review 无阻塞项。按用户既有授权可由 Mira 自审验收并合并。
+- Result: PASS
+- Conclusion: T041 AC 满足；latest-head Verify success、专项 4/4、商城视觉关键回归通过，AI review 无阻塞项。2026-09-06 按用户既有授权由 Mira 自审验收；PR #40 squash merge `5cb269e143d065e9a2b3310ed2cb6fe18833561a`。
