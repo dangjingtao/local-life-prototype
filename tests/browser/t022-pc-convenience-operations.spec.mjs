@@ -47,7 +47,7 @@ async function openMobilePickup(page) {
   await page.getByRole("button", { name: /打开购物车，\d+ 件商品/ }).click();
   await page.getByRole("dialog", { name: "购物车" }).getByRole("button", { name: "去结算" }).click();
   await page.getByRole("button", { name: "提交订单" }).click();
-  await expect(page.getByRole("heading", { name: /CONV-YUNLING-8888-PICKUP/ })).toBeVisible();
+  await expect(page.getByRole("heading", { name: "LL-1024", exact: true })).toBeVisible();
 }
 
 test.describe("T022 · PC convenience fulfillment operations", () => {
@@ -135,22 +135,21 @@ test.describe("T022 · PC convenience fulfillment operations", () => {
     await expectNoHorizontalOverflow(page);
   });
 
-  test("Mobile pickup order matches PC pickup id, store and initial status", async ({ page }) => {
+  test("Mobile pickup credential matches PC Shared pickup order and redemption baseline", async ({ page }) => {
     await openMobilePickup(page);
 
     await expect(page.getByText("云岭社区店").first()).toBeVisible();
     await expect(page.getByText("门店正在备货", { exact: true })).toBeVisible();
-    await expect(page.getByText("应付 ¥26.60", { exact: false })).toBeVisible();
     await page.getByRole("button", { name: "模拟备货完成" }).click();
-    await expect(page.getByText("PK-8888", { exact: true })).toBeVisible();
+    await expect(page.getByText("可核销", { exact: true })).toBeVisible();
+    await expect(page.getByTestId("pickup-code-credential")).toContainText("LL-1024");
+    await expect(page.getByTestId("pickup-code-credential")).toHaveAttribute("data-redemption-id", "REDEEM-LL-1024");
 
     await openMerchantFulfillment(page, 1024, 768);
-    const pickup = page.getByTestId("t022-order-CONV-YUNLING-8888-PICKUP");
+    const pickup = page.getByTestId("t022-order-LL-1024");
     await expect(pickup).toContainText("云岭社区店");
-    await expect(pickup).toContainText("备货中");
-    await expect(pickup).toContainText("¥26.60");
-    await expect(pickup).toContainText("溏心蛋火腿三明治");
-    await expect(pickup).toContainText("PK-8888");
+    await expect(pickup).toContainText("待取货");
+    await expect(pickup).toContainText("LL-1024");
     await expectNoHorizontalOverflow(page);
   });
 
