@@ -71,7 +71,7 @@
 | T034 | V0.3 Shared 合同与 Mock | Shared / Product | PASS | 0.3.0 | T015、T031、T018 | PR #30 squash merge `18ea9e8`；Codex 2×P2 已修复并 resolve；自审补 1 个凭证过时段边界；final `d1cb656` Verify #314 success；Browser #115 T034 3/3 passed、relation `[]`，其余 8 项仍为既有 T017/T018/T032 基线债 |
 | T035 | Mobile 便利店连续浏览结构 | Mobile / UX | PASS | 0.3.0 | T034、T031 | PR #31 squash merge `669791b`；Codex P1 底部遮挡已修复并 resolve；final `54ce85d` Verify #321 success；Browser #119 T035 4/4 + T031 浏览回归通过，77/85，其余 8 项为既有 T017/T018/T032 checkout 旧债；未提前做 T036 |
 | T036 | Mobile 便利店分类滚动联动 | Mobile / Interaction | PASS | 0.3.0 | T035 | 2026-09-06 用户授权 AI review 无新回复时自审验收；latest-head Verify #34003981393 success；Browser #34003981401：T036 5/5、全量 100/108，8 项均为既有 T017/T018/T032 checkout 旧债；PR #32 squash merge `3dd5309` |
-| T037 | Mobile 自提双凭证 | Mobile / Fulfillment | REVIEW | 0.3.0 | T034、T018 | PR #36；final `f6cdb71`；Verify #34004467423 success；Browser #34004467392：T037 3/3、全量 102/111；8 项既有 checkout 旧债 + 1 项 T022 旧“第二张 pickup 订单”断言被 V0.3 R02 主动淘汰，留 T038/T039 收口；自审无阻塞项 |
+| T037 | Mobile 自提双凭证 | Mobile / Fulfillment | PASS | 0.3.0 | T034、T018 | 2026-09-06 Mira 按用户授权自审验收；PR #36 squash merge `e05c2ff`；final `f6cdb71` Verify #34004467423 success；Browser #34004467392：T037 3/3、全量 102/111；8 项既有 checkout 旧债 + 1 项 T022 旧“第二张 pickup 订单”断言由 T038/T039 收口 |
 | T038 | PC 二维码扫码核销 | PC / Fulfillment | TODO | 0.3.0 | T034、T037、T022 | 必须消费 T022 已稳定便利店履约后台；不得另造第二套 PC 后台 |
 | T039 | PC 数字取货码核销 | PC / Fulfillment | TODO | 0.3.0 | T034、T037、T022 | 数字码核销与 T038 操作同一 redemption；验证双通道互斥 |
 | T040 | Mobile 便利店消费积分反馈 | Mobile / Benefits | TODO | 0.3.0 | T034、T018、T032 | 购物车 + 结算“本单预计可得积分”；复用现有抵现，不重做 |
@@ -185,5 +185,5 @@
 1. V0.2：T025 已解锁，可直接开始 PC 数据驾驶舱增量；T025 完成后，仍需 T019 / T033 商城最终视觉验收收口，再进入 T026 总体跨端验收准备。
 2. V0.2：便利店 UX lane 已全部收口，T017、T027-T032、T030 均为 PASS，不再作为后续施工阻塞。
 3. V0.3：T034、T035、T036 已 PASS；当前可并行启动 T037、T040、T041、T042。
-4. V0.3：T037 完成后解锁 T038 / T039；T042 完成后解锁 T043。
+4. V0.3：T037 已 PASS，T038 / T039 已解锁；T042 完成后解锁 T043。
 5. T022 / T023 / T024 已全部 PASS；后续不得另造第二套 PC 便利店履约 / 核销后台，也不得回滚已确认的 Shared / T018 业务事实。
