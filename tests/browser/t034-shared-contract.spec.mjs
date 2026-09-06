@@ -112,7 +112,7 @@ test.describe("T034 · V0.3 shared contract", () => {
     const data = await readShared(page);
     expect(data.pickup).not.toBeNull();
     expect(data.pickup.orderId).toBe("LL-1024");
-    expect(data.pickup.pickupCode).toMatch(/^\\d+$/);
+    expect(data.pickup.pickupCode).toMatch(/^\d+$/);
     expect(data.pickup.pickupCode).not.toBe(data.pickup.orderId);
     expect(data.pickup.orderPickupCode).toBe(data.pickup.pickupCode);
     expect(data.pickup.redemptionCode).toBe(data.pickup.pickupCode);
