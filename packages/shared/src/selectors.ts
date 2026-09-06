@@ -514,6 +514,9 @@ export function validateDemoFixtureRelations(): string[] {
       const exists = ref.type === "product" ? productIds.has(ref.id) : ref.type === "care_project" ? careProjectIds.has(ref.id) : ref.type === "coupon" ? couponIds.has(ref.id) : storefrontIds.has(ref.id);
       if (!exists) issues.push(`campaign:${campaign.id}:missing-${ref.type}:${ref.id}`);
     }
+    if (campaign.target.type !== "campaign_detail" || campaign.target.campaignId !== campaign.id) {
+      issues.push(`campaign:${campaign.id}:invalid-target`);
+    }
   }
 
   return issues;
