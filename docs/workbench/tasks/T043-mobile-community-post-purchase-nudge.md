@@ -1,6 +1,6 @@
 # T043 · Mobile 消费后社群承接
 
-- Status: TODO
+- Status: DOING
 - Target version: 0.3.0
 - Type: Mobile / Growth / Interaction
 - Predecessors: T042、T018
@@ -39,3 +39,13 @@
 ## Evidence required
 
 Browser test 必须覆盖“首次出现 → 记录频控 → 再次不出现”，不接受只做两张静态状态截图。
+
+
+## Execution baseline
+
+- Branch: `task/T043-community-post-purchase-nudge`
+- Started from latest `dev` after T042 PASS.
+- Consume T034 Shared `getCommunityForStore` + `shouldShowCommunityNudge` + confirmed 7-day cooldown rule; Shared unchanged.
+- Browser-local last-shown timestamp is used only as the prototype write-side for the current user so the flow can verify first show → record → suppress within 7 days.
+- Payment-success and pickup-completed are both eligible trigger scenes, but the cooldown is global per user: if payment success already showed, pickup completion within 7 days does not show a second nudge.
+- Mall / Care and T042 persistent My entry remain untouched except the minimal Store → Community route callback.
