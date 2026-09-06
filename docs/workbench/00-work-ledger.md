@@ -51,7 +51,7 @@
 | T014 | 实验性 PR AI Review | CI / Review | REVIEW | 0.1.0 | GitHub Actions、`OPENCODE_API_KEY` | 独立实验性 Review，不阻塞产品版本 |
 | T015 | V0.2 共享领域模型与 Mock Fixtures | Shared | PASS | 0.2.0 | V0.2 PRD | PR #10 已合入 `dev`；Verify #151、Browser Quality #10、关系校验通过；2026-09-01 用户授权按台账证据验收 |
 | T016 | Mobile 运营首页、一级 IA 与全局搜索 | Mobile | PASS | 0.2.0 | T015 | PR #11 已合入 `dev`；Verify #172、Browser Quality #31、Codex 返工闭环；2026-09-01 用户授权按台账证据验收 |
-| T017 | Mobile 便利店门店页、商品浏览与独立购物车 | Mobile | REVIEW | 0.2.0 | T015、T016 | 原 PR #12 / CI / AI Review 功能证据保留；2026-09-01 内部 UX 复审 `CHANGES_NEEDED`，拆 T027-T030 返工后再恢复 PASS |
+| T017 | Mobile 便利店门店页、商品浏览与独立购物车 | Mobile | PASS | 0.2.0 | T015、T016 | T030 逐屏 UX 复审通过后恢复 PASS；便利店主链选店→浏览→商详→购物车→结算收口；T027/T028/T029/T031/T032 全部验收通过；46/46 Playwright 回归通过 |
 | T018 | Mobile 便利店结算、自提与 3 公里短距配送 | Mobile | PASS | 0.2.0 | T017（业务语义） | `8c9b8cb` + `d97eb53` 已进入 `dev`；`80d93a2` 记录验收；`npm run verify` success；Playwright 390px 全量 41 项 success；本轮仅消费侧 UX 返工，不回滚 T018 业务语义 |
 | T019 | Mobile 线上商城中高保真购买闭环 | Mobile / UX | REVIEW | 0.2.0 | T015、T016 | 原 PR #13 / CI / 2026-08-31 验收证据保留；2026-09-02 用户视觉验收重开。R1-R4 已整合；R5 PR #26 完成五屏 390×844 独立视觉复审，首轮发现并修复订单进度横向溢出；最终 artifact `9855267147` 五屏齐全，R5 结论 `PASS FOR HUMAN / REVIEW`。父卡等待用户最终视觉确认，不自行恢复 PASS |
 | T020 | Mobile 智慧抗衰项目、预约与二维码核销 | Mobile | PASS | 0.2.0 | T015、T016 | PR #14 merge `3297f1c`；`a2f68b1` 记录验收；`npm run verify` success；Playwright 390px 全量 45 项通过（T020 专项 4 项）；7 项验收标准全部满足 |
@@ -61,11 +61,13 @@
 | T024 | PC 商城渠道、活动与搜索运营后台 | PC | PASS | 0.2.0 | T015、T016、T019 | 2026-09-06 用户验收并授权合并；PR #35 squash merge `1309260`；Verify #34002301123 success；Browser #34002301128：T024 6/6、全量 95/103，8 项均为既有 T017/T018/T032 基线债；CodeRabbit 1×Minor 已修复并 resolve；人工自审无阻塞项 |
 | T025 | PC V0.2 数据驾驶舱升级 | PC / Data | TODO | 0.2.0 | T015、T022-T024 | 自提 / 短配 / 商城 / 预约 / 核销 / 转化的增量数据视角 |
 | T026 | V0.2 跨端串联、中高保真质量与验收准备 | QA / Shared | TODO | 0.2.0 | T016-T025、T030 | 三主流程跨端对账、390/1024/1440 浏览器质量、PRD AC 对账；便利店中高保真必须引用 T030 UX PASS |
-| T027 | Mobile 便利店选店与门店上下文 UX 返工 | Mobile / UX | REVIEW | 0.2.0 | T017、T018 业务语义 | PR #15 merge `fd1631c9b425ad68c0e54c8072e8dc1fd84dab87`；final head `ee7969b`：Verify #217、Browser #60、OpenCode #81 success / `NO_BLOCKING_FINDINGS`；Codex P1 已修复并 resolve；T028 可接续 |
-| T028 | Mobile 便利店商品浏览与零售密度 UX 返工 | Mobile / UX | DOING | 0.2.0 | T027 | PR #16 施工中；商品主图 / 包装图、紧凑商品列表、消费者活动位、持续可达底部购物栏；Codex review 返工中 |
-| T029 | Mobile 便利店商详、购物车与链路收口 UX 返工 | Mobile / UX | TODO | 0.2.0 | T027、T028 | 商详信息层级、购物车收口、唯一购买主链、legacy 自提兼容入口迁出正常路径 |
-| T030 | Mobile 便利店 UX 复审与验收 | UX / QA | TODO | 0.2.0 | T027-T029 | 390×844 实屏复审、内部术语扫描、门店连续性 / 购物栏 / 唯一购买主链、T012/T017/T018 回归；UX PASS 后恢复 T017 PASS |
-| T033 | Mobile 顶栏、首页搜索与商城语义收口 | Mobile / UX / QA | REVIEW | 0.2.0 | T016、T019 | PR #27 已 merge `dev`；用户预览后明确否决商城“精选店铺 / 官方商城 / 合作渠道”模块。PR #28 follow-up 删除消费端店铺 / 来源 / 切换心智，Storefront / Channel 仅保留内部数据模型；等待 final head Verify / Browser / review |
+| T027 | Mobile 便利店选店与门店上下文 UX 返工 | Mobile / UX | PASS | 0.2.0 | T017、T018 业务语义 | T030 UX 复审确认 PASS；门店连续性、关闭门店表达、切店购物车隔离、全局搜索 handoff 均通过；正常消费者路径无工程术语 |
+| T028 | Mobile 便利店商品浏览与零售密度 UX 返工 | Mobile / UX | PASS | 0.2.0 | T027 | PR #16 已 merge（`c77c637`）；核心 scope 后由 T031 以更高标准完成并验收：双栏分类、紧凑商品行、悬浮购物栏、可用券入口、单品/套餐双态 |
+| T029 | Mobile 便利店商详、购物车与链路收口 UX 返工 | Mobile / UX | PASS | 0.2.0 | T027、T028 | 商详固定操作栏、弹层购物车、独立购物车、卡片式结算与 legacy compatibility 入口迁移完成；T012/T017/T031/T032 回归通过 |
+| T030 | Mobile 便利店 UX 复审与验收 | UX / QA | PASS | 0.2.0 | T027-T029 | 390×844 逐屏 UX 复审 PASS；选店/浏览/商详/弹层购物车/独立购物车/结算全链通过；术语扫描通过；46/46 Playwright；T017 同步恢复 PASS |
+| T031 | Mobile 便利店双栏分类与零售密度升级 | Mobile / UX | PASS | 0.2.0 | T028 | 左侧固定分类 + 紧凑商品行 + 单品/套餐双态 + 悬浮购物栏；390×844；T031 专项 9/9 + T017 回归 8/8；任务卡验收 PASS |
+| T032 | Mobile 便利店弹层购物车与结算页分组 | Mobile / UX | PASS | 0.2.0 | T031 | 弹层购物车、商详固定操作栏、5 组卡片式结算完成；Playwright 28/28、390×844 无横向溢出；任务卡 Status 为 PASS（Review 区仍保留未清理模板） |
+| T033 | Mobile 顶栏、首页搜索与商城语义收口 | Mobile / UX / QA | REVIEW | 0.2.0 | T016、T019 | PR #27 已 merge；PR #28 已于 2026-09-03 merge `fec30c6`，删除消费者侧店铺 / 来源 / 切换心智，并同步 PRD / T019 真相源；任务卡仍为 REVIEW，等待最终视觉确认 |
 | T034 | V0.3 Shared 合同与 Mock | Shared / Product | PASS | 0.3.0 | T015、T031、T018 | PR #30 squash merge `18ea9e8`；Codex 2×P2 已修复并 resolve；自审补 1 个凭证过时段边界；final `d1cb656` Verify #314 success；Browser #115 T034 3/3 passed、relation `[]`，其余 8 项仍为既有 T017/T018/T032 基线债 |
 | T035 | Mobile 便利店连续浏览结构 | Mobile / UX | PASS | 0.3.0 | T034、T031 | PR #31 squash merge `669791b`；Codex P1 底部遮挡已修复并 resolve；final `54ce85d` Verify #321 success；Browser #119 T035 4/4 + T031 浏览回归通过，77/85，其余 8 项为既有 T017/T018/T032 checkout 旧债；未提前做 T036 |
 | T036 | Mobile 便利店分类滚动联动 | Mobile / Interaction | TODO | 0.3.0 | T035 | 点击分类定位 + 滚动反向高亮；不改商品排序 / 购物链路 |
@@ -86,14 +88,12 @@
 
 ## V0.2 当前进度
 
-- Wave 0-2 的业务语义施工已完成；T015、T016、T018、T020、T021 保持 `PASS`。T019 保留原业务闭环证据，但因 2026-09-02 视觉验收重开为 `REVIEW`。
-- T017 因 2026-09-01 内部 UX 复审 `CHANGES_NEEDED` 重开为 `REVIEW`；新增 T027-T030 作为消费侧 UX 返工与独立复审链。
-- T019 商城 UX 返工已完成 R1-R4 施工与 R5 独立复审。R5 首轮真实五屏链在 Order 页发现 19px 横向溢出并修复；最终 Browser #98 中 R5 / R1-R4 / T019 商城链全部通过，五屏 artifact `9855267147` 已逐屏复审，无新的阻塞级 UX / Visual 缺陷。当前 R5 / T019 均保持 `REVIEW`，等待用户最终视觉确认。
-- T027 已完成施工、review gate 并合入 `dev`；T028 正在 PR #16 施工 / review。T028 → T029 → T030 继续串行，避免当前单体 `StoreFlowScreen.tsx` 产生语义 / 文件竞态。
-- T033 PR #27 已合入 `dev`；用户在部署预览中进一步明确商城前台不应出现店铺 / 来源选择心智。PR #28 正在删除 Home / Detail / Cart / Checkout / Order 的显式 Storefront / Channel 表达并重跑五屏门禁。
-- Wave 3 PC 后台 T022、T023、T024 均已 PASS；PC 业务语义已稳定，UX 返工不得改变 T018 / Shared 已确认业务语义。
+- Wave 0-2 的业务语义施工已完成；T015-T018、T020、T021 当前均为 `PASS`。T019 保留原业务闭环证据，但因 2026-09-02 视觉验收重开为 `REVIEW`。
+- 便利店消费侧 UX 返工已收口：T027-T032 与独立复审 T030 均为 `PASS`，T017 已按 T030 结论恢复 `PASS`；390×844 全链 UX 复审通过，46/46 Playwright 回归通过。
+- T019 商城 UX 返工已完成 R1-R4 与 R5 独立复审执行；五屏 artifact `9855267147` 已逐屏复审。消费者侧 Storefront / Channel 语义又由 T033 / PR #28 收口并已合入 `dev`，但 T019 与 T033 任务卡仍保持 `REVIEW`，等待用户最终视觉确认。
+- Wave 3 PC 后台 T022、T023、T024 均已 `PASS`；PC 业务语义稳定。
 - T025 前置已满足，可以开始数据驾驶舱增量施工。
-- T026 除原前置外新增 T030 UX gate；T030 未 PASS 时，不得把 V0.2 便利店中高保真视觉视为完成；商城侧还需用户把 R5 / T019 正式确认 PASS。
+- T026 的便利店 UX gate（T030）已经满足；当前仍需 T025 完成，并等待 T019 商城最终视觉验收收口后再执行总体跨端验收准备。
 
 ## V0.2 派卡原则
 
@@ -112,7 +112,7 @@
 
 ### Wave 1 · 三大 Mobile 业务域
 
-- T017 便利店浏览 / 独立购物车 — `REVIEW`（UX reopen）。
+- T017 便利店浏览 / 独立购物车 — `PASS`（T030 UX 复审后恢复）。
 - T019 线上商城购买闭环 — `REVIEW`（R5 独立视觉复审执行通过，等待用户最终确认）。
 - T020 智慧抗衰预约 / 核销 — `PASS`。
 
@@ -121,12 +121,14 @@
 - T018 便利店自提 / 短配。
 - T021 智慧抗衰报告 / 历史对比。
 
-### Wave 2.5 · 便利店 UX 返工 — IN PROGRESS
+### Wave 2.5 · 便利店 UX 返工 — PASS
 
-1. T027 选店与门店上下文 — `REVIEW`，PR #15 已合入 `dev`。
-2. T028 商品浏览与零售密度 — `DOING`，PR #16 施工 / review 中。
-3. T029 商详、购物车与购买链路收口 — `TODO`。
-4. T030 独立 UX 复审 — `TODO`；通过后恢复 T017 PASS。
+1. T027 选店与门店上下文 — `PASS`。
+2. T028 商品浏览与零售密度 — `PASS`；后续由 T031 以更高标准完成双栏密度升级。
+3. T029 商详、购物车与购买链路收口 — `PASS`。
+4. T031 双栏分类与零售密度升级 — `PASS`。
+5. T032 弹层购物车与结算页分组 — `PASS`。
+6. T030 独立 UX 复审 — `PASS`；T017 已恢复 PASS。
 
 ### Wave 2.6 · 商城 UX 返工 — REVIEW
 
@@ -134,7 +136,7 @@
 - T019-R2 商品详情视觉返工 — PR #23 已 merge `dev`，UX 自审 `PASS FOR MERGE`；PR #28 follow-up 删除来源标签。
 - T019-R3 商城购物车视觉返工 — `REVIEW`，PR #24 merge `43ccd84c`；PR #28 follow-up 删除来源条。
 - T019-R4 结算确认 + 订单物流视觉返工 — `REVIEW`，PR #25；PR #28 follow-up 删除结算 / 订单“店铺来源”行。
-- T019-R5 商城视觉独立复审 — `REVIEW`；PR #28 final head 将重新生成五屏证据，并把“店铺 / 官方商城 / 合作渠道专场”加入消费者侧硬门禁。
+- T019-R5 商城视觉独立复审 — `REVIEW`；五屏证据已生成。T033 / PR #28 已删除消费者侧“店铺 / 官方商城 / 合作渠道”等来源心智并合入 `dev`；等待用户最终视觉确认。
 
 ### Wave 3 · PC 后台并行 — PASS
 
@@ -180,10 +182,8 @@
 
 ## 下一步
 
-1. V0.3 如开始施工，第一张只能从 T034 开始；T034 未完成前不并行启动依赖其 Shared 合同的 V0.3 UI 卡。
-2. T038 / T039 等待 T022 便利店 PC 履约后台稳定，不得提前复制后台。
-3. T033 PR #28 完成 final head Verify / Browser / review 后合入 `dev`，由用户复看商城五屏不再出现店铺 / 来源心智。
-4. T019-R5 在 PR #28 重新生成五屏证据后继续等待用户最终视觉确认；确认后再把 R5 / T019 恢复 `PASS`。
-5. T028 完成 PR #16 review / 回归并合入 `dev` 后，再进入 T029；后续按 T029 → T030 串行。
-6. T022 / T023 / T024 已全部 PASS；不得因为 UX reopen 回滚已经确认的 Shared / T018 业务事实。
-7. T025 已解锁；T025、T030、T019-R5 都正式 PASS 后再执行 T026 总体跨端验收准备。
+1. V0.2：T025 已解锁，可直接开始 PC 数据驾驶舱增量；T025 完成后，仍需 T019 / T033 商城最终视觉验收收口，再进入 T026 总体跨端验收准备。
+2. V0.2：便利店 UX lane 已全部收口，T017、T027-T032、T030 均为 PASS，不再作为后续施工阻塞。
+3. V0.3：T034、T035 已 PASS；当前可并行启动 T036、T037、T040、T041、T042。
+4. V0.3：T037 完成后解锁 T038 / T039；T042 完成后解锁 T043。
+5. T022 / T023 / T024 已全部 PASS；后续不得另造第二套 PC 便利店履约 / 核销后台，也不得回滚已确认的 Shared / T018 业务事实。
