@@ -253,6 +253,15 @@ export interface OnlineStorefront {
   note?: string;
 }
 
+export interface MallProductListing {
+  id: string;
+  productId: string;
+  storefrontId: string;
+  channelId: string;
+  status: "active" | "planned";
+  note?: string;
+}
+
 export type CampaignPlacement = "home_hero" | "home_featured" | "store_featured" | "mall_featured" | "care_featured";
 
 export interface CampaignRef {
