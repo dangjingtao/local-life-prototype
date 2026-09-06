@@ -345,7 +345,7 @@ export function MallCampaignSearchOperations() {
       <p className="mt-2 max-w-4xl text-sm leading-6 text-[var(--color-text-secondary)]">把 Mobile 的商城商品、首页活动和全局搜索背后的 Shared 关系放进同一个可解释的运营后台；只做中高保真结构与关系验证，不冒充真实平台集成。</p>
     </div>
     <div className="grid gap-3 md:grid-cols-3">
-      {tabs.map((item) => <button key={item.id} type="button" aria-pressed={tab === item.id} onClick={() => setTab(item.id)} className={`rounded-[var(--radius-container)] border p-4 text-left transition ${tab === item.id ? "border-[var(--color-primary)] bg-[var(--color-brand-subtle)]" : "border-[var(--color-border)] bg-[var(--color-surface)]"}`}>
+      {tabs.map((item) => <button key={item.id} type="button" aria-label={item.label} aria-pressed={tab === item.id} onClick={() => setTab(item.id)} className={`rounded-[var(--radius-container)] border p-4 text-left transition ${tab === item.id ? "border-[var(--color-primary)] bg-[var(--color-brand-subtle)]" : "border-[var(--color-border)] bg-[var(--color-surface)]"}`}>
         <p className="font-semibold">{item.label}</p><p className="mt-1 text-xs leading-5 text-[var(--color-text-secondary)]">{item.note}</p>
       </button>)}
     </div>
