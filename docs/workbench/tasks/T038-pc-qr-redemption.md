@@ -1,6 +1,6 @@
 # T038 · PC 二维码扫码核销
 
-- Status: REVIEW
+- Status: PASS
 - Target version: 0.3.0
 - Type: PC / Fulfillment
 - Predecessors: T034、T037、T022
@@ -85,5 +85,5 @@ T022 尚未稳定时本卡不得 DOING。T022 进入可消费的稳定状态后�
 
 ## Review
 
-- Result: REVIEW
-- Conclusion: T038 唯一交付物满足；专项 2/2、T022 5/5、Verify success，自审无阻塞项。按用户授权可由 Mira 自审验收并合并。
+- Result: PASS
+- Conclusion: T038 唯一交付物满足；专项 2/2、T022 5/5、Verify success，自审无阻塞项。2026-09-06 按用户授权由 Mira 自审验收；PR #37 squash merge `08a0ecac1ec2d124c35da06f005c198ecc96275e`。
