@@ -1,6 +1,6 @@
 # T039 · PC 数字取货码核销
 
-- Status: REVIEW
+- Status: PASS
 - Target version: 0.3.0
 - Type: PC / Fulfillment
 - Predecessors: T034、T037、T022
@@ -84,5 +84,5 @@
 
 ## Review
 
-- Result: REVIEW
-- Conclusion: T039 AC 满足；专项 3/3、T038 2/2、T022 5/5、Verify success，自审无阻塞项。按用户授权可由 Mira 自审验收并合并。
+- Result: PASS
+- Conclusion: T039 AC 满足；专项 3/3、T038 2/2、T022 5/5、Verify success，自审无阻塞项。2026-09-06 按用户授权由 Mira 自审验收；PR #38 squash merge `893bdddec66b3da705c67719e2b292090741a77c`。
