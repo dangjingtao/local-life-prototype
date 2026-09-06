@@ -189,6 +189,8 @@ export function MerchantConvenienceOperations({
   ];
 
   const [qrScanState, setQrScanState] = useState<"idle" | "matched" | "completed" | "already_used" | "invalid">("idle");
+  const [pickupCodeInput, setPickupCodeInput] = useState("");
+  const [pickupCodeState, setPickupCodeState] = useState<"idle" | "matched" | "completed" | "already_used" | "invalid">("idle");
   const pickupCredential = getPickupCredentialForOrder(CORE_DEMO_IDS.pickupOrder);
   const qrOrder = pickupCredential ? convenienceOrders.find((order) => order.id === pickupCredential.orderId) : undefined;
   const qrRedemption = pickupCredential
@@ -220,6 +222,36 @@ export function MerchantConvenienceOperations({
     setQrScanState("completed");
   };
 
+  const lookupPickupCode = () => {
+    const normalized = pickupCodeInput.trim();
+    if (!pickupCredential || !qrOrder || !qrRedemption || normalized !== pickupCredential.pickupCode) {
+      setPickupCodeState("invalid");
+      return;
+    }
+    if (qrRedemptionCompleted || effectiveFulfillmentStatus(qrOrder, fulfillmentOverrides) === "completed") {
+      setPickupCodeState("already_used");
+      return;
+    }
+    setPickupCodeState("matched");
+  };
+
+  const confirmPickupCodeRedemption = () => {
+    if (!qrOrder || !qrRedemption || qrRedemptionCompleted) {
+      setPickupCodeState("already_used");
+      return;
+    }
+    onFulfillmentChange(qrOrder.id, "completed");
+    onRedemptionComplete(qrRedemption.id);
+    setPickupCodeState("completed");
+  };
+
+  const resetRedemptionDemo = () => {
+    onReset();
+    setQrScanState("idle");
+    setPickupCodeState("idle");
+    setPickupCodeInput("");
+  };
+
   const completePickup = (order: Order) => {
     onFulfillmentChange(order.id, "completed");
     const redemption = redemptions.find((record) => record.targetType === "order" && record.targetId === order.id);
@@ -245,7 +277,7 @@ export function MerchantConvenienceOperations({
         <p className="text-sm text-[var(--color-text-secondary)]">{coreDemoStore.name} · T022 / V0.2</p>
         <h2 className="mt-1 text-2xl font-semibold">便利店订单与履约</h2>
       </div>
-      {hasOverrides && <SecondaryButton onClick={onReset}>重置履约演示</SecondaryButton>}
+      {hasOverrides && <SecondaryButton onClick={resetRedemptionDemo}>重置履约演示</SecondaryButton>}
     </div>
 
     <Card className="bg-[var(--color-surface-subtle)]">
@@ -323,6 +355,84 @@ export function MerchantConvenienceOperations({
                 )}
                 {qrScanState === "completed" && (
                   <p className="mt-4 text-sm font-medium text-[var(--color-success)]">同一 redemption 已完成；订单履约同步结束。</p>
+                )}
+              </div>
+            )}
+          </div>
+        )}
+      </Card>
+    </Section>
+
+    <Section title="数字码核销">
+      <Card className="p-5" data-testid="t039-code-redemption">
+        <div className="flex flex-wrap items-start justify-between gap-3">
+          <div>
+            <div className="flex flex-wrap items-center gap-2">
+              <StatusTag tone="warning">取货码 Mock</StatusTag>
+              <span className="text-xs text-[var(--color-text-tertiary)]">T039 · 与二维码共用同一 redemption</span>
+            </div>
+            <h3 className="mt-3 text-lg font-semibold">输入取货码核销</h3>
+            <p className="mt-2 max-w-2xl text-sm leading-6 text-[var(--color-text-secondary)]">
+              输入用户订单页显示的取货码进行匹配；这里只验证原型交互与单次核销，不接真实门店硬件或生产审计。
+            </p>
+          </div>
+        </div>
+
+        <div className="mt-5 grid gap-3 sm:grid-cols-[minmax(0,1fr)_auto]">
+          <label className="min-w-0">
+            <span className="text-xs font-medium text-[var(--color-text-tertiary)]">数字取货码</span>
+            <input
+              aria-label="数字取货码"
+              value={pickupCodeInput}
+              onChange={(event) => {
+                setPickupCodeInput(event.target.value);
+                if (pickupCodeState !== "idle") setPickupCodeState("idle");
+              }}
+              placeholder="请输入取货码"
+              className="mt-1 min-h-11 w-full rounded-[var(--radius-control)] border border-[var(--color-border)] bg-[var(--color-surface)] px-3 text-sm outline-none focus:border-[var(--color-primary)]"
+            />
+          </label>
+          <SecondaryButton className="self-end" onClick={lookupPickupCode}>匹配订单</SecondaryButton>
+        </div>
+
+        {pickupCodeState !== "idle" && (
+          <div className="mt-4 rounded-[var(--radius-container)] border border-[var(--color-border)] bg-[var(--color-surface-subtle)] p-4">
+            {pickupCodeState === "invalid" ? (
+              <div>
+                <StatusTag tone="warning">未匹配</StatusTag>
+                <p className="mt-3 text-sm font-medium">取货码错误或不存在</p>
+                <p className="mt-1 text-xs text-[var(--color-text-tertiary)]">订单与核销状态未发生变化。</p>
+              </div>
+            ) : pickupCodeState === "already_used" ? (
+              <div>
+                <StatusTag tone="warning">不可重复核销</StatusTag>
+                <p className="mt-3 text-sm font-medium">该订单已通过另一通道完成核销</p>
+                <p className="mt-1 text-xs text-[var(--color-text-tertiary)]">二维码与数字码共用同一 redemption，只允许成功一次。</p>
+              </div>
+            ) : (
+              <div data-testid="t039-code-match">
+                <div className="flex flex-wrap items-center justify-between gap-3">
+                  <div>
+                    <p className="text-xs text-[var(--color-text-tertiary)]">取货码命中订单</p>
+                    <p className="mt-1 font-semibold">{qrOrder?.id ?? "-"}</p>
+                  </div>
+                  <StatusTag tone={pickupCodeState === "completed" ? "success" : "warning"}>
+                    {pickupCodeState === "completed" ? "核销完成" : "待确认核销"}
+                  </StatusTag>
+                </div>
+                <div className="mt-4 grid gap-3 text-sm sm:grid-cols-2 xl:grid-cols-4">
+                  <DetailItem label="订单" value={qrOrder?.id ?? "-"} />
+                  <DetailItem label="Redemption" value={qrRedemption?.id ?? "-"} />
+                  <DetailItem label="取货码" value={pickupCredential?.pickupCode ?? "-"} />
+                  <DetailItem label="门店" value={getStoreName(qrOrder?.storeId)} />
+                </div>
+                {pickupCodeState === "matched" && (
+                  <SecondaryButton className="mt-4 w-full" onClick={confirmPickupCodeRedemption}>
+                    确认数字码核销 {qrOrder?.id}
+                  </SecondaryButton>
+                )}
+                {pickupCodeState === "completed" && (
+                  <p className="mt-4 text-sm font-medium text-[var(--color-success)]">同一 redemption 已完成；二维码通道也立即失效。</p>
                 )}
               </div>
             )}
