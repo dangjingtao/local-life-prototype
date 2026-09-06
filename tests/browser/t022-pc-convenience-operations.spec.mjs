@@ -65,7 +65,7 @@ test.describe("T022 · PC convenience fulfillment operations", () => {
     await expect(delivery).toContainText("约 3 km 短配");
     await expect(delivery).toContainText("备货中");
 
-    await pickup.getByRole("button", { name: "扫码核销 LL-1024" }).click();
+    await pickup.getByRole("button", { name: "扫码核销 482731" }).click();
     await expect(pickup).toContainText("已完成");
     await expect(pickup.getByRole("button", { name: "已完成核销" })).toBeDisabled();
 
@@ -142,7 +142,7 @@ test.describe("T022 · PC convenience fulfillment operations", () => {
     await expect(page.getByText("门店正在备货", { exact: true })).toBeVisible();
     await page.getByRole("button", { name: "模拟备货完成" }).click();
     await expect(page.getByText("可核销", { exact: true })).toBeVisible();
-    await expect(page.getByTestId("pickup-code-credential")).toContainText("LL-1024");
+    await expect(page.getByTestId("pickup-code-credential")).toContainText("482731");
     await expect(page.getByTestId("pickup-code-credential")).toHaveAttribute("data-redemption-id", "REDEEM-LL-1024");
 
     await openMerchantFulfillment(page, 1024, 768);

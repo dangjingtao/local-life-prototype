@@ -39,6 +39,8 @@ test.describe("T037 · mobile pickup dual credential", () => {
     await expect(page.getByText("LL-1024", { exact: true }).last()).toBeVisible();
     await expect(qr).toHaveAttribute("data-redemption-id", "REDEEM-LL-1024");
     await expect(code).toHaveAttribute("data-redemption-id", "REDEEM-LL-1024");
+    await expect(code.getByText("482731", { exact: true })).toBeVisible();
+    await expect(code).not.toContainText("LL-1024");
     await expectNoHorizontalOverflow(page);
 
     await mkdir("test-results/t037-visual-evidence", { recursive: true });

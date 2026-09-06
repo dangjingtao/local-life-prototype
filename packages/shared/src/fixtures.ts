@@ -8,6 +8,8 @@ export const CORE_DEMO_IDS = {
   pickupCredential: "PICKUP-CREDENTIAL-LL-1024", community: "COMMUNITY-YUNLING-DEMO",
 } as const;
 
+export const CORE_DEMO_PICKUP_CODE = "482731";
+
 const legacyPartnerIds = new Set([CORE_DEMO_IDS.partner, "PARTNER-NANAN"]);
 const legacyStoreIds = new Set([CORE_DEMO_IDS.store, "STORE-NANAN"]);
 const legacyProductIds = new Set(["PRODUCT-SCALP-SET", "PRODUCT-CLEAN-SET", "PRODUCT-LIGHT-LIFE", "PRODUCT-SKIN-TRIAL"]);
@@ -144,7 +146,7 @@ export const appointments: Appointment[] = [
 ];
 
 export const v02Orders: Order[] = [
-  { id: CORE_DEMO_IDS.pickupOrder, userId: CORE_DEMO_IDS.user, scene: "store", status: "pending_pickup", fulfillment: "pickup", fulfillmentDetail: { mode: "pickup", status: "ready_for_pickup", storeId: CORE_DEMO_IDS.store, pickupWindow: "今天 12:30-13:00", pickupCode: "LL-1024" }, storeId: CORE_DEMO_IDS.store, items: [{ kind: "product", id: "PRODUCT-LIGHT-LIFE", name: "轻盈生活组合", quantity: 1, unitPriceYuan: 99 }], amountYuan: 99, createdAt: "2026-08-27T10:20:00+08:00" },
+  { id: CORE_DEMO_IDS.pickupOrder, userId: CORE_DEMO_IDS.user, scene: "store", status: "pending_pickup", fulfillment: "pickup", fulfillmentDetail: { mode: "pickup", status: "ready_for_pickup", storeId: CORE_DEMO_IDS.store, pickupWindow: "今天 12:30-13:00", pickupCode: CORE_DEMO_PICKUP_CODE }, storeId: CORE_DEMO_IDS.store, items: [{ kind: "product", id: "PRODUCT-LIGHT-LIFE", name: "轻盈生活组合", quantity: 1, unitPriceYuan: 99 }], amountYuan: 99, createdAt: "2026-08-27T10:20:00+08:00" },
   { id: "LL-1023", userId: "LL-8891", scene: "mall", status: "shipping", fulfillment: "home_delivery", fulfillmentDetail: { mode: "parcel_delivery", status: "shipping", carrier: "中通快递", trackingNo: "ZT202608270023", deliveryAddress: "深圳市南山区科技南十二路 8 号" }, channelId: "CHANNEL-DOUYIN", storefrontId: "STOREFRONT-DOUYIN", items: [{ kind: "product", id: "PRODUCT-SCALP-SET", name: "头皮养护套装", quantity: 1, unitPriceYuan: 129 }], amountYuan: 129, createdAt: "2026-08-27T09:10:00+08:00" },
   { id: "LL-1022", userId: "LL-8892", scene: "care", status: "completed", fulfillment: "service_at_store", fulfillmentDetail: { mode: "service_at_store", status: "completed", storeId: CORE_DEMO_IDS.store, appointmentId: "APPOINTMENT-8892-COMPLETED" }, storeId: CORE_DEMO_IDS.store, items: [{ kind: "service", id: "SERVICE-CARE-BASIC", name: "基础状态检测体验", quantity: 1, unitPriceYuan: 39 }], amountYuan: 39, createdAt: "2026-08-26T16:30:00+08:00" },
   { id: "LL-1021", userId: "LL-8893", scene: "store", status: "pending_pickup", fulfillment: "pickup", fulfillmentDetail: { mode: "pickup", status: "ready_for_pickup", storeId: "STORE-NANAN", pickupWindow: "今天 18:00-19:00", pickupCode: "LL-1021" }, storeId: "STORE-NANAN", items: [{ kind: "product", id: "PRODUCT-CLEAN-SET", name: "日常清洁组合", quantity: 1, unitPriceYuan: 69 }], amountYuan: 69, createdAt: "2026-08-26T14:40:00+08:00" },
@@ -184,7 +186,7 @@ export const detectionReports: DetectionReport[] = [
 export const reports = detectionReports.filter((item) => item.id === CORE_DEMO_IDS.report);
 
 export const redemptions: RedemptionRecord[] = [
-  { id: CORE_DEMO_IDS.pickupRedemption, userId: CORE_DEMO_IDS.user, storeId: CORE_DEMO_IDS.store, targetType: "order", targetId: CORE_DEMO_IDS.pickupOrder, code: "LL-1024", status: "pending", createdAt: "2026-08-27T10:20:00+08:00" },
+  { id: CORE_DEMO_IDS.pickupRedemption, userId: CORE_DEMO_IDS.user, storeId: CORE_DEMO_IDS.store, targetType: "order", targetId: CORE_DEMO_IDS.pickupOrder, code: CORE_DEMO_PICKUP_CODE, status: "pending", createdAt: "2026-08-27T10:20:00+08:00" },
   { id: CORE_DEMO_IDS.careRedemption, userId: CORE_DEMO_IDS.user, storeId: CORE_DEMO_IDS.store, targetType: "coupon", targetId: CORE_DEMO_IDS.experienceCoupon, code: "CARE-8888", status: "pending", createdAt: "2026-08-27T08:35:00+08:00" },
   { id: "REDEEM-EXPERIENCE-8892-01", userId: "LL-8892", storeId: CORE_DEMO_IDS.store, targetType: "service", targetId: "SERVICE-CARE-BASIC", code: "CARE-8892", status: "completed", createdAt: "2026-08-26T16:20:00+08:00", redeemedAt: "2026-08-26T16:31:00+08:00" },
 ];
@@ -194,7 +196,7 @@ export const pickupCredentials: PickupCredential[] = [
     id: CORE_DEMO_IDS.pickupCredential,
     orderId: CORE_DEMO_IDS.pickupOrder,
     redemptionId: CORE_DEMO_IDS.pickupRedemption,
-    pickupCode: "LL-1024",
+    pickupCode: CORE_DEMO_PICKUP_CODE,
     qrPayload: "locallife://pickup/LL-1024?credential=PICKUP-CREDENTIAL-LL-1024",
     validFrom: "2026-09-05T12:30:00+08:00",
     validUntil: "2026-09-05T13:00:00+08:00",

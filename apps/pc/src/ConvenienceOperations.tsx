@@ -385,6 +385,8 @@ export function MerchantConvenienceOperations({
             <span className="text-xs font-medium text-[var(--color-text-tertiary)]">数字取货码</span>
             <input
               aria-label="数字取货码"
+              inputMode="numeric"
+              pattern="[0-9]*"
               value={pickupCodeInput}
               onChange={(event) => {
                 setPickupCodeInput(event.target.value);
