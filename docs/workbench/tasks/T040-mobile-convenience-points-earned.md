@@ -1,6 +1,6 @@
 # T040 · Mobile 便利店消费积分反馈
 
-- Status: DOING
+- Status: PASS
 - Target version: 0.3.0
 - Type: Mobile / Benefits
 - Predecessors: T034、T018、T032
@@ -54,3 +54,19 @@
 - Verified against T029 / T032 baseline: finding valid. T029 明确要求“弹层购物车与独立购物车页并存”，T032 明确要求独立页仍可访问。
 - Fix: Cart Sheet 增加最小“查看完整购物车”入口，仅恢复既有基线可达性；未重做购物车结构或 checkout。
 - Browser coverage added for Sheet → 独立购物车 → 同一 projected points。
+
+
+## Final verification / acceptance
+
+- PR: #39 `feat(T040): add convenience purchase points feedback`
+- Reviewed head: `6d93679d1881ed63e55936b0e016fb072cdc719d`
+- Merge: squash `4e1712665c690524d97cb9d6e6ce2c6d33f14481`
+- Verify Prototype #34006380444: **success**（version / typecheck / build 全绿）。
+- T012 Browser Quality #34006380455: **112 passed / 8 failed（120 total）**。
+  - T040 专项 **4/4 passed**：Cart Sheet 数量变化联动、独立购物车可达且同一投影、checkout 投影与 payable 行为隔离、390×844 消费者文案 / 无溢出。
+  - 剩余 8 项全部为既有 T017 / T018 / T032 checkout 基线债。
+- CodeRabbit：首轮 1×Major“独立购物车不可达”复核成立；已按 T029 / T032 基线恢复 Cart Sheet → 完整购物车入口并补自动化。原 thread 已 resolved；latest re-review：**No actionable comments**。
+- Codex review：额度耗尽，无实质 finding。
+- Self review：Projected points 只消费 Shared `getPurchasePointProjection("store", cartTotal)`；未修改 Shared、商城、积分中心或现有便利店积分抵现；消费者 UI 未暴露 Shared / Unknown / Mock 等工程术语。
+- Result: **PASS**
+- Conclusion: 2026-09-06 按用户授权，在 AI review 无剩余阻塞后由 Mira 自审验收并合并。
