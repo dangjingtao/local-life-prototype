@@ -124,6 +124,7 @@ export function App() {
           : tabs.find((item) => item.id === activeTab)?.label ?? "首页";
   const isMallFullScreen = screen === "mall" && ["detail", "checkout", "order"].includes(mallStep);
   const isMallDedicatedLayout = screen === "mall" && mallStep !== "home";
+  const isDedicatedLayout = isMallDedicatedLayout || screen === "community";
   const showGlobalHeader = screen !== "mall" && screen !== "community";
 
   const scrollTop = () => window.scrollTo({ top: 0, behavior: "smooth" });
@@ -222,7 +223,7 @@ export function App() {
       )}
 
       <PrototypeState view={view}>
-        <main className={isMallDedicatedLayout
+        <main className={isDedicatedLayout
           ? "mx-auto max-w-[390px] space-y-0 px-4 pb-0 pt-0"
           : `mx-auto max-w-[390px] space-y-6 px-4 pb-28 ${screen === "mall" && mallStep === "home" ? "pt-0" : "pt-5"}`}
         >
