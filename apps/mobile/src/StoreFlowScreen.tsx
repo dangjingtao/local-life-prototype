@@ -97,9 +97,8 @@ function buildPickupCode() {
 }
 
 function formatCredentialWindow(iso: string) {
-  const date = new Date(iso);
-  if (Number.isNaN(date.getTime())) return "--:--";
-  return `${date.getHours().toString().padStart(2, "0")}:${date.getMinutes().toString().padStart(2, "0")}`;
+  const match = iso.match(/T(\d{2}:\d{2})/);
+  return match?.[1] ?? "--:--";
 }
 
 function buildQrMockCells(payload: string, size = 15) {
