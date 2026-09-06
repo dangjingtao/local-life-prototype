@@ -33,12 +33,12 @@ T022 尚未稳定时本卡不得 DOING。T022 进入可消费的稳定状态后�
 
 ## Acceptance
 
-- [ ] PC 有明确“扫码核销”入口。
-- [ ] Mock 扫码可解析到 T037 同一订单。
-- [ ] 已失效 / 已核销二维码不可再次成功。
-- [ ] 核销成功更新同一 redemption，不复制记录。
-- [ ] 页面没有“真实扫码已接入”之类误导表达。
-- [ ] 桌面端 browser test、typecheck、build 通过。
+- [x] PC 有明确“扫码核销”入口。
+- [x] Mock 扫码可解析到 T037 同一订单。
+- [x] 已失效 / 已核销二维码不可再次成功。
+- [x] 核销成功更新同一 redemption，不复制记录。
+- [x] 页面没有“真实扫码已接入”之类误导表达。
+- [x] 桌面端 browser test、typecheck、build 通过。
 
 ## Evidence required
 
