@@ -243,7 +243,7 @@ export function App() {
               onOpenCampaign={openCampaign}
             />
           )}
-          {screen === "store" && <StoreFlowScreen openActivity={openActivityCenter} entryContext={searchHandoff?.domain === "store" ? searchHandoff : undefined} />}
+          {screen === "store" && <StoreFlowScreen openActivity={openActivityCenter} onOpenCommunity={openCommunity} entryContext={searchHandoff?.domain === "store" ? searchHandoff : undefined} />}
           {screen === "mall" && (
             <>
               {searchHandoff?.domain === "mall" && mallStep === "home" && <SearchHandoffBanner handoff={searchHandoff} />}

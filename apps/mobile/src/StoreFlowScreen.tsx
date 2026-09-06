@@ -9,6 +9,7 @@ import {
   corePickupOrder,
   coreUserV02Coupons,
   findById,
+  getCommunityForStore,
   getConvenienceBrowseSections,
   getPickupCredentialForOrder,
   getPickupCredentialStatus,
@@ -18,7 +19,9 @@ import {
   getUserConvenienceCarts,
   isStoreDeliveryAddressInRange,
   offlineStores,
+  prototypeRules,
   redemptions,
+  shouldShowCommunityNudge,
   type Product,
   type ProductAvailability,
 } from "@prototype/shared";
@@ -56,6 +59,7 @@ type StoreOrderSnapshot = {
 const pickupRedemption = findById(redemptions, CORE_DEMO_IDS.pickupRedemption)!;
 const cartStorageKey = `local-life:${coreDemoUser.id}:convenience-carts`;
 const selectedStoreStorageKey = `local-life:${coreDemoUser.id}:convenience-selected-store`;
+const communityNudgeStorageKey = `local-life:${coreDemoUser.id}:community-nudge:last-shown-at`;
 const availabilityStatusLabels: Record<ProductAvailability["status"], string> = {
   available: "现货",
   low_stock: "库存紧张",
@@ -171,6 +175,73 @@ function persistSelectedStoreId(storeId: string) {
   }
 }
 
+function loadCommunityNudgeShownAt(): string | null | undefined {
+  if (typeof window === "undefined") return undefined;
+  try {
+    return window.localStorage.getItem(communityNudgeStorageKey);
+  } catch {
+    return undefined;
+  }
+}
+
+function persistCommunityNudgeShownAt(atIso: string) {
+  if (typeof window === "undefined") return;
+  try {
+    window.localStorage.setItem(communityNudgeStorageKey, atIso);
+  } catch {
+    // Frequency persistence is best-effort; the current mount still keeps the nudge state.
+  }
+}
+
+function isWithinCommunityNudgeCooldown(lastShownAt: string, atIso: string) {
+  if (!lastShownAt) return false;
+  const shownAt = Date.parse(lastShownAt);
+  const at = Date.parse(atIso);
+  if (!Number.isFinite(shownAt) || !Number.isFinite(at)) return true;
+  const cooldownMs = prototypeRules.communityNudgeCooldownDays.value * 24 * 60 * 60 * 1000;
+  return at - shownAt < cooldownMs;
+}
+
+function CommunityNudgeBanner({
+  stage,
+  onOpen,
+  onDismiss,
+}: {
+  stage: "payment" | "pickup_completed";
+  onOpen: () => void;
+  onDismiss: () => void;
+}) {
+  return (
+    <section
+      data-testid="t043-community-nudge"
+      data-nudge-stage={stage}
+      className="rounded-[var(--radius-container)] border border-[var(--color-primary)] bg-[var(--color-brand-subtle)] p-4"
+    >
+      <div className="flex items-start gap-3">
+        <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-[var(--color-surface)] text-[var(--color-primary)]">
+          <PrototypeIcon name="info" size={18} />
+        </span>
+        <div className="min-w-0 flex-1">
+          <p className="text-sm font-semibold">加入门店社群，获取更多福利</p>
+          <p className="mt-1 text-xs leading-5 text-[var(--color-text-secondary)]">
+            {stage === "payment"
+              ? "订单已提交，可以顺手看看门店专属优惠、上新与直播福利。"
+              : "本次取货已完成，想继续收到门店福利可以加入社群。"}
+          </p>
+          <div className="mt-3 flex gap-2">
+            <button type="button" onClick={onOpen} className="min-h-11 rounded-[var(--radius-control)] bg-[var(--color-primary)] px-4 text-sm font-semibold text-[var(--color-on-primary)]">
+              加入社群
+            </button>
+            <button type="button" onClick={onDismiss} className="min-h-11 rounded-[var(--radius-control)] px-3 text-sm font-medium text-[var(--color-text-secondary)]">
+              稍后再说
+            </button>
+          </div>
+        </div>
+      </div>
+    </section>
+  );
+}
+
 function getEffectivePrice(product: Product, availability?: ProductAvailability) {
   return availability?.memberPriceYuan ?? availability?.priceYuan ?? product.memberPriceYuan ?? product.priceYuan;
 }
@@ -199,10 +270,11 @@ function StoreCapabilityTags({ storeId }: { storeId: string }) {
 
 interface StoreFlowScreenProps {
   openActivity: () => void;
+  onOpenCommunity: () => void;
   entryContext?: SearchBusinessHandoff;
 }
 
-export function StoreFlowScreen({ openActivity, entryContext }: StoreFlowScreenProps) {
+export function StoreFlowScreen({ openActivity, onOpenCommunity, entryContext }: StoreFlowScreenProps) {
   const initialStoreId = entryContext?.storeId ?? loadPersistedStoreId();
   const initialProductId = entryContext?.entityType === "product" ? entryContext.entityId : "";
   const [step, setStep] = useState<StoreStep>(() => initialStoreId && initialProductId ? "product" : initialStoreId ? "browse" : "stores");
@@ -225,6 +297,8 @@ export function StoreFlowScreen({ openActivity, entryContext }: StoreFlowScreenP
   const [orderSnapshot, setOrderSnapshot] = useState<StoreOrderSnapshot | null>(null);
   const [pickupStatus, setPickupStatus] = useState<PickupStatus>("preparing");
   const [deliveryStatus, setDeliveryStatus] = useState<DeliveryStatus>("preparing");
+  const [communityNudgeStage, setCommunityNudgeStage] = useState<"payment" | "pickup_completed" | null>(null);
+  const communityNudgeShownAtRef = useRef(loadCommunityNudgeShownAt() ?? "");
 
   useEffect(() => {
     if (entryContext?.storeId) persistSelectedStoreId(entryContext.storeId);
@@ -401,6 +475,27 @@ export function StoreFlowScreen({ openActivity, entryContext }: StoreFlowScreenP
     && selectedStore?.status === "open"
     && (fulfillmentMode === "pickup" ? Boolean(effectivePickupWindow) : Boolean(effectiveAddress) && addressInRange);
 
+  const maybeShowCommunityNudge = (stage: "payment" | "pickup_completed", storeId: string) => {
+    const community = getCommunityForStore(storeId);
+    const atIso = new Date().toISOString();
+    if (!community || !shouldShowCommunityNudge(coreDemoUser.id, community.id, atIso)) {
+      setCommunityNudgeStage(null);
+      return false;
+    }
+    const persistedShownAt = loadCommunityNudgeShownAt();
+    const localShownAt = persistedShownAt === undefined
+      ? communityNudgeShownAtRef.current
+      : persistedShownAt ?? "";
+    if (isWithinCommunityNudgeCooldown(localShownAt, atIso)) {
+      setCommunityNudgeStage(null);
+      return false;
+    }
+    communityNudgeShownAtRef.current = atIso;
+    persistCommunityNudgeShownAt(atIso);
+    setCommunityNudgeStage(stage);
+    return true;
+  };
+
   const goStep = (next: StoreStep) => {
     setStep(next);
     window.scrollTo({ top: 0, behavior: "smooth" });
@@ -459,6 +554,7 @@ export function StoreFlowScreen({ openActivity, entryContext }: StoreFlowScreenP
       delete next[selectedStore.id];
       return next;
     });
+    maybeShowCommunityNudge("payment", selectedStore.id);
     if (fulfillmentMode === "pickup") {
       setPickupStatus("preparing");
       goStep("pickupOrder");
@@ -469,10 +565,17 @@ export function StoreFlowScreen({ openActivity, entryContext }: StoreFlowScreenP
   };
 
   const advancePickupStatus = () => {
-    setPickupStatus((current) => current === "preparing" ? "ready_for_pickup" : "completed");
+    if (pickupStatus === "preparing") {
+      setCommunityNudgeStage(null);
+      setPickupStatus("ready_for_pickup");
+      return;
+    }
+    setPickupStatus("completed");
+    if (orderSnapshot) maybeShowCommunityNudge("pickup_completed", orderSnapshot.storeId);
   };
 
   const advanceDeliveryStatus = () => {
+    setCommunityNudgeStage(null);
     setDeliveryStatus((current) => current === "preparing" ? "delivering" : "completed");
   };
 
@@ -1621,6 +1724,14 @@ export function StoreFlowScreen({ openActivity, entryContext }: StoreFlowScreenP
           )}
         </section>
 
+        {communityNudgeStage && (pickupStatus === "preparing" || pickupStatus === "completed") && (
+          <CommunityNudgeBanner
+            stage={communityNudgeStage}
+            onOpen={onOpenCommunity}
+            onDismiss={() => setCommunityNudgeStage(null)}
+          />
+        )}
+
         {pickupStatus === "ready_for_pickup" && <Button className="w-full" onClick={advancePickupStatus}>模拟店员核销</Button>}
         {pickupStatus !== "completed" && <SecondaryButton className="w-full" onClick={() => goStep("browse")}>返回便利店</SecondaryButton>}
 
@@ -1689,6 +1800,14 @@ export function StoreFlowScreen({ openActivity, entryContext }: StoreFlowScreenP
             </div>
           )}
         </section>
+
+        {communityNudgeStage === "payment" && deliveryStatus === "preparing" && (
+          <CommunityNudgeBanner
+            stage="payment"
+            onOpen={onOpenCommunity}
+            onDismiss={() => setCommunityNudgeStage(null)}
+          />
+        )}
 
         {deliveryStatus === "preparing" && <SecondaryButton className="w-full" onClick={() => goStep("browse")}>返回便利店</SecondaryButton>}
         {deliveryStatus === "delivering" && <Button className="w-full" onClick={advanceDeliveryStatus}>模拟送达</Button>}
