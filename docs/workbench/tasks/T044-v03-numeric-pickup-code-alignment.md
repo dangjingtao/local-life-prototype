@@ -1,6 +1,6 @@
 # T044 · V0.3 数字取货码语义整改
 
-- Status: REVIEW
+- Status: PASS
 - Target version: 0.3.0
 - Type: Shared / Mobile / PC / Fulfillment / Release Gate
 - Predecessors: T034、T037、T038、T039
@@ -123,5 +123,5 @@ V0.3 PRD R02 明确要求“二维码 + 数字取货码”双凭证。
 
 ## Review
 
-- Result: REVIEW
-- Conclusion: T044 唯一交付物已满足；数字取货码语义与三方数据合同闭环，无新增 Browser regression。等待按既有授权完成合并。
+- Result: PASS
+- Conclusion: T044 唯一交付物满足；数字取货码语义与三方数据合同闭环，无新增 Browser regression。2026-09-07 按用户既有授权由 Mira 自审验收；PR #43 squash merge `049c5332b839c6f76f072b0363c24e07c725f059`。T045 前置已满足。
