@@ -1,6 +1,6 @@
 # T044 · V0.3 数字取货码语义整改
 
-- Status: DOING
+- Status: REVIEW
 - Target version: 0.3.0
 - Type: Shared / Mobile / PC / Fulfillment / Release Gate
 - Predecessors: T034、T037、T038、T039
@@ -59,16 +59,16 @@ V0.3 PRD R02 明确要求“二维码 + 数字取货码”双凭证。
 
 ## Acceptance
 
-- [ ] Shared 核心自提 `pickupCode` 为纯数字，且与订单 ID 明确分离。
-- [ ] order fulfillment / PickupCredential / RedemptionRecord 三处 code 同值。
-- [ ] `validateDemoFixtureRelations()` 返回 `[]`，并新增或保留能防止 code 三处漂移的关系断言。
-- [ ] Mobile “数字取货码”展示的是 Shared 同一纯数字码。
-- [ ] PC 输入正确纯数字码可命中 `LL-1024` / `REDEEM-LL-1024`。
-- [ ] 错误码不改变订单 / redemption。
-- [ ] code → QR、QR → code 双向互斥继续成立。
-- [ ] T022 / T037 / T038 / T039 相关回归全部通过。
-- [ ] typecheck / build 通过。
-- [ ] 本卡新增 / 修改的数字取货码展示与店员输入不引入 Shared、fixture 等工程术语；既有 Mobile 订单页的历史工程术语由 T045 Release Gate 文案收口统一处理。
+- [x] Shared 核心自提 `pickupCode` 为纯数字，且与订单 ID 明确分离。
+- [x] order fulfillment / PickupCredential / RedemptionRecord 三处 code 同值。
+- [x] `validateDemoFixtureRelations()` 返回 `[]`，并新增或保留能防止 code 三处漂移的关系断言。
+- [x] Mobile “数字取货码”展示的是 Shared 同一纯数字码。
+- [x] PC 输入正确纯数字码可命中 `LL-1024` / `REDEEM-LL-1024`。
+- [x] 错误码不改变订单 / redemption。
+- [x] code → QR、QR → code 双向互斥继续成立。
+- [x] T022 / T037 / T038 / T039 相关回归全部通过。
+- [x] typecheck / build 通过。
+- [x] 本卡新增 / 修改的数字取货码展示与店员输入不引入 Shared、fixture 等工程术语；既有 Mobile 订单页的历史工程术语由 T045 Release Gate 文案收口统一处理。
 
 ## Evidence required
 
@@ -92,3 +92,36 @@ V0.3 PRD R02 明确要求“二维码 + 数字取货码”双凭证。
 - Started from: `dev@7460e6752200e02c44349df5844c8d6c751325e1`
 - Started at: 2026-09-07
 - Scope clarification: T044 只整改数字取货码事实与跨端核销一致性；PRD 反审发现的既有 Mobile `Mock order` / `Shared` 消费者术语已经明确归入 T045，不在本卡静默扩 `StoreFlowScreen.tsx` 白名单。
+
+
+## Implementation record
+
+- PR: #43 `fix(T044): align numeric pickup code semantics`
+- Reviewed implementation head: `5dafa47b648ddf523a5298c1c2c451efd03bef6f`
+- Core pickup code: `482731`（纯数字演示值；没有把长度升级成业务规则）。
+- `orderId` 保持 `LL-1024`；`redemptionId` 保持 `REDEEM-LL-1024`。
+- `v02Orders[].fulfillmentDetail.pickupCode`、`PickupCredential.pickupCode`、`RedemptionRecord.code` 统一消费同一 `CORE_DEMO_PICKUP_CODE`。
+- QR payload 保持 `locallife://pickup/LL-1024?credential=PICKUP-CREDENTIAL-LL-1024`，未修改二维码合同或状态机。
+- PC 数字码输入补 `inputMode="numeric"` + `pattern="[0-9]*"`；核销逻辑仍消费 Shared credential。
+- Mobile 业务代码未修改，既有 T037 页面自动消费新的 Shared 数字码。
+
+## Review / verification
+
+- Verify Prototype #34047758811: **success**（version / typecheck / build 全绿）。
+- T012 Browser Quality #34047758808: **124 passed / 8 failed（132 total）**。
+  - T022：本卡引入的数字码按钮断言已对齐，latest run 恢复通过。
+  - T034：3/3 passed；包含纯数字、order / credential / redemption 三处同值，以及空订单码必须报 `code-mismatch-order` 的关系回归；正常基线 `validateDemoFixtureRelations()` 仍为 `[]`。
+  - T037：3/3 passed；Mobile 同一订单同时显示 QR + 数字码 `482731`。
+  - T038：2/2 passed；QR 通道未回归。
+  - T039：3/3 passed；正确数字码、错误数字码、code→QR / QR→code 互斥均通过。
+  - 剩余 8 项**严格等于 T044 开工前**的 T017 / T018 / T032 checkout 旧回归；无 T044 新增失败，统一由 T045 Release Gate 收口到 0。
+- CodeRabbit：1×Major“空 / 缺失 order pickupCode 可绕过三方一致性校验”复核成立；已移除 truthy guard、补空字符串关系回归，thread resolved；latest combined status **success**。
+- CodeRabbit docstring coverage 为通用非项目合同 warning，不改变本卡结论。
+- Codex：仅自动返回额度耗尽提示，按用户当前要求不使用 Codex Review。
+- Experimental OpenCode：advisory / non-blocking。
+- Self review：没有修改订单 ID、redemption ID、QR payload、Mobile 业务 UI 或履约状态机；数字码值与订单号已真正分离。
+
+## Review
+
+- Result: REVIEW
+- Conclusion: T044 唯一交付物已满足；数字取货码语义与三方数据合同闭环，无新增 Browser regression。等待按既有授权完成合并。
