@@ -72,7 +72,7 @@ test.describe("T019-R4 · mall checkout and order approved UI", () => {
     await expectHeight(items.nth(1), 72);
     await expectSize(items.nth(0).getByRole("img"), 56, 56);
 
-    await expectHeight(page.getByTestId("mall-checkout-amounts"), 132);
+    await expectHeight(page.getByTestId("mall-checkout-amounts"), 164);
     await expectHeight(page.getByTestId("mall-checkout-submitbar"), 72);
 
     const checkout = page.getByTestId("mall-checkout");

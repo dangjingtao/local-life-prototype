@@ -16,6 +16,8 @@ type MallCartViewProps = {
   shippingFee: number;
   payable: number;
   freeShippingThreshold: number;
+  projectedPoints: number;
+  pointsEarnRate: number;
   onContinueShopping: () => void;
   onUpdateQuantity: (productId: string, delta: number) => void;
   onCheckout: () => void;
@@ -25,6 +27,10 @@ function money(value: number) {
   return value.toFixed(value % 1 === 0 ? 0 : 2);
 }
 
+function points(value: number) {
+  return Number.isInteger(value) ? String(value) : value.toFixed(2).replace(/0+$/, "").replace(/\.$/, "");
+}
+
 export function MallCartView({
   cartCount,
   rows,
@@ -32,6 +38,8 @@ export function MallCartView({
   shippingFee,
   payable,
   freeShippingThreshold,
+  projectedPoints,
+  pointsEarnRate,
   onContinueShopping,
   onUpdateQuantity,
   onCheckout,
@@ -124,6 +132,20 @@ export function MallCartView({
               </section>
             ))}
           </div>
+
+          <section
+            data-testid="t041-mall-cart-points"
+            data-earn-rate={pointsEarnRate}
+            className="flex min-h-[76px] items-center justify-between gap-4 border-b border-[var(--color-border)] bg-[var(--color-brand-subtle)] px-4 py-3"
+          >
+            <div className="min-w-0">
+              <p className="text-xs font-semibold text-[var(--color-text-primary)]">本单预计可得 +{points(projectedPoints)} 积分</p>
+              <p className="mt-1 text-[10px] leading-4 text-[var(--color-text-secondary)]">
+                按当前商品金额预计 · {pointsEarnRate} 积分/元；实际到账以积分规则为准
+              </p>
+            </div>
+            <PrototypeIcon name="success" size={18} className="shrink-0 text-[var(--color-primary)]" />
+          </section>
 
           <section
             data-testid="mall-cart-summary"

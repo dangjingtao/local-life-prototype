@@ -17,12 +17,26 @@ type MallCheckoutViewProps = {
   payable: number;
   freeShippingThreshold: number;
   couponTitle?: string;
+  pointsBalance: number;
+  demoPointsAvailable: number;
+  pointsUsed: number;
+  pointsDiscount: number;
+  usePoints: boolean;
+  projectedPoints: number;
+  pointsEarnRate: number;
+  candidatePoints: number;
+  candidateYuan: number;
+  onTogglePoints: () => void;
   onBack: () => void;
   onSubmit: () => void;
 };
 
 function money(value: number) {
   return value.toFixed(2);
+}
+
+function points(value: number) {
+  return Number.isInteger(value) ? String(value) : value.toFixed(2).replace(/0+$/, "").replace(/\.$/, "");
 }
 
 export function MallCheckoutView({
@@ -33,6 +47,16 @@ export function MallCheckoutView({
   payable,
   freeShippingThreshold,
   couponTitle,
+  pointsBalance,
+  demoPointsAvailable,
+  pointsUsed,
+  pointsDiscount,
+  usePoints,
+  projectedPoints,
+  pointsEarnRate,
+  candidatePoints,
+  candidateYuan,
+  onTogglePoints,
   onBack,
   onSubmit,
 }: MallCheckoutViewProps) {
@@ -115,8 +139,46 @@ export function MallCheckoutView({
       </section>
 
       <section
+        data-testid="t041-mall-checkout-points"
+        data-earn-rate={pointsEarnRate}
+        className="border-b border-[var(--color-border)] bg-[var(--color-surface)] px-4 py-3"
+      >
+        <div className="flex items-center justify-between gap-3">
+          <div>
+            <p className="text-sm font-semibold">积分权益</p>
+            <p className="mt-1 text-[11px] text-[var(--color-text-secondary)]">当前积分 {pointsBalance}</p>
+          </div>
+          <button
+            type="button"
+            role="switch"
+            aria-label="使用商城积分抵现"
+            aria-checked={usePoints}
+            onClick={onTogglePoints}
+            disabled={demoPointsAvailable <= 0}
+            className={`relative h-11 w-14 rounded-full transition-colors disabled:opacity-40 ${usePoints ? "bg-[var(--color-primary)]" : "bg-[var(--color-border)]"}`}
+          >
+            <span className={`absolute top-1 h-9 w-9 rounded-full bg-white shadow-sm transition-transform ${usePoints ? "translate-x-4" : "translate-x-1"}`} />
+          </button>
+        </div>
+        <div className="mt-3 flex items-center justify-between gap-3 rounded-[var(--radius-control)] bg-[var(--color-brand-subtle)] px-3 py-2">
+          <div className="min-w-0">
+            <p className="text-xs font-medium">本单预计可得 +{points(projectedPoints)} 积分</p>
+            <p className="mt-1 text-[10px] leading-4 text-[var(--color-text-secondary)]">
+              {pointsEarnRate} 积分/元 · 实际到账以积分规则为准
+            </p>
+          </div>
+          <span className="shrink-0 text-xs font-semibold text-[var(--color-primary-pressed)]">
+            {demoPointsAvailable} 积分约抵 ¥{money(demoPointsAvailable * candidateYuan / candidatePoints)}
+          </span>
+        </div>
+        <p className="mt-2 text-[10px] leading-4 text-[var(--color-text-tertiary)]">
+          当前抵现比例为示例：{candidatePoints} 积分约抵 ¥{candidateYuan}；实际兑换比例与单笔上限以最终规则为准。
+        </p>
+      </section>
+
+      <section
         data-testid="mall-checkout-amounts"
-        className="h-[132px] border-b border-[var(--color-border)] bg-[var(--color-surface)] px-4 py-1.5"
+        className="h-[164px] border-b border-[var(--color-border)] bg-[var(--color-surface)] px-4 py-1.5"
       >
         <div className="flex h-7 items-center justify-between text-[12px]">
           <span className="text-[var(--color-text-secondary)]">商品金额</span>
@@ -130,7 +192,11 @@ export function MallCheckoutView({
           <span className="min-w-0 truncate text-[var(--color-text-secondary)]">商城优惠{couponTitle ? ` · ${couponTitle}` : ""}</span>
           <span className="shrink-0 font-medium text-[var(--color-primary-pressed)]">{couponTitle ? "可用" : "—"}</span>
         </div>
-        <div className="flex h-9 items-center justify-between border-t border-[var(--color-border)] text-[13px]">
+        <div className="flex h-7 items-center justify-between text-[12px]">
+          <span className="text-[var(--color-text-secondary)]">积分抵扣{pointsUsed > 0 ? ` · ${pointsUsed} 积分` : ""}</span>
+          <span className="font-medium text-[var(--color-success)]">-¥{money(pointsDiscount)}</span>
+        </div>
+        <div className="flex h-10 items-center justify-between border-t border-[var(--color-border)] text-[13px]">
           <span className="font-semibold">应付金额</span>
           <span className="text-[20px] font-bold text-[var(--color-primary-pressed)]">¥{money(payable)}</span>
         </div>

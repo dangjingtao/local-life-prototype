@@ -7,6 +7,8 @@ import {
   coreDemoUser,
   coreUserV02Coupons,
   findById,
+  getPurchasePointProjection,
+  prototypeRules,
   storefronts,
   type Product,
 } from "@prototype/shared";
@@ -39,6 +41,7 @@ const mallCampaignProduct = mallCampaignProductId ? findById(catalogProducts, ma
 const freeShippingThreshold = 99;
 const standardShippingFee = 8;
 const demoAddress = "林女士 · 138****8899 · 广东省华南某市演示路 88 号";
+const mallDemoPointsUse = 200;
 
 function scrollTop() {
   window.scrollTo({ top: 0, behavior: "smooth" });
@@ -66,6 +69,7 @@ export function MallFlowScreen({ entryContext, carts, setCarts, onStepChange, on
   const [query, setQuery] = useState("");
   const [orderStatus, setOrderStatus] = useState<MallOrderStatus>("pending_fulfillment");
   const [orderSnapshot, setOrderSnapshot] = useState<MallOrderSnapshot | null>(null);
+  const [useMallPoints, setUseMallPoints] = useState(false);
 
   const selectedStorefront = defaultStorefront;
   const selectedProduct = findById(catalogProducts, selectedProductId) ?? defaultProduct;
@@ -85,7 +89,12 @@ export function MallFlowScreen({ entryContext, carts, setCarts, onStepChange, on
   });
   const subtotal = cartRows.reduce((sum, row) => sum + row.subtotal, 0);
   const shippingFee = subtotal >= freeShippingThreshold ? 0 : standardShippingFee;
-  const payable = subtotal + shippingFee;
+  const mallPointProjection = getPurchasePointProjection("mall", subtotal);
+  const candidatePointsToCash = prototypeRules.pointsToCash.value;
+  const mallPointsAvailable = Math.min(mallDemoPointsUse, coreDemoUser.pointsBalance);
+  const mallPointsUsed = useMallPoints ? mallPointsAvailable : 0;
+  const mallPointsDiscount = mallPointsUsed * candidatePointsToCash.yuan / candidatePointsToCash.points;
+  const payable = Math.max(0, subtotal + shippingFee - mallPointsDiscount);
 
   const goStep = (next: MallStep) => {
     setStep(next);
@@ -133,6 +142,7 @@ export function MallFlowScreen({ entryContext, carts, setCarts, onStepChange, on
       address: demoAddress,
     });
     setCarts((current) => ({ ...current, [selectedStorefront.id]: {} }));
+    setUseMallPoints(false);
     setOrderStatus("pending_fulfillment");
     goStep("order");
   };
@@ -433,6 +443,8 @@ export function MallFlowScreen({ entryContext, carts, setCarts, onStepChange, on
         shippingFee={shippingFee}
         payable={payable}
         freeShippingThreshold={freeShippingThreshold}
+        projectedPoints={mallPointProjection.exactPoints}
+        pointsEarnRate={mallPointProjection.earnRate}
         onContinueShopping={() => goStep("home")}
         onUpdateQuantity={updateQuantity}
         onCheckout={() => goStep("checkout")}
@@ -450,6 +462,16 @@ export function MallFlowScreen({ entryContext, carts, setCarts, onStepChange, on
         payable={payable}
         freeShippingThreshold={freeShippingThreshold}
         couponTitle={mallCoupon?.title}
+        pointsBalance={coreDemoUser.pointsBalance}
+        demoPointsAvailable={mallPointsAvailable}
+        pointsUsed={mallPointsUsed}
+        pointsDiscount={mallPointsDiscount}
+        usePoints={useMallPoints}
+        projectedPoints={mallPointProjection.exactPoints}
+        pointsEarnRate={mallPointProjection.earnRate}
+        candidatePoints={candidatePointsToCash.points}
+        candidateYuan={candidatePointsToCash.yuan}
+        onTogglePoints={() => setUseMallPoints((current) => !current)}
         onBack={() => goStep("cart")}
         onSubmit={submitOrder}
       />
