@@ -55,6 +55,7 @@ Browser test 必须断言“点击驱动”和“滚动驱动”两个方向，�
 - Business changed path: `apps/mobile/src/StoreFlowScreen.tsx`
 - New browser evidence: `tests/browser/t036-convenience-category-scroll-sync.spec.mjs`
 - No Shared / product sort / cart / detail / checkout changes.
+- Latest-dev replay self-review found two stale, out-of-scope branch edits (`buildPickupCode` randomization and convenience order-id suffix removal). Both were reverted to current `dev` semantics before latest-head acceptance.
 
 ### Delivered interaction
 
