@@ -57,6 +57,21 @@ test.describe("T040 · convenience purchase points feedback", () => {
     await expectNoHorizontalOverflow(page);
   });
 
+  test("standalone cart remains reachable and shows the same projected points", async ({ page }) => {
+    await openStore(page);
+    const dialog = await openCartSheet(page);
+    const sheetPoints = extractProjectedPoints(await page.getByTestId("t040-cart-sheet-points").innerText());
+
+    await dialog.getByRole("button", { name: "查看完整购物车" }).click();
+
+    await expect(page.getByRole("heading", { name: "购物车", exact: true })).toBeVisible();
+    const cartPagePoints = page.getByTestId("t040-cart-page-points");
+    await expect(cartPagePoints).toBeVisible();
+    await expect(cartPagePoints).toHaveAttribute("data-earn-rate", "1");
+    expect(extractProjectedPoints(await cartPagePoints.innerText())).toBe(sheetPoints);
+    await expectNoHorizontalOverflow(page);
+  });
+
   test("checkout carries the updated projection without changing existing payable flow", async ({ page }) => {
     await openStore(page);
     const dialog = await openCartSheet(page);
