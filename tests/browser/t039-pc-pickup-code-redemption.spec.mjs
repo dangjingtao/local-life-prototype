@@ -48,14 +48,15 @@ test.describe("T039 · PC pickup code redemption", () => {
     await expect(match).toContainText("REDEEM-LL-1024");
     await expect(match).toContainText("待确认核销");
 
+    const qrCard = page.getByTestId("t038-qr-redemption");
+    await qrCard.getByRole("button", { name: "模拟扫码" }).click();
+    await expect(page.getByTestId("t038-qr-match")).toContainText("待确认核销");
+
     await match.getByRole("button", { name: "确认数字码核销 LL-1024" }).click();
 
     await expect(match).toContainText("核销完成");
     await expect(match).toContainText("二维码通道也立即失效");
     await expect(page.getByTestId("t022-order-LL-1024")).toContainText("已完成");
-
-    const qrCard = page.getByTestId("t038-qr-redemption");
-    await qrCard.getByRole("button", { name: "模拟扫码" }).click();
     await expect(qrCard).toContainText("不可重复核销");
     await expect(qrCard).toContainText("二维码已核销 / 凭证已失效");
     await expectNoHorizontalOverflow(page);
@@ -67,14 +68,15 @@ test.describe("T039 · PC pickup code redemption", () => {
   test("QR completion prevents the same pickup code from redeeming again", async ({ page }) => {
     await openMerchantFulfillment(page);
 
+    const codeCard = page.getByTestId("t039-code-redemption");
+    await codeCard.getByLabel("数字取货码").fill("LL-1024");
+    await codeCard.getByRole("button", { name: "匹配订单" }).click();
+    await expect(page.getByTestId("t039-code-match")).toContainText("待确认核销");
+
     const qrCard = page.getByTestId("t038-qr-redemption");
     await qrCard.getByRole("button", { name: "模拟扫码" }).click();
     await page.getByTestId("t038-qr-match").getByRole("button", { name: "确认核销 LL-1024" }).click();
     await expect(page.getByTestId("t022-order-LL-1024")).toContainText("已完成");
-
-    const codeCard = page.getByTestId("t039-code-redemption");
-    await codeCard.getByLabel("数字取货码").fill("LL-1024");
-    await codeCard.getByRole("button", { name: "匹配订单" }).click();
 
     await expect(codeCard).toContainText("不可重复核销");
     await expect(codeCard).toContainText("该订单已通过另一通道完成核销");
