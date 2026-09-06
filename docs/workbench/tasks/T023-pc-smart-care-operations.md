@@ -1,6 +1,6 @@
 # T023 · PC 智慧抗衰预约、核销与报告运营后台
 
-- Status: REVIEW
+- Status: PASS
 - Target version: 0.2.0
 - Impact: PC / Shared
 - Owner: -
@@ -68,6 +68,6 @@ V0.2 智慧抗衰已升级为预约、二维码核销、检测报告和后续转
 ## Review
 
 - Reviewer: Codex + 人工自审（Mira）+ Verify / Browser Quality
-- Result: REVIEW
-- Conclusion: T023 自身 8 项验收标准满足；Codex 2×P2 已闭环；专项 Browser 7/7，Verify success，无 T023 blocking finding。
-- Follow-up: 等待用户产品验收；用户确认后方可标记 PASS / 合并 PR #34。
+- Result: PASS
+- Conclusion: T023 自身 8 项验收标准满足；Codex 2×P2 已闭环；专项 Browser 7/7，Verify success，无 T023 blocking finding；用户于 2026-09-06 明确验收通过并授权合并。
+- Follow-up: 合并 PR #34 到 `dev`。
