@@ -27,7 +27,7 @@ test.describe("T039 · PC pickup code redemption", () => {
     const pickup = page.getByTestId("t022-order-LL-1024");
     await expect(pickup).toContainText("待取货");
 
-    await codeCard.getByLabel("数字取货码").fill("WRONG-CODE");
+    await codeCard.getByLabel("数字取货码").fill("999999");
     await codeCard.getByRole("button", { name: "匹配订单" }).click();
 
     await expect(codeCard).toContainText("取货码错误或不存在");
@@ -40,12 +40,13 @@ test.describe("T039 · PC pickup code redemption", () => {
     await openMerchantFulfillment(page);
 
     const codeCard = page.getByTestId("t039-code-redemption");
-    await codeCard.getByLabel("数字取货码").fill("LL-1024");
+    await codeCard.getByLabel("数字取货码").fill("482731");
     await codeCard.getByRole("button", { name: "匹配订单" }).click();
 
     const match = page.getByTestId("t039-code-match");
     await expect(match).toContainText("LL-1024");
     await expect(match).toContainText("REDEEM-LL-1024");
+    await expect(match).toContainText("482731");
     await expect(match).toContainText("待确认核销");
 
     const qrCard = page.getByTestId("t038-qr-redemption");
@@ -69,7 +70,7 @@ test.describe("T039 · PC pickup code redemption", () => {
     await openMerchantFulfillment(page);
 
     const codeCard = page.getByTestId("t039-code-redemption");
-    await codeCard.getByLabel("数字取货码").fill("LL-1024");
+    await codeCard.getByLabel("数字取货码").fill("482731");
     await codeCard.getByRole("button", { name: "匹配订单" }).click();
     await expect(page.getByTestId("t039-code-match")).toContainText("待确认核销");
 
