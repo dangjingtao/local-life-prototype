@@ -1,6 +1,6 @@
 # T024 · PC 商城渠道、活动与搜索运营后台
 
-- Status: REVIEW
+- Status: PASS
 - Target version: 0.2.0
 - Impact: PC / Shared
 - Owner: -
@@ -54,7 +54,7 @@ V0.2 线上商城需要预留一端多 Storefront / Channel，首页需要多个
 
 ## Implementation record
 
-- Commit / PR: PR #35 · `feat(T024): add PC mall channel campaign and search operations`；final verified code head `0fc9e3d48233308e3a6cfe022319fcadf1867802`。
+- Commit / PR: PR #35 · `feat(T024): add PC mall channel campaign and search operations`；final verified code head `0fc9e3d48233308e3a6cfe022319fcadf1867802`；2026-09-06 squash merge `1309260a6b3fd996ca59ef988d3498df4d2f7af2`。
 - Changed paths: `apps/pc/src/MallCampaignSearchOperations.tsx`、`apps/pc/src/OperatorConsole.tsx`、`packages/shared/src/domain.ts`、`packages/shared/src/fixtures.ts`、`packages/shared/src/selectors.ts`、`tests/browser/t024-pc-mall-campaign-search-ops.spec.mjs`、本任务卡与总台账。
 - Notes: 新增 `MallProductListing` 显式表达商品 × Storefront × Channel；Campaign 增加真实 Mobile 承接一致的 `campaign_detail` target；CampaignRef 类型禁止 Storefront，避免内部渠道语义回漏消费者侧。渠道 / 商品关系均为 V0.2 原型配置，不代表真实外部平台接入。
 
@@ -68,6 +68,6 @@ V0.2 线上商城需要预留一端多 Storefront / Channel，首页需要多个
 ## Review
 
 - Reviewer: CodeRabbit + 人工自审（Mira）+ Verify / Browser Quality
-- Result: REVIEW
-- Conclusion: T024 7 项验收标准均满足；专项 Browser 6/6，Verify success，0 个未解决 review thread，无 T024 blocking finding。全量剩余 8 项均为既有 T017 / T018 / T032 checkout 基线债。
-- Follow-up: 等待用户产品验收；用户确认后方可标记 PASS / 合并 PR #35。
+- Result: PASS
+- Conclusion: T024 7 项验收标准均满足；专项 Browser 6/6，Verify success，0 个未解决 review thread，无 T024 blocking finding。全量剩余 8 项均为既有 T017 / T018 / T032 checkout 基线债。2026-09-06 用户明确验收并授权合并。
+- Follow-up: T024 已收口；T022-T024 全部 PASS，T025 数据驾驶舱升级前置已满足。
