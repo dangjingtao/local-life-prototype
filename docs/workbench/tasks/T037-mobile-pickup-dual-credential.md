@@ -1,6 +1,6 @@
 # T037 · Mobile 自提双凭证
 
-- Status: TODO
+- Status: DOING
 - Target version: 0.3.0
 - Type: Mobile / Fulfillment
 - Predecessors: T034、T018
@@ -40,3 +40,10 @@
 ## Evidence required
 
 至少保存待取货双凭证和核销完成失效两个实屏状态。
+
+
+## Execution baseline
+
+- Branch: `task/T037-mobile-pickup-dual-credential`
+- Started from: `dev@5d7b36956f1cb372446c099d8efbad0614ea6f70`
+- Started at: 2026-09-06
