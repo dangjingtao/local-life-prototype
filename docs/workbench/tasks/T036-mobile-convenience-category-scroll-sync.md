@@ -1,6 +1,6 @@
 # T036 · Mobile 便利店分类滚动联动
 
-- Status: REVIEW
+- Status: PASS
 - Target version: 0.3.0
 - Type: Mobile / Interaction
 - Predecessors: T035
@@ -87,5 +87,5 @@ Browser test 必须断言“点击驱动”和“滚动驱动”两个方向，�
 
 ## Review
 
-- Result: REVIEW
-- Conclusion: T036 专项在严格断言下 5/5 通过，AI Review 的有效问题均已闭环，未发现本卡新增回归。按当前授权停在 REVIEW，不自动 PASS / merge。
+- Result: PASS
+- Conclusion: 2026-09-06 用户明确授权：AI review 无新回复时可由 Mira 自审通过并合并。latest-head Verify #34003981393 success；Browser #34003981401 中 T036 5/5 passed、全量 100/108，8 项均为既有 T017/T018/T032 checkout 旧债；自审确认仅保留分类滚动联动，未夹带取货码 / 订单 ID / 购物链路改动。PR #32 squash merge `3dd5309f713bdbcfd94da0598f1250c325ce62e9`。
