@@ -41,6 +41,9 @@ test.describe("T042 · mobile persistent community entry", () => {
     const guide = page.getByTestId("community-guide");
     await expect(guide).toBeVisible();
     await expect(page.getByRole("heading", { name: "加入社群", exact: true })).toBeVisible();
+    const topbarBox = await page.getByTestId("community-guide-topbar").boundingBox();
+    expect(topbarBox).not.toBeNull();
+    expect(topbarBox.y, JSON.stringify(topbarBox)).toBeLessThanOrEqual(1);
     await expectNoHorizontalOverflow(page);
   });
 
