@@ -155,9 +155,9 @@ export function MallCheckoutView({
             aria-checked={usePoints}
             onClick={onTogglePoints}
             disabled={demoPointsAvailable <= 0}
-            className={`relative h-7 w-12 rounded-full transition-colors disabled:opacity-40 ${usePoints ? "bg-[var(--color-primary)]" : "bg-[var(--color-border)]"}`}
+            className={`relative h-11 w-14 rounded-full transition-colors disabled:opacity-40 ${usePoints ? "bg-[var(--color-primary)]" : "bg-[var(--color-border)]"}`}
           >
-            <span className={`absolute top-0.5 h-6 w-6 rounded-full bg-white shadow-sm transition-transform ${usePoints ? "translate-x-[22px]" : "translate-x-0.5"}`} />
+            <span className={`absolute top-1 h-9 w-9 rounded-full bg-white shadow-sm transition-transform ${usePoints ? "translate-x-4" : "translate-x-1"}`} />
           </button>
         </div>
         <div className="mt-3 flex items-center justify-between gap-3 rounded-[var(--radius-control)] bg-[var(--color-brand-subtle)] px-3 py-2">
