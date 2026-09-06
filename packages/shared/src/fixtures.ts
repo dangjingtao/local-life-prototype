@@ -1,4 +1,4 @@
-import type { Appointment, Campaign, CareAppointmentSlot, CareProject, Channel, CommunityGroup, CommunityNudgeState, ConvenienceBrowseCategory, ConvenienceCart, Coupon, DetectionRecord, DetectionReport, OfflineStore, OnlineStorefront, Order, Partner, PickupCredential, PointLedgerEntry, Product, ProductAvailability, PrototypeRule, RedemptionRecord, Service, StoreDeliveryAddress, User } from "./domain";
+import type { Appointment, Campaign, CareAppointmentSlot, CareProject, Channel, CommunityGroup, CommunityNudgeState, ConvenienceBrowseCategory, ConvenienceCart, Coupon, DetectionRecord, DetectionReport, OfflineStore, OnlineStorefront, MallProductListing, Order, Partner, PickupCredential, PointLedgerEntry, Product, ProductAvailability, PrototypeRule, RedemptionRecord, Service, StoreDeliveryAddress, User } from "./domain";
 
 export const CORE_DEMO_IDS = {
   user: "LL-8888", partner: "PARTNER-YUNLING", store: "STORE-YUNLING", pickupOrder: "LL-1024",
@@ -115,6 +115,15 @@ export const storefronts: OnlineStorefront[] = [
   { id: "STOREFRONT-DOUYIN", channelId: "CHANNEL-DOUYIN", name: "抖音店商品橱窗", status: "active", fulfillment: "parcel_delivery", serviceArea: "nationwide", note: "展示来源语义，不代表真实接入。" },
 ];
 
+export const mallProductListings: MallProductListing[] = [
+  { id: "MALL-LISTING-PRIVATE-SCALP", productId: "PRODUCT-SCALP-SET", storefrontId: "STOREFRONT-PRIVATE", channelId: "CHANNEL-OWNED", status: "active", note: "私域商城商品关系样本。" },
+  { id: "MALL-LISTING-PRIVATE-CLEAN", productId: "PRODUCT-CLEAN-SET", storefrontId: "STOREFRONT-PRIVATE", channelId: "CHANNEL-OWNED", status: "active", note: "私域商城商品关系样本。" },
+  { id: "MALL-LISTING-PRIVATE-LIGHT", productId: "PRODUCT-LIGHT-LIFE", storefrontId: "STOREFRONT-PRIVATE", channelId: "CHANNEL-OWNED", status: "active", note: "私域商城商品关系样本。" },
+  { id: "MALL-LISTING-PRIVATE-SKIN", productId: "PRODUCT-SKIN-TRIAL", storefrontId: "STOREFRONT-PRIVATE", channelId: "CHANNEL-OWNED", status: "active", note: "与 CORE_DEMO_IDS.mallOrder 的来源关系一致。" },
+  { id: "MALL-LISTING-PRIVATE-COLLAGEN", productId: "PRODUCT-COLLAGEN-DRINK", storefrontId: "STOREFRONT-PRIVATE", channelId: "CHANNEL-OWNED", status: "active", note: "与商城活动 / CORE_DEMO_IDS.mallOrder 的来源关系一致。" },
+  { id: "MALL-LISTING-DOUYIN-SCALP", productId: "PRODUCT-SCALP-SET", storefrontId: "STOREFRONT-DOUYIN", channelId: "CHANNEL-DOUYIN", status: "planned", note: "仅表达 LL-1023 的渠道来源语义；不代表已接通抖音 API。" },
+];
+
 export const careProjects: CareProject[] = [
   { id: "CARE-PROJECT-BASIC", serviceId: "SERVICE-CARE-BASIC", name: "基础状态检测", summary: "约 30 分钟完成基础状态记录，并生成非医疗性质的趋势报告。", priceYuan: 39, durationMinutes: 30, storeIds: [CORE_DEMO_IDS.store, "STORE-NANAN"], capabilityStatus: "candidate", note: "检测能力为原型语义。" },
   { id: "CARE-PROJECT-SOOTHING", serviceId: "SERVICE-CARE-EXPERIENCE", name: "屏障舒缓护理", summary: "结合基础状态记录安排一次舒缓护理体验。", priceYuan: 89, durationMinutes: 50, storeIds: ["STORE-NANAN"], capabilityStatus: "candidate", note: "护理方案为转化演示数据。" },
@@ -210,11 +219,11 @@ export const communityNudgeStates: CommunityNudgeState[] = [
 ];
 
 export const campaigns: Campaign[] = [
-  { id: "CAMPAIGN-AUTUMN-HERO", title: "初秋轻生活计划", subtitle: "早餐补给、精选好物与状态复测，一次逛完。", scene: "cross_scene", placement: "home_hero", status: "active", startsAt: "2026-08-28T00:00:00+08:00", endsAt: "2026-09-08T23:59:59+08:00", refs: [{ type: "product", id: "PRODUCT-EGG-SANDWICH" }, { type: "product", id: "PRODUCT-COLLAGEN-DRINK" }, { type: "care_project", id: "CARE-PROJECT-BASIC" }] },
-  { id: "CAMPAIGN-STORE-BREAKFAST", title: "早八能量补给", subtitle: "云岭店早餐组合，会员价更轻松。", scene: "store", placement: "store_featured", status: "active", startsAt: "2026-08-31T07:00:00+08:00", endsAt: "2026-09-06T11:00:00+08:00", refs: [{ type: "product", id: "PRODUCT-OAT-LATTE" }, { type: "product", id: "PRODUCT-EGG-SANDWICH" }] },
-  { id: "CAMPAIGN-MALL-CARE", title: "秋日护理精选", subtitle: "私域商城精选护理好物，全国快递到家。", scene: "mall", placement: "mall_featured", status: "active", startsAt: "2026-08-25T00:00:00+08:00", endsAt: "2026-09-15T23:59:59+08:00", refs: [{ type: "storefront", id: "STOREFRONT-PRIVATE" }, { type: "product", id: "PRODUCT-SCALP-SET" }, { type: "product", id: "PRODUCT-COLLAGEN-DRINK" }] },
-  { id: "CAMPAIGN-CARE-RETEST", title: "状态复测周", subtitle: "带上上次报告回来看看变化，完成复测可领取护理专属券。", scene: "care", placement: "care_featured", status: "scheduled", startsAt: "2026-09-02T00:00:00+08:00", endsAt: "2026-09-09T23:59:59+08:00", refs: [{ type: "care_project", id: "CARE-PROJECT-BASIC" }, { type: "coupon", id: "COUPON-CARE-8888-REPORT" }] },
+  { id: "CAMPAIGN-AUTUMN-HERO", title: "初秋轻生活计划", subtitle: "早餐补给、精选好物与状态复测，一次逛完。", scene: "cross_scene", placement: "home_hero", status: "active", startsAt: "2026-08-28T00:00:00+08:00", endsAt: "2026-09-08T23:59:59+08:00", refs: [{ type: "product", id: "PRODUCT-EGG-SANDWICH" }, { type: "product", id: "PRODUCT-COLLAGEN-DRINK" }, { type: "care_project", id: "CARE-PROJECT-BASIC" }], target: { type: "campaign_detail", campaignId: "CAMPAIGN-AUTUMN-HERO" } },
+  { id: "CAMPAIGN-STORE-BREAKFAST", title: "早八能量补给", subtitle: "云岭店早餐组合，会员价更轻松。", scene: "store", placement: "store_featured", status: "active", startsAt: "2026-08-31T07:00:00+08:00", endsAt: "2026-09-06T11:00:00+08:00", refs: [{ type: "product", id: "PRODUCT-OAT-LATTE" }, { type: "product", id: "PRODUCT-EGG-SANDWICH" }], target: { type: "campaign_detail", campaignId: "CAMPAIGN-STORE-BREAKFAST" } },
+  { id: "CAMPAIGN-MALL-CARE", title: "秋日护理精选", subtitle: "私域商城精选护理好物，全国快递到家。", scene: "mall", placement: "mall_featured", status: "active", startsAt: "2026-08-25T00:00:00+08:00", endsAt: "2026-09-15T23:59:59+08:00", refs: [{ type: "product", id: "PRODUCT-SCALP-SET" }, { type: "product", id: "PRODUCT-COLLAGEN-DRINK" }], target: { type: "campaign_detail", campaignId: "CAMPAIGN-MALL-CARE" } },
+  { id: "CAMPAIGN-CARE-RETEST", title: "状态复测周", subtitle: "带上上次报告回来看看变化，完成复测可领取护理专属券。", scene: "care", placement: "care_featured", status: "scheduled", startsAt: "2026-09-02T00:00:00+08:00", endsAt: "2026-09-09T23:59:59+08:00", refs: [{ type: "care_project", id: "CARE-PROJECT-BASIC" }, { type: "coupon", id: "COUPON-CARE-8888-REPORT" }], target: { type: "campaign_detail", campaignId: "CAMPAIGN-CARE-RETEST" } },
 ];
 
 export const demoFixtures = { users, partners, stores, products, services, orders, coupons, pointLedger, reports, redemptions, rules: prototypeRules } as const;
-export const v02Fixtures = { users, partners: businessPartners, stores: offlineStores, products: catalogProducts, convenienceBrowseCategories, productAvailability, convenienceCarts, deliveryAddresses: storeDeliveryAddresses, services: careServices, channels, storefronts, campaigns, careProjects, appointmentSlots, appointments, orders: v02Orders, coupons: v02Coupons, pointLedger, detectionRecords, reports: detectionReports, redemptions, pickupCredentials, communities, communityNudgeStates, rules: prototypeRules } as const;
+export const v02Fixtures = { users, partners: businessPartners, stores: offlineStores, products: catalogProducts, convenienceBrowseCategories, productAvailability, convenienceCarts, deliveryAddresses: storeDeliveryAddresses, services: careServices, channels, storefronts, mallProductListings, campaigns, careProjects, appointmentSlots, appointments, orders: v02Orders, coupons: v02Coupons, pointLedger, detectionRecords, reports: detectionReports, redemptions, pickupCredentials, communities, communityNudgeStates, rules: prototypeRules } as const;

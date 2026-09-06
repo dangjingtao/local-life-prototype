@@ -253,10 +253,19 @@ export interface OnlineStorefront {
   note?: string;
 }
 
+export interface MallProductListing {
+  id: string;
+  productId: string;
+  storefrontId: string;
+  channelId: string;
+  status: "active" | "planned";
+  note?: string;
+}
+
 export type CampaignPlacement = "home_hero" | "home_featured" | "store_featured" | "mall_featured" | "care_featured";
 
 export interface CampaignRef {
-  type: "product" | "care_project" | "coupon" | "storefront";
+  type: "product" | "care_project" | "coupon";
   id: string;
 }
 
@@ -270,6 +279,7 @@ export interface Campaign {
   startsAt: string;
   endsAt: string;
   refs: CampaignRef[];
+  target: { type: "campaign_detail"; campaignId: string };
 }
 
 export interface CareProject {
