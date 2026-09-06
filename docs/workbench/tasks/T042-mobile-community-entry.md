@@ -1,6 +1,6 @@
 # T042 · Mobile 社群基础入口
 
-- Status: TODO
+- Status: DOING
 - Target version: 0.3.0
 - Type: Mobile / Private-domain
 - Predecessors: T034
@@ -39,3 +39,12 @@
 ## Evidence required
 
 至少保留“我的入口”和“社群指引页”两张 390×844 实屏证据。
+
+
+## Execution baseline
+
+- Branch: `task/T042-mobile-community-entry`
+- Started from latest `dev` after T041 PASS.
+- Consume Shared `getCommunityForStore(coreDemoUser.usualStoreId)`; no duplicate community fixture.
+- Business paths frozen to MembershipCenter + App route + new CommunityGuideScreen.
+- T043 post-purchase nudge / 7-day trigger is explicitly not implemented here.
