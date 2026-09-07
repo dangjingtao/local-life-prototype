@@ -167,8 +167,9 @@ test.describe("T017 · Mobile convenience store browsing and independent cart", 
     await expect(page.getByText("购物车").first()).toBeVisible();
     // 抽屉内点去结算
     await page.getByRole("dialog", { name: "购物车" }).getByRole("button", { name: "去结算" }).click();
-    // 结算页标题改为门店名，取餐方式卡片存在
-    await expect(page.getByRole("heading", { name: "云岭社区店" })).toBeVisible();
+    // 结算页以当前“确认订单”结构为准，门店信息在首张卡片中展示
+    await expect(page.getByText("确认订单", { exact: true })).toBeVisible();
+    await expect(page.getByText("云岭社区店", { exact: true }).first()).toBeVisible();
     await expect(page.getByRole("button", { name: /到店自提/ })).toBeVisible();
     await expect(page.getByRole("button", { name: /约 3 km 短配/ })).toBeVisible();
     await expectNoHorizontalOverflow(page);

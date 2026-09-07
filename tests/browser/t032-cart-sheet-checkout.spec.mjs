@@ -102,7 +102,8 @@ test.describe("T032 · Cart sheet & checkout card layout", () => {
 
     // 立即购买直接进入结算页
     await buyNowBtn.click();
-    await expect(page.getByRole("heading", { name: "云岭社区店" })).toBeVisible();
+    await expect(page.getByText("确认订单", { exact: true })).toBeVisible();
+    await expect(page.getByText("云岭社区店", { exact: true }).first()).toBeVisible();
   });
 
   test("product detail shows description section", async ({ page }) => {
@@ -119,8 +120,9 @@ test.describe("T032 · Cart sheet & checkout card layout", () => {
     await page.getByRole("button", { name: /打开购物车，\d+ 件商品/ }).click();
     await page.getByRole("dialog", { name: "购物车" }).getByRole("button", { name: "去结算" }).click();
 
-    // 确认订单标题
-    await expect(page.getByRole("heading", { name: "云岭社区店" })).toBeVisible();
+    // 确认订单标题 + 门店信息卡
+    await expect(page.getByText("确认订单", { exact: true })).toBeVisible();
+    await expect(page.getByText("云岭社区店", { exact: true }).first()).toBeVisible();
 
     // 取餐方式分组标题
     await expect(page.getByText("取餐方式")).toBeVisible();

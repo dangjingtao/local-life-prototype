@@ -1,6 +1,6 @@
 # T045 · V0.3 Release Gate 浏览器回归收口
 
-- Status: TODO
+- Status: PASS
 - Target version: 0.3.0
 - Type: QA / Regression / Release Gate
 - Predecessors: T044、T034-T043
@@ -58,6 +58,11 @@ PRD 反向审查同时确认，当前便利店订单状态页仍存在消费者�
 - `tests/browser/t032-cart-sheet-checkout.spec.mjs`
 - `apps/mobile/src/StoreFlowScreen.tsx`（**仅**清理上述已知消费者工程术语；不得借机重做订单页）
 
+Follow-up 复验确认 Mobile checkout → Mobile order → PC Shared 同一配送订单存在金额事实不一致后，按本卡“真实产品缺陷可最小扩白名单”规则新增：
+
+- `packages/shared/src/fixtures.ts`（**仅**把 `CONV-YUNLING-8888-DELIVERY` 的演示订单金额与当前 checkout 默认购物袋费后的最终应付对齐）
+- `tests/browser/t022-pc-convenience-operations.spec.mjs`（**仅**同步同一配送订单的 Mobile / PC 金额对账断言）
+
 允许新增一个明确命名的 V0.3 release-gate spec，用于跨卡总对账，例如：
 
 - `tests/browser/t045-v03-release-gate.spec.mjs`
@@ -108,3 +113,53 @@ PRD 反向审查同时确认，当前便利店订单状态页仍存在消费者�
 
 - 任何一条失败若无法证明是过时断言，必须按真实缺陷处理。
 - 如果需要改变已确认产品规则 / UX 才能通过测试，停止施工并回到产品决策。
+
+
+## Implementation record · 2026-09-07
+
+- 旧测试偏差：T017 / T018 / T032 仍断言已淘汰的 checkout 标题、旧门店 heading、旧提交按钮、旧订单号 / 取货码和旧配送状态文案；已按 T029 / T030 / T032 与 V0.3 当前实现对齐。
+- 真实产品缺陷：T032 卡片化 checkout 重构后，T018 已验收的“积分抵现”交互控件被遗漏，但 `usePoints` / `pointsDiscount` 计算状态仍存在。依据 T018 PASS 语义、T040“不得重做现有积分抵现”以及本卡 AC，按最小改动把积分抵现控件恢复到“金额明细”，不改变积分候选比例。
+- 消费者文案缺陷：自提 / 短配订单状态页的 `Mock order` 与 `Shared` 工程术语已改为消费者可理解表达；二维码 Mock 的原型能力边界保留。
+- 当前改动仅触及本卡白名单业务 / 测试文件；等待 PR latest-head Verify / Browser Quality 真实结果后再决定是否进入 REVIEW。
+
+
+## Final review · 2026-09-07（首轮，后被 follow-up 重开）
+
+- Self-review: PASS；未发现改变已确认 checkout / 自提 / 短配业务规则的越界改动。
+- Verify Prototype #34070001125：success；version contract、Mobile / PC typecheck、build 全部通过。
+- Browser Quality #34070001122：132 / 132 passed，0 failed。
+- T034 relation gate：`fixture relations remain valid...` 在同一 latest implementation head 通过，断言为 `expect(data.issues).toEqual([])`。
+- T017 / T018 / T032 的 8 条历史 checkout 红灯已消除；没有通过 skip / fixme / 删除测试制造全绿。
+- 真实缺陷“便利店积分抵现控件遗漏”已恢复，并由 T018 金额联动回归验证；Candidate 比例仍明确标注为候选示例。
+- 自提 / 短配订单正常消费者路径新增工程术语扫描；`Mock order` / `Shared` / `fixture` 不再暴露，二维码 Mock 原型边界保留。
+- CodeRabbit 在上述实现 head 上仍为 processing，未返回 actionable finding；依据用户既有授权执行 Mira 自审收口。最终合并前仍以 PR latest-head CI 为硬门禁。
+
+
+## Follow-up review · 2026-09-07
+
+- 自动审查指出一个低严重度但真实的金额一致性缺口：checkout 的默认购物袋 ¥0.50 已计入页面“应付”，但原订单 snapshot 只保存不含购物袋的 `payable`，导致配送订单状态页比结算页少 ¥0.50。
+- 该问题直接违反本卡“应付联动 / 订单流程一致性”的 Release Gate 目标，因此不作为 out-of-scope 旧债放过。
+- 最小修复：snapshot 新增 `bagFee`，保存 `checkoutTotal` 为最终 payable；配送完成金额明细同步展示购物袋费用。
+- 同时恢复配送订单 ID 的精确断言 `CONV-YUNLING-8888-DELIVERY`，避免相较旧测试降低识别强度。
+- 前述 132/132 证据仅证明上一 implementation head；本卡重新进入 DOING，必须等待本 follow-up latest-head Verify / Browser Quality 全绿后才能再次 PASS。
+
+
+## Follow-up Browser finding · 2026-09-07
+
+- Browser Quality #34070408321：131 / 132 passed，唯一失败为 T022 跨端配送订单金额仍断言 Mobile / PC `¥31.60`。
+- 失败不是新 Mobile 修复回归：Mobile 现在正确显示含默认购物袋费的 `¥32.10`；真正未同步的是 Shared 中同一订单 `CONV-YUNLING-8888-DELIVERY` 仍为 `amountYuan: 31.6`，PC 因此继续展示 `¥31.60`。
+- 该订单在 Mobile 与 PC 使用同一 order id，属于 Release Gate 的跨端单一事实，不能允许两端金额分叉。
+- 处理：先扩白名单，再把 Shared 该订单金额最小调整为 `32.1`，并把 T022 双端断言同时锁定为 `¥32.10`；不改变商品、优惠、配送费或购物袋业务规则。
+
+
+## Release Gate closeout · 2026-09-07
+
+- Final implementation head: `ad3dbc493dc7703915c264fb749881f051eed793`。
+- Verify Prototype #34070641100：success；version contract、Mobile / PC typecheck、build 全部通过。
+- Browser Quality #34070641068：**132 / 132 passed，0 failed**。
+- T034 relation gate 在同一全量 Browser 中通过；其断言为 `expect(data.issues).toEqual([])`，因此 relation = `[]`。
+- T022 Mobile / PC 同一配送订单 `CONV-YUNLING-8888-DELIVERY` 已统一为 `¥32.10`；默认购物袋 ¥0.50 进入 Mobile checkout、订单 snapshot、配送完成金额明细和 Shared / PC 同一订单金额。
+- 配送订单 ID 仍为精确断言，未通过降低测试强度制造全绿。
+- CodeRabbit 在旧 follow-up head 指出的唯一 actionable（T022 仍期待 `¥31.60`）已由 `ad3dbc4` 修复；latest Browser 全绿验证该问题已闭环。
+- Experimental OpenCode 最新一次 workflow 因 runner `spawnSync opencode E2BIG` 失败，属于审查基础设施失败，不是产品 / 代码失败；T014 本就不阻塞版本。
+- Mira 最终自审：未发现剩余 Release Gate 阻塞项。T045 → PASS；T046 可重新解锁给用户做人类产品 / 视觉最终验收。

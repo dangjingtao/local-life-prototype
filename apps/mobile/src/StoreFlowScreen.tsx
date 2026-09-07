@@ -48,6 +48,7 @@ type StoreOrderSnapshot = {
   pointsUsed: number;
   pointsDiscount: number;
   fulfillmentFee: number;
+  bagFee: number;
   payable: number;
   pickupWindow?: string;
   pickupCode?: string;
@@ -471,6 +472,8 @@ export function StoreFlowScreen({ openActivity, onOpenCommunity, entryContext }:
   const memberSavings = Math.max(0, subtotalOriginal - subtotalMember);
   const fulfillmentFee = fulfillmentMode === "short_delivery" ? (addressInRange ? shortDeliveryFeeYuan : 0) : 0;
   const payable = Math.max(0, subtotalMember - couponDiscount - pointsDiscount + fulfillmentFee);
+  const bagFee = needBag ? 0.5 : 0;
+  const checkoutTotal = payable + bagFee;
   const canSubmitCheckout = cartRows.length > 0
     && selectedStore?.status === "open"
     && (fulfillmentMode === "pickup" ? Boolean(effectivePickupWindow) : Boolean(effectiveAddress) && addressInRange);
@@ -543,7 +546,8 @@ export function StoreFlowScreen({ openActivity, onOpenCommunity, entryContext }:
       pointsUsed,
       pointsDiscount,
       fulfillmentFee,
-      payable,
+      bagFee,
+      payable: checkoutTotal,
       ...(fulfillmentMode === "pickup" ? { pickupWindow: effectivePickupWindow, pickupCode: sharedPickupCredential?.pickupCode ?? buildPickupCode() } : {}),
       ...(fulfillmentMode === "short_delivery" && effectiveAddress ? { address: `${effectiveAddress.label} · ${effectiveAddress.address}`, distanceKm: effectiveAddress.distanceKm } : {}),
       inRange: fulfillmentMode === "short_delivery" ? addressInRange : true,
@@ -1362,8 +1366,6 @@ export function StoreFlowScreen({ openActivity, onOpenCommunity, entryContext }:
   }
 
   if (step === "checkout") {
-    const bagFee = needBag ? 0.5 : 0;
-    const checkoutTotal = payable + bagFee;
     return (
       <>
         <button type="button" onClick={() => { setCartSheetOpen(true); goStep("browse"); }} className="inline-flex min-h-11 items-center gap-2 text-sm font-medium text-[var(--color-text-secondary)]">
@@ -1571,6 +1573,25 @@ export function StoreFlowScreen({ openActivity, onOpenCommunity, entryContext }:
                 <span className="max-w-[200px] truncate text-right font-medium text-[var(--color-success)]">{applicableCoupon.title} -¥{couponDiscount.toFixed(2)}</span>
               </div>
             )}
+            <div className="flex items-center justify-between gap-3">
+              <span className="flex items-center gap-2 text-[var(--color-text-secondary)]">
+                积分抵扣
+                <StatusTag>候选示例</StatusTag>
+              </span>
+              <button
+                type="button"
+                aria-pressed={usePoints}
+                onClick={() => setUsePoints((current) => !current)}
+                className={`min-h-11 rounded-full px-3 text-sm font-medium ${usePoints ? "bg-[var(--color-primary)] text-[var(--color-on-primary)]" : "border border-[var(--color-border)] text-[var(--color-text-secondary)]"}`}
+              >
+                {usePoints ? `-¥${pointsDiscount.toFixed(2)}` : "使用积分"}
+              </button>
+            </div>
+            {usePoints && (
+              <p className="text-xs leading-5 text-[var(--color-text-tertiary)]">
+                使用 {pointsUsed} 积分抵 ¥{pointsDiscount.toFixed(2)}（100 积分 = 1 元候选示例）；当前余额 {coreDemoUser.pointsBalance} 分。
+              </p>
+            )}
             <div className="flex items-center justify-between">
               <span className="text-[var(--color-text-secondary)]">
                 {fulfillmentMode === "pickup" ? "自提费" : "配送费"}
@@ -1658,10 +1679,10 @@ export function StoreFlowScreen({ openActivity, onOpenCommunity, entryContext }:
             <StatusTag tone={pickupStatus === "completed" ? "success" : undefined}>
               {pickupStatus === "preparing" ? "备货中" : pickupStatus === "ready_for_pickup" ? "待取货" : "核销完成"}
             </StatusTag>
-            <span className="text-xs text-[var(--color-text-tertiary)]">Mock order · 支付成功</span>
+            <span className="text-xs text-[var(--color-text-tertiary)]">支付成功</span>
           </div>
           <p className="mt-4 font-semibold">{snapshot.storeName}</p>
-          <p className="mt-1 text-sm text-[var(--color-text-secondary)]">到店自提 · 凭证与核销状态以 Shared 履约记录为准</p>
+          <p className="mt-1 text-sm text-[var(--color-text-secondary)]">到店自提 · 两种取货凭证对应同一次核销</p>
           {snapshot.pickupWindow && <p className="mt-2 text-sm text-[var(--color-text-secondary)]">下单选择时段：{snapshot.pickupWindow}</p>}
 
           <div className="mt-5 rounded-[var(--radius-container)] border border-[var(--color-border)] bg-[var(--color-background)] p-4" data-testid="pickup-dual-credential">
@@ -1776,7 +1797,7 @@ export function StoreFlowScreen({ openActivity, onOpenCommunity, entryContext }:
             <StatusTag tone={deliveryStatus === "completed" ? "success" : undefined}>
               {deliveryStatus === "preparing" ? "门店接单 / 备货中" : deliveryStatus === "delivering" ? "配送中" : "已送达"}
             </StatusTag>
-            <span className="text-xs text-[var(--color-text-tertiary)]">Mock order · 支付成功</span>
+            <span className="text-xs text-[var(--color-text-tertiary)]">支付成功</span>
           </div>
           <p className="mt-4 font-semibold">{snapshot.storeName}</p>
           <p className="mt-1 text-sm text-[var(--color-text-secondary)]">约 3 km 短配 · {snapshot.itemCount} 件商品 · 应付 ¥{snapshot.payable.toFixed(2)}</p>
@@ -1826,6 +1847,7 @@ export function StoreFlowScreen({ openActivity, onOpenCommunity, entryContext }:
                 {snapshot.couponDiscount > 0 && <div className="flex justify-between gap-3"><span className="text-[var(--color-text-secondary)]">优惠券</span><span className="font-medium text-[var(--color-success)]">-¥{snapshot.couponDiscount.toFixed(2)}</span></div>}
                 {snapshot.pointsDiscount > 0 && <div className="flex justify-between gap-3"><span className="text-[var(--color-text-secondary)]">积分抵扣</span><span className="font-medium text-[var(--color-success)]">-¥{snapshot.pointsDiscount.toFixed(2)}</span></div>}
                 <div className="flex justify-between gap-3"><span className="text-[var(--color-text-secondary)]">配送费</span><span className="font-medium">¥{snapshot.fulfillmentFee.toFixed(2)}</span></div>
+                {snapshot.bagFee > 0 && <div className="flex justify-between gap-3"><span className="text-[var(--color-text-secondary)]">购物袋</span><span className="font-medium">¥{snapshot.bagFee.toFixed(2)}</span></div>}
                 <div className="flex justify-between gap-3 border-t border-[var(--color-border)] pt-3"><span className="font-semibold">应付</span><span className="font-semibold">¥{snapshot.payable.toFixed(2)}</span></div>
               </div>
             </Card>
