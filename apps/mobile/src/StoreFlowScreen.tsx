@@ -48,6 +48,7 @@ type StoreOrderSnapshot = {
   pointsUsed: number;
   pointsDiscount: number;
   fulfillmentFee: number;
+  bagFee: number;
   payable: number;
   pickupWindow?: string;
   pickupCode?: string;
@@ -471,6 +472,8 @@ export function StoreFlowScreen({ openActivity, onOpenCommunity, entryContext }:
   const memberSavings = Math.max(0, subtotalOriginal - subtotalMember);
   const fulfillmentFee = fulfillmentMode === "short_delivery" ? (addressInRange ? shortDeliveryFeeYuan : 0) : 0;
   const payable = Math.max(0, subtotalMember - couponDiscount - pointsDiscount + fulfillmentFee);
+  const bagFee = needBag ? 0.5 : 0;
+  const checkoutTotal = payable + bagFee;
   const canSubmitCheckout = cartRows.length > 0
     && selectedStore?.status === "open"
     && (fulfillmentMode === "pickup" ? Boolean(effectivePickupWindow) : Boolean(effectiveAddress) && addressInRange);
@@ -543,7 +546,8 @@ export function StoreFlowScreen({ openActivity, onOpenCommunity, entryContext }:
       pointsUsed,
       pointsDiscount,
       fulfillmentFee,
-      payable,
+      bagFee,
+      payable: checkoutTotal,
       ...(fulfillmentMode === "pickup" ? { pickupWindow: effectivePickupWindow, pickupCode: sharedPickupCredential?.pickupCode ?? buildPickupCode() } : {}),
       ...(fulfillmentMode === "short_delivery" && effectiveAddress ? { address: `${effectiveAddress.label} · ${effectiveAddress.address}`, distanceKm: effectiveAddress.distanceKm } : {}),
       inRange: fulfillmentMode === "short_delivery" ? addressInRange : true,
@@ -1362,8 +1366,6 @@ export function StoreFlowScreen({ openActivity, onOpenCommunity, entryContext }:
   }
 
   if (step === "checkout") {
-    const bagFee = needBag ? 0.5 : 0;
-    const checkoutTotal = payable + bagFee;
     return (
       <>
         <button type="button" onClick={() => { setCartSheetOpen(true); goStep("browse"); }} className="inline-flex min-h-11 items-center gap-2 text-sm font-medium text-[var(--color-text-secondary)]">
@@ -1845,6 +1847,7 @@ export function StoreFlowScreen({ openActivity, onOpenCommunity, entryContext }:
                 {snapshot.couponDiscount > 0 && <div className="flex justify-between gap-3"><span className="text-[var(--color-text-secondary)]">优惠券</span><span className="font-medium text-[var(--color-success)]">-¥{snapshot.couponDiscount.toFixed(2)}</span></div>}
                 {snapshot.pointsDiscount > 0 && <div className="flex justify-between gap-3"><span className="text-[var(--color-text-secondary)]">积分抵扣</span><span className="font-medium text-[var(--color-success)]">-¥{snapshot.pointsDiscount.toFixed(2)}</span></div>}
                 <div className="flex justify-between gap-3"><span className="text-[var(--color-text-secondary)]">配送费</span><span className="font-medium">¥{snapshot.fulfillmentFee.toFixed(2)}</span></div>
+                {snapshot.bagFee > 0 && <div className="flex justify-between gap-3"><span className="text-[var(--color-text-secondary)]">购物袋</span><span className="font-medium">¥{snapshot.bagFee.toFixed(2)}</span></div>}
                 <div className="flex justify-between gap-3 border-t border-[var(--color-border)] pt-3"><span className="font-semibold">应付</span><span className="font-semibold">¥{snapshot.payable.toFixed(2)}</span></div>
               </div>
             </Card>
