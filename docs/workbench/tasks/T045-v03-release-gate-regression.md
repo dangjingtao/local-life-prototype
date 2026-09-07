@@ -1,6 +1,6 @@
 # T045 · V0.3 Release Gate 浏览器回归收口
 
-- Status: TODO
+- Status: DOING
 - Target version: 0.3.0
 - Type: QA / Regression / Release Gate
 - Predecessors: T044、T034-T043
@@ -108,3 +108,11 @@ PRD 反向审查同时确认，当前便利店订单状态页仍存在消费者�
 
 - 任何一条失败若无法证明是过时断言，必须按真实缺陷处理。
 - 如果需要改变已确认产品规则 / UX 才能通过测试，停止施工并回到产品决策。
+
+
+## Implementation record · 2026-09-07
+
+- 旧测试偏差：T017 / T018 / T032 仍断言已淘汰的 checkout 标题、旧门店 heading、旧提交按钮、旧订单号 / 取货码和旧配送状态文案；已按 T029 / T030 / T032 与 V0.3 当前实现对齐。
+- 真实产品缺陷：T032 卡片化 checkout 重构后，T018 已验收的“积分抵现”交互控件被遗漏，但 `usePoints` / `pointsDiscount` 计算状态仍存在。依据 T018 PASS 语义、T040“不得重做现有积分抵现”以及本卡 AC，按最小改动把积分抵现控件恢复到“金额明细”，不改变积分候选比例。
+- 消费者文案缺陷：自提 / 短配订单状态页的 `Mock order` 与 `Shared` 工程术语已改为消费者可理解表达；二维码 Mock 的原型能力边界保留。
+- 当前改动仅触及本卡白名单业务 / 测试文件；等待 PR latest-head Verify / Browser Quality 真实结果后再决定是否进入 REVIEW。
