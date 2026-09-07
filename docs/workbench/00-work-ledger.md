@@ -79,7 +79,7 @@
 | T042 | Mobile 社群基础入口 | Mobile / Private-domain | PASS | 0.3.0 | T034 | 2026-09-06 Mira 按用户授权自审验收；PR #41 squash merge `27b717b`；Verify #34029073161 success；Browser #34029073148：T042 4/4、全量 120/128，余 8 项为既有 checkout 债；Codex P2 + CodeRabbit Major 均修复并 resolve，latest CodeRabbit success / 无 actionable comment |
 | T043 | Mobile 消费后社群承接 | Mobile / Growth | PASS | 0.3.0 | T042、T018 | 2026-09-06 Mira 按用户授权自审验收；PR #42 squash merge `ae2d34d`；Verify #34032075151 success；Browser #34032075150：T043 4/4、全量 124/132，余 8 项为既有 checkout 债；CodeRabbit 2×Major 已修复并 resolve，status success |
 | T044 | V0.3 数字取货码语义整改 | Shared / Mobile / PC / Fulfillment / Release Gate | PASS | 0.3.0 | T034、T037-T039 | 2026-09-07 Mira 按用户授权自审验收；PR #43 squash merge `049c533`；core pickupCode=`482731`，order/credential/redemption 三处同值；Verify #34047758811 success；latest docs-head Browser #34048111390：124/132，仅余既有 8 个 checkout 回归；T022/T034/T037/T038/T039 均通过；CodeRabbit Major 已修复并 resolve、latest implementation status success |
-| T045 | V0.3 Release Gate 浏览器回归收口 | QA / Regression / Release Gate | TODO | 0.3.0 | T044、T034-T043 | 对齐 T017/T018/T032 的 8 条旧 checkout 断言到当前 T029/T030/T032 UX 真相源；禁止降级测试，最终要求全量 Browser 0 failed |
+| T045 | V0.3 Release Gate 浏览器回归收口 | QA / Regression / Release Gate | DOING | 0.3.0 | T044、T034-T043 | 对齐 T017/T018/T032 的 8 条旧 checkout 断言到当前 T029/T030/T032 UX 真相源；禁止降级测试，最终要求全量 Browser 0 failed |
 | T046 | V0.3 人类产品 / 视觉最终验收 | Human Acceptance / Product / Visual | BLOCKED | 0.3.0 | T044 PASS、T045 PASS、T034-T043 PASS | 已派发但锁定；仅在 latest-head Verify success、Browser 0 failed、relation `[]` 后交给用户；CI / AI / Mira 自审均不能代替用户最终 PASS |
 
 ## V0.1 收口记录
