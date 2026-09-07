@@ -79,9 +79,10 @@ test.describe("T018 · Mobile convenience settlement, pickup and 3km short deliv
 
     await page.getByRole("button", { name: /约 3 km 短配/ }).click();
     await expect(page.getByRole("button", { name: /可配送 · 1.2 km/ })).toBeVisible();
-    await expect(page.getByRole("button", { name: /超出配送范围 · 4.5 km/ })).toBeVisible();
-    await expect(page.getByRole("button", { name: /超出配送范围 · 4.5 km/ })).toBeDisabled();
-    await expect(page.getByText("短配示例 ¥5.00", { exact: true })).toBeVisible();
+    await expect(page.getByRole("button", { name: /超出范围/ })).toBeVisible();
+    await expect(page.getByRole("button", { name: /超出范围/ })).toBeDisabled();
+    await expect(page.getByText("配送费", { exact: true }).first()).toBeVisible();
+    await expect(page.getByText("¥5.00", { exact: true }).first()).toBeVisible();
     await expectNoHorizontalOverflow(page);
   });
 
@@ -92,7 +93,10 @@ test.describe("T018 · Mobile convenience settlement, pickup and 3km short deliv
     await expect(page.getByRole("button", { name: /可配送 · 1.2 km/ })).toHaveAttribute("aria-pressed", "true");
     await page.getByRole("button", { name: "提交订单" }).click();
 
-    await expect(page.getByRole("heading", { name: /CONV-YUNLING-8888/ })).toBeVisible();
+    await expect(page.getByText("配送订单详情", { exact: true })).toBeVisible();
+    for (const term of ["Mock order", "Shared", "fixture"]) {
+      await expect(page.getByText(term, { exact: false })).toHaveCount(0);
+    }
     await expect(page.getByText("门店接单 / 备货中", { exact: true })).toBeVisible();
     await page.getByRole("button", { name: "模拟开始配送" }).click();
 
@@ -112,12 +116,13 @@ test.describe("T018 · Mobile convenience settlement, pickup and 3km short deliv
     await openCheckout(page);
 
     await page.getByRole("button", { name: /约 3 km 短配/ }).click();
-    await expect(page.getByText(/云岭社区店 · 结算/)).toBeVisible();
-    await expect(page.getByText(/不跨店、不与商城混单/)).toBeVisible();
+    await expect(page.getByText("云岭社区店", { exact: true }).first()).toBeVisible();
+    await expect(page.getByText("商品清单", { exact: true })).toBeVisible();
     await expect(page.getByText(/线上商城/)).toHaveCount(0);
 
     await page.getByRole("button", { name: /到店自提/ }).click();
-    await expect(page.getByText("自提 ¥0", { exact: true })).toBeVisible();
+    await expect(page.getByText("自提费", { exact: true })).toBeVisible();
+    await expect(page.getByText("¥0.00", { exact: true }).first()).toBeVisible();
     await expect(page.getByRole("button", { name: /今天 \d{2}:\d{2}-\d{2}:\d{2}/ }).first()).toBeVisible();
     await expectNoHorizontalOverflow(page);
   });
