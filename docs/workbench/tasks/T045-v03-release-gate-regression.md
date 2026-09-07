@@ -1,6 +1,6 @@
 # T045 · V0.3 Release Gate 浏览器回归收口
 
-- Status: PASS
+- Status: DOING
 - Target version: 0.3.0
 - Type: QA / Regression / Release Gate
 - Predecessors: T044、T034-T043
@@ -128,3 +128,12 @@ PRD 反向审查同时确认，当前便利店订单状态页仍存在消费者�
 - 真实缺陷“便利店积分抵现控件遗漏”已恢复，并由 T018 金额联动回归验证；Candidate 比例仍明确标注为候选示例。
 - 自提 / 短配订单正常消费者路径新增工程术语扫描；`Mock order` / `Shared` / `fixture` 不再暴露，二维码 Mock 原型边界保留。
 - CodeRabbit 在上述实现 head 上仍为 processing，未返回 actionable finding；依据用户既有授权执行 Mira 自审收口。最终合并前仍以 PR latest-head CI 为硬门禁。
+
+
+## Follow-up review · 2026-09-07
+
+- 自动审查指出一个低严重度但真实的金额一致性缺口：checkout 的默认购物袋 ¥0.50 已计入页面“应付”，但原订单 snapshot 只保存不含购物袋的 `payable`，导致配送订单状态页比结算页少 ¥0.50。
+- 该问题直接违反本卡“应付联动 / 订单流程一致性”的 Release Gate 目标，因此不作为 out-of-scope 旧债放过。
+- 最小修复：snapshot 新增 `bagFee`，保存 `checkoutTotal` 为最终 payable；配送完成金额明细同步展示购物袋费用。
+- 同时恢复配送订单 ID 的精确断言 `CONV-YUNLING-8888-DELIVERY`，避免相较旧测试降低识别强度。
+- 前述 132/132 证据仅证明上一 implementation head；本卡重新进入 DOING，必须等待本 follow-up latest-head Verify / Browser Quality 全绿后才能再次 PASS。
