@@ -1,6 +1,6 @@
 # T045 · V0.3 Release Gate 浏览器回归收口
 
-- Status: DOING
+- Status: PASS
 - Target version: 0.3.0
 - Type: QA / Regression / Release Gate
 - Predecessors: T044、T034-T043
@@ -116,3 +116,15 @@ PRD 反向审查同时确认，当前便利店订单状态页仍存在消费者�
 - 真实产品缺陷：T032 卡片化 checkout 重构后，T018 已验收的“积分抵现”交互控件被遗漏，但 `usePoints` / `pointsDiscount` 计算状态仍存在。依据 T018 PASS 语义、T040“不得重做现有积分抵现”以及本卡 AC，按最小改动把积分抵现控件恢复到“金额明细”，不改变积分候选比例。
 - 消费者文案缺陷：自提 / 短配订单状态页的 `Mock order` 与 `Shared` 工程术语已改为消费者可理解表达；二维码 Mock 的原型能力边界保留。
 - 当前改动仅触及本卡白名单业务 / 测试文件；等待 PR latest-head Verify / Browser Quality 真实结果后再决定是否进入 REVIEW。
+
+
+## Final review · 2026-09-07
+
+- Self-review: PASS；未发现改变已确认 checkout / 自提 / 短配业务规则的越界改动。
+- Verify Prototype #34070001125：success；version contract、Mobile / PC typecheck、build 全部通过。
+- Browser Quality #34070001122：132 / 132 passed，0 failed。
+- T034 relation gate：`fixture relations remain valid...` 在同一 latest implementation head 通过，断言为 `expect(data.issues).toEqual([])`。
+- T017 / T018 / T032 的 8 条历史 checkout 红灯已消除；没有通过 skip / fixme / 删除测试制造全绿。
+- 真实缺陷“便利店积分抵现控件遗漏”已恢复，并由 T018 金额联动回归验证；Candidate 比例仍明确标注为候选示例。
+- 自提 / 短配订单正常消费者路径新增工程术语扫描；`Mock order` / `Shared` / `fixture` 不再暴露，二维码 Mock 原型边界保留。
+- CodeRabbit 在上述实现 head 上仍为 processing，未返回 actionable finding；依据用户既有授权执行 Mira 自审收口。最终合并前仍以 PR latest-head CI 为硬门禁。
