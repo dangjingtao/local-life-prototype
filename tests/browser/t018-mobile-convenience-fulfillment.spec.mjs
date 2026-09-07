@@ -94,6 +94,8 @@ test.describe("T018 · Mobile convenience settlement, pickup and 3km short deliv
     await page.getByRole("button", { name: "提交订单" }).click();
 
     await expect(page.getByText("配送订单详情", { exact: true })).toBeVisible();
+    await expect(page.getByRole("heading", { name: "CONV-YUNLING-8888-DELIVERY" })).toBeVisible();
+    await expect(page.getByText(/应付 ¥32\.10/)).toBeVisible();
     for (const term of ["Mock order", "Shared", "fixture"]) {
       await expect(page.getByText(term, { exact: false })).toHaveCount(0);
     }
@@ -107,6 +109,9 @@ test.describe("T018 · Mobile convenience settlement, pickup and 3km short deliv
     await expect(page.getByText("已送达", { exact: true }).first()).toBeVisible();
     await expect(page.getByRole("heading", { name: "短距配送已完成" })).toBeVisible();
     await expect(page.getByText("配送费", { exact: true })).toBeVisible();
+    await expect(page.getByText("购物袋", { exact: true })).toBeVisible();
+    await expect(page.getByText("¥0.50", { exact: true })).toBeVisible();
+    await expect(page.getByText("¥32.10", { exact: true })).toBeVisible();
     await page.getByRole("button", { name: "返回便利店继续选购" }).click();
     await expect(page.getByRole("button", { name: /打开购物车，0 件商品/ })).toBeVisible();
     await expectNoHorizontalOverflow(page);
