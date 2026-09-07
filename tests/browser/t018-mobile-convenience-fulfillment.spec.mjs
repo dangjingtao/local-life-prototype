@@ -53,15 +53,18 @@ test.describe("T018 · Mobile convenience settlement, pickup and 3km short deliv
 
     await expect(page.getByRole("button", { name: /到店自提/ })).toHaveAttribute("aria-pressed", "true");
     await expect(page.getByRole("button", { name: /今天 \d{2}:\d{2}-\d{2}:\d{2}/ }).first()).toBeVisible();
-    await page.getByRole("button", { name: "提交演示订单" }).click();
+    await page.getByRole("button", { name: "提交订单" }).click();
 
-    await expect(page.getByRole("heading", { name: /CONV-YUNLING-8888/ })).toBeVisible();
+    await expect(page.getByRole("heading", { name: "LL-1024" })).toBeVisible();
+    for (const term of ["Mock order", "Shared", "fixture"]) {
+      await expect(page.getByText(term, { exact: false })).toHaveCount(0);
+    }
     await expect(page.getByText("备货中", { exact: true }).first()).toBeVisible();
     await page.getByRole("button", { name: "模拟备货完成" }).click();
 
     await expect(page.getByText("待取货", { exact: true }).first()).toBeVisible();
-    await expect(page.getByText(/PK-\d{4}/)).toBeVisible();
-    await expect(page.getByText("取货码", { exact: true })).toBeVisible();
+    await expect(page.getByText("数字取货码", { exact: true })).toBeVisible();
+    await expect(page.getByTestId("pickup-code-credential").getByText(/^\d{6}$/)).toBeVisible();
     await page.getByRole("button", { name: "模拟店员核销" }).click();
 
     await expect(page.getByText("核销完成", { exact: true }).first()).toBeVisible();
@@ -87,7 +90,7 @@ test.describe("T018 · Mobile convenience settlement, pickup and 3km short deliv
 
     await page.getByRole("button", { name: /约 3 km 短配/ }).click();
     await expect(page.getByRole("button", { name: /可配送 · 1.2 km/ })).toHaveAttribute("aria-pressed", "true");
-    await page.getByRole("button", { name: "提交演示订单" }).click();
+    await page.getByRole("button", { name: "提交订单" }).click();
 
     await expect(page.getByRole("heading", { name: /CONV-YUNLING-8888/ })).toBeVisible();
     await expect(page.getByText("门店接单 / 备货中", { exact: true })).toBeVisible();
