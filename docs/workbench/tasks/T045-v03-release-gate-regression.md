@@ -1,6 +1,6 @@
 # T045 · V0.3 Release Gate 浏览器回归收口
 
-- Status: DOING
+- Status: PASS
 - Target version: 0.3.0
 - Type: QA / Regression / Release Gate
 - Predecessors: T044、T034-T043
@@ -123,7 +123,7 @@ Follow-up 复验确认 Mobile checkout → Mobile order → PC Shared 同一配�
 - 当前改动仅触及本卡白名单业务 / 测试文件；等待 PR latest-head Verify / Browser Quality 真实结果后再决定是否进入 REVIEW。
 
 
-## Final review · 2026-09-07
+## Final review · 2026-09-07（首轮，后被 follow-up 重开）
 
 - Self-review: PASS；未发现改变已确认 checkout / 自提 / 短配业务规则的越界改动。
 - Verify Prototype #34070001125：success；version contract、Mobile / PC typecheck、build 全部通过。
@@ -150,3 +150,16 @@ Follow-up 复验确认 Mobile checkout → Mobile order → PC Shared 同一配�
 - 失败不是新 Mobile 修复回归：Mobile 现在正确显示含默认购物袋费的 `¥32.10`；真正未同步的是 Shared 中同一订单 `CONV-YUNLING-8888-DELIVERY` 仍为 `amountYuan: 31.6`，PC 因此继续展示 `¥31.60`。
 - 该订单在 Mobile 与 PC 使用同一 order id，属于 Release Gate 的跨端单一事实，不能允许两端金额分叉。
 - 处理：先扩白名单，再把 Shared 该订单金额最小调整为 `32.1`，并把 T022 双端断言同时锁定为 `¥32.10`；不改变商品、优惠、配送费或购物袋业务规则。
+
+
+## Release Gate closeout · 2026-09-07
+
+- Final implementation head: `ad3dbc493dc7703915c264fb749881f051eed793`。
+- Verify Prototype #34070641100：success；version contract、Mobile / PC typecheck、build 全部通过。
+- Browser Quality #34070641068：**132 / 132 passed，0 failed**。
+- T034 relation gate 在同一全量 Browser 中通过；其断言为 `expect(data.issues).toEqual([])`，因此 relation = `[]`。
+- T022 Mobile / PC 同一配送订单 `CONV-YUNLING-8888-DELIVERY` 已统一为 `¥32.10`；默认购物袋 ¥0.50 进入 Mobile checkout、订单 snapshot、配送完成金额明细和 Shared / PC 同一订单金额。
+- 配送订单 ID 仍为精确断言，未通过降低测试强度制造全绿。
+- CodeRabbit 在旧 follow-up head 指出的唯一 actionable（T022 仍期待 `¥31.60`）已由 `ad3dbc4` 修复；latest Browser 全绿验证该问题已闭环。
+- Experimental OpenCode 最新一次 workflow 因 runner `spawnSync opencode E2BIG` 失败，属于审查基础设施失败，不是产品 / 代码失败；T014 本就不阻塞版本。
+- Mira 最终自审：未发现剩余 Release Gate 阻塞项。T045 → PASS；T046 可重新解锁给用户做人类产品 / 视觉最终验收。
