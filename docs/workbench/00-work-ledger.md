@@ -79,8 +79,8 @@
 | T042 | Mobile 社群基础入口 | Mobile / Private-domain | PASS | 0.3.0 | T034 | 2026-09-06 Mira 按用户授权自审验收；PR #41 squash merge `27b717b`；Verify #34029073161 success；Browser #34029073148：T042 4/4、全量 120/128，余 8 项为既有 checkout 债；Codex P2 + CodeRabbit Major 均修复并 resolve，latest CodeRabbit success / 无 actionable comment |
 | T043 | Mobile 消费后社群承接 | Mobile / Growth | PASS | 0.3.0 | T042、T018 | 2026-09-06 Mira 按用户授权自审验收；PR #42 squash merge `ae2d34d`；Verify #34032075151 success；Browser #34032075150：T043 4/4、全量 124/132，余 8 项为既有 checkout 债；CodeRabbit 2×Major 已修复并 resolve，status success |
 | T044 | V0.3 数字取货码语义整改 | Shared / Mobile / PC / Fulfillment / Release Gate | PASS | 0.3.0 | T034、T037-T039 | 2026-09-07 Mira 按用户授权自审验收；PR #43 squash merge `049c533`；core pickupCode=`482731`，order/credential/redemption 三处同值；Verify #34047758811 success；latest docs-head Browser #34048111390：124/132，仅余既有 8 个 checkout 回归；T022/T034/T037/T038/T039 均通过；CodeRabbit Major 已修复并 resolve、latest implementation status success |
-| T045 | V0.3 Release Gate 浏览器回归收口 | QA / Regression / Release Gate | DOING | 0.3.0 | T044、T034-T043 | 对齐 T017/T018/T032 的 8 条旧 checkout 断言到当前 T029/T030/T032 UX 真相源；禁止降级测试，最终要求全量 Browser 0 failed |
-| T046 | V0.3 人类产品 / 视觉最终验收 | Human Acceptance / Product / Visual | BLOCKED | 0.3.0 | T044 PASS、T045 PASS、T034-T043 PASS | 已派发但锁定；仅在 latest-head Verify success、Browser 0 failed、relation `[]` 后交给用户；CI / AI / Mira 自审均不能代替用户最终 PASS |
+| T045 | V0.3 Release Gate 浏览器回归收口 | QA / Regression / Release Gate | PASS | 0.3.0 | T044、T034-T043 | PR #44；Verify #34070001125 success；Browser #34070001122：132/132 passed、0 failed；T034 relation `[]`；8 条旧 checkout 红灯收口并恢复遗漏的积分抵现控件；Mira 自审无阻塞项 |
+| T046 | V0.3 人类产品 / 视觉最终验收 | Human Acceptance / Product / Visual | REVIEW | 0.3.0 | T044 PASS、T045 PASS、T034-T043 PASS | T045 Release Gate 已满足：Verify success、Browser 132/132、relation `[]`；已解锁并等待用户最终产品 / 视觉验收，CI / AI / Mira 自审均不能代替用户 PASS |
 
 ## V0.1 收口记录
 
@@ -187,6 +187,6 @@
 
 1. V0.2：T025 已解锁，可直接开始 PC 数据驾驶舱增量；T025 完成后，仍需 T019 / T033 商城最终视觉验收收口，再进入 T026 总体跨端验收准备。
 2. V0.2：便利店 UX lane 已全部收口，T017、T027-T032、T030 均为 PASS，不再作为后续施工阻塞。
-3. V0.3：T034-T042 当前已完成；T043 前置已满足，可直接启动。
-4. V0.3：双凭证 / 双通道核销、积分升级、社群常驻入口与消费后承接均已 PASS；进入 Release Gate 只做证据 / 回归 / Shared 一致性验收。
+3. V0.3：T034-T045 已完成并通过 Release Gate；全量 Browser 已收口为 0 failed。
+4. V0.3：T046 人类产品 / 视觉最终验收已解锁；只有用户明确确认后才能 PASS。
 5. T022 / T023 / T024 已全部 PASS；后续不得另造第二套 PC 便利店履约 / 核销后台，也不得回滚已确认的 Shared / T018 业务事实。
