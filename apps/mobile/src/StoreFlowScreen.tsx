@@ -1571,6 +1571,25 @@ export function StoreFlowScreen({ openActivity, onOpenCommunity, entryContext }:
                 <span className="max-w-[200px] truncate text-right font-medium text-[var(--color-success)]">{applicableCoupon.title} -¥{couponDiscount.toFixed(2)}</span>
               </div>
             )}
+            <div className="flex items-center justify-between gap-3">
+              <span className="flex items-center gap-2 text-[var(--color-text-secondary)]">
+                积分抵扣
+                <StatusTag>候选示例</StatusTag>
+              </span>
+              <button
+                type="button"
+                aria-pressed={usePoints}
+                onClick={() => setUsePoints((current) => !current)}
+                className={`min-h-11 rounded-full px-3 text-sm font-medium ${usePoints ? "bg-[var(--color-primary)] text-[var(--color-on-primary)]" : "border border-[var(--color-border)] text-[var(--color-text-secondary)]"}`}
+              >
+                {usePoints ? `-¥${pointsDiscount.toFixed(2)}` : "使用积分"}
+              </button>
+            </div>
+            {usePoints && (
+              <p className="text-xs leading-5 text-[var(--color-text-tertiary)]">
+                使用 {pointsUsed} 积分抵 ¥{pointsDiscount.toFixed(2)}（100 积分 = 1 元候选示例）；当前余额 {coreDemoUser.pointsBalance} 分。
+              </p>
+            )}
             <div className="flex items-center justify-between">
               <span className="text-[var(--color-text-secondary)]">
                 {fulfillmentMode === "pickup" ? "自提费" : "配送费"}
@@ -1658,10 +1677,10 @@ export function StoreFlowScreen({ openActivity, onOpenCommunity, entryContext }:
             <StatusTag tone={pickupStatus === "completed" ? "success" : undefined}>
               {pickupStatus === "preparing" ? "备货中" : pickupStatus === "ready_for_pickup" ? "待取货" : "核销完成"}
             </StatusTag>
-            <span className="text-xs text-[var(--color-text-tertiary)]">Mock order · 支付成功</span>
+            <span className="text-xs text-[var(--color-text-tertiary)]">支付成功</span>
           </div>
           <p className="mt-4 font-semibold">{snapshot.storeName}</p>
-          <p className="mt-1 text-sm text-[var(--color-text-secondary)]">到店自提 · 凭证与核销状态以 Shared 履约记录为准</p>
+          <p className="mt-1 text-sm text-[var(--color-text-secondary)]">到店自提 · 两种取货凭证对应同一次核销</p>
           {snapshot.pickupWindow && <p className="mt-2 text-sm text-[var(--color-text-secondary)]">下单选择时段：{snapshot.pickupWindow}</p>}
 
           <div className="mt-5 rounded-[var(--radius-container)] border border-[var(--color-border)] bg-[var(--color-background)] p-4" data-testid="pickup-dual-credential">
@@ -1776,7 +1795,7 @@ export function StoreFlowScreen({ openActivity, onOpenCommunity, entryContext }:
             <StatusTag tone={deliveryStatus === "completed" ? "success" : undefined}>
               {deliveryStatus === "preparing" ? "门店接单 / 备货中" : deliveryStatus === "delivering" ? "配送中" : "已送达"}
             </StatusTag>
-            <span className="text-xs text-[var(--color-text-tertiary)]">Mock order · 支付成功</span>
+            <span className="text-xs text-[var(--color-text-tertiary)]">支付成功</span>
           </div>
           <p className="mt-4 font-semibold">{snapshot.storeName}</p>
           <p className="mt-1 text-sm text-[var(--color-text-secondary)]">约 3 km 短配 · {snapshot.itemCount} 件商品 · 应付 ¥{snapshot.payable.toFixed(2)}</p>
