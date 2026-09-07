@@ -1,6 +1,6 @@
 # T046 · V0.3 人类产品 / 视觉最终验收
 
-- Status: REVIEW
+- Status: BLOCKED
 - Target version: 0.3.0
 - Type: Human Acceptance / Product / Visual
 - Predecessors: T044 PASS、T045 PASS、T034-T043 PASS
@@ -8,9 +8,9 @@
 
 ## Dispatch state
 
-**已解锁，等待用户最终验收。**
+**已派发，但因 T045 follow-up 重新锁定。**
 
-T044 / T045 已 PASS，Release Gate 自动化条件已经满足；本卡进入 REVIEW，等待用户对实际产品与视觉体验做最终验收。AI / CI 仍不得代替用户把本卡改为 PASS。
+T045 在最终自审中发现 checkout → 订单金额不一致并重新进入 DOING；本卡暂时回到 BLOCKED。待 follow-up latest-head Verify / Browser Quality 再次满足 Release Gate 后，方可重新进入 REVIEW。
 
 解锁条件：
 
