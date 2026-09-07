@@ -1,6 +1,6 @@
 # T046 · V0.3 人类产品 / 视觉最终验收
 
-- Status: REVIEW
+- Status: PASS
 - Target version: 0.3.0
 - Type: Human Acceptance / Product / Visual
 - Predecessors: T044 PASS、T045 PASS、T034-T043 PASS
@@ -8,9 +8,9 @@
 
 ## Dispatch state
 
-**已解锁，等待用户最终验收。**
+**用户最终验收已通过。**
 
-T045 follow-up 已完成：latest-head Verify success、Browser Quality 132/132 passed、relation `[]`，跨端配送订单金额也已统一。本卡重新进入 REVIEW，等待用户对实际产品与视觉体验做最终验收。AI / CI 仍不得代替用户把本卡改为 PASS。
+T045 follow-up 已完成：latest-head Verify success、Browser Quality 132/132 passed、relation `[]`，跨端配送订单金额也已统一。2026-09-07 用户明确确认 V0.3 产品 / 视觉最终验收 **PASS**；本卡正式收口。
 
 解锁条件：
 
@@ -117,3 +117,11 @@ CI / AI review / Mira 自审均**不能代替用户把 T046 改成 PASS**。
 2. 台账记录用户验收日期与结论；
 3. V0.3 Release Gate 记录完成；
 4. 如用户确认本次视觉验收同时覆盖 T019 / T033 的待确认视觉项，可在同一明确授权下同步收口；否则 T019 / T033 保持各自 REVIEW，不自动代验收。
+
+
+## Human acceptance record · 2026-09-07
+
+- Decision: **PASS**
+- Source: 用户在 T046 人类产品 / 视觉最终验收流程中明确回复“pass”。
+- Result: V0.3 产品 / 视觉最终验收通过，Release Gate 完成。
+- Scope note: 本次 PASS 仅收口 T046 / V0.3；未收到用户明确授权将本次验收同时覆盖 T019 / T033，因此两卡保持原状态，不自动代验收。
