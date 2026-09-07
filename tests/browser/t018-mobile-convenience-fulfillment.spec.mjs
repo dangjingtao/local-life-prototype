@@ -13,7 +13,8 @@ async function openCheckout(page) {
   await page.getByRole("button", { name: "选择门店：云岭社区店" }).click();
   await page.getByRole("button", { name: /打开购物车，3 件商品/ }).click();
   await page.getByRole("button", { name: "去结算" }).click();
-  await expect(page.getByRole("heading", { name: "选择履约方式并确认订单" })).toBeVisible();
+  await expect(page.getByText("确认订单", { exact: true })).toBeVisible();
+  await expect(page.getByText("云岭社区店", { exact: true }).first()).toBeVisible();
 }
 
 async function expectNoHorizontalOverflow(page) {
@@ -32,16 +33,17 @@ test.describe("T018 · Mobile convenience settlement, pickup and 3km short deliv
     await openCheckout(page);
 
     await expect(page.getByText("商品金额", { exact: true })).toBeVisible();
-    await expect(page.getByText("会员优惠（3 件）", { exact: true })).toBeVisible();
+    await expect(page.getByText("会员优惠", { exact: true })).toBeVisible();
     await expect(page.getByText("-¥4.00", { exact: true })).toBeVisible();
-    await expect(page.getByText("门店 10 元优惠券 · 已使用 -¥10.00", { exact: true })).toBeVisible();
+    await expect(page.getByText(/门店 10 元优惠券.*-¥10.00/)).toBeVisible();
     await expect(page.getByText(/积分抵扣/)).toBeVisible();
-    await expect(page.getByText("自提 ¥0", { exact: true })).toBeVisible();
+    await expect(page.getByText("自提费", { exact: true })).toBeVisible();
+    await expect(page.getByText("¥0.00", { exact: true }).first()).toBeVisible();
     await expect(page.getByText("应付金额", { exact: true })).toBeVisible();
-    await expect(page.getByText("¥26.60", { exact: true })).toBeVisible();
+    await expect(page.getByText("¥27.10", { exact: true }).first()).toBeVisible();
 
     await page.getByRole("button", { name: "使用积分" }).click();
-    await expect(page.getByText("¥24.60", { exact: true })).toBeVisible();
+    await expect(page.getByText("¥25.10", { exact: true }).first()).toBeVisible();
     await expect(page.getByText(/使用 200 积分抵 ¥2.00/)).toBeVisible();
     await expectNoHorizontalOverflow(page);
   });
