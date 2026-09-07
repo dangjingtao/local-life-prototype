@@ -58,6 +58,11 @@ PRD 反向审查同时确认，当前便利店订单状态页仍存在消费者�
 - `tests/browser/t032-cart-sheet-checkout.spec.mjs`
 - `apps/mobile/src/StoreFlowScreen.tsx`（**仅**清理上述已知消费者工程术语；不得借机重做订单页）
 
+Follow-up 复验确认 Mobile checkout → Mobile order → PC Shared 同一配送订单存在金额事实不一致后，按本卡“真实产品缺陷可最小扩白名单”规则新增：
+
+- `packages/shared/src/fixtures.ts`（**仅**把 `CONV-YUNLING-8888-DELIVERY` 的演示订单金额与当前 checkout 默认购物袋费后的最终应付对齐）
+- `tests/browser/t022-pc-convenience-operations.spec.mjs`（**仅**同步同一配送订单的 Mobile / PC 金额对账断言）
+
 允许新增一个明确命名的 V0.3 release-gate spec，用于跨卡总对账，例如：
 
 - `tests/browser/t045-v03-release-gate.spec.mjs`
@@ -137,3 +142,11 @@ PRD 反向审查同时确认，当前便利店订单状态页仍存在消费者�
 - 最小修复：snapshot 新增 `bagFee`，保存 `checkoutTotal` 为最终 payable；配送完成金额明细同步展示购物袋费用。
 - 同时恢复配送订单 ID 的精确断言 `CONV-YUNLING-8888-DELIVERY`，避免相较旧测试降低识别强度。
 - 前述 132/132 证据仅证明上一 implementation head；本卡重新进入 DOING，必须等待本 follow-up latest-head Verify / Browser Quality 全绿后才能再次 PASS。
+
+
+## Follow-up Browser finding · 2026-09-07
+
+- Browser Quality #34070408321：131 / 132 passed，唯一失败为 T022 跨端配送订单金额仍断言 Mobile / PC `¥31.60`。
+- 失败不是新 Mobile 修复回归：Mobile 现在正确显示含默认购物袋费的 `¥32.10`；真正未同步的是 Shared 中同一订单 `CONV-YUNLING-8888-DELIVERY` 仍为 `amountYuan: 31.6`，PC 因此继续展示 `¥31.60`。
+- 该订单在 Mobile 与 PC 使用同一 order id，属于 Release Gate 的跨端单一事实，不能允许两端金额分叉。
+- 处理：先扩白名单，再把 Shared 该订单金额最小调整为 `32.1`，并把 T022 双端断言同时锁定为 `¥32.10`；不改变商品、优惠、配送费或购物袋业务规则。
